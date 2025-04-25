@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:39:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/25 17:10:05 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/25 19:47:06 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,14 @@
 # include <fstream>
 # include <string>
 #include <cstdlib>
+# include <vector>
 
 class WebServ
 {
     private:
         std::string m_FileName;
+        std::vector<std::string> m_ConfigData;
+
     public:
         WebServ();
         WebServ(std::string config);
@@ -30,7 +33,10 @@ class WebServ
         ~WebServ();
         std::string GetFileName();
         void OpenConfigFile(std::fstream& configFile);
+        void ReadConfig(std::fstream& configFile);
         static void ServerLogs(std::string logs);
+        std::vector<std::string> GetConfigData();
+        
 };
 
 # endif
