@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:39:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/25 19:47:06 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/25 20:02:57 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <string>
 #include <cstdlib>
 # include <vector>
+# include <cctype>
 
 class WebServ
 {
