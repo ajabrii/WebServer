@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:39:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/26 17:54:37 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/26 18:24:07 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ class WebServ
         static void ServerLogs(std::string logs);
         // static void initGrammerMap();
         // static std::map<e_tokens, std::string> GrammerMap;
+        void dataScraper(std::vector<std::string> lines);
         
 };
 

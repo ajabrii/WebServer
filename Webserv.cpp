@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:46:05 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/26 17:56:03 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/26 18:25:38 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,8 @@ void WebServ::OpenConfigFile(std::fstream& configFile)
         WebServ::ServerLogs("Error: couldn't open config file");
     }
 }
+
+//*======================TOOLS-FUNCTIONS============================
 //todo -> this function should be in the class or on it own file as a tool
 bool Isspaces(const std::string& line) 
 {
@@ -107,7 +109,14 @@ bool Isspaces(const std::string& line)
     }
     return true;
 }
-
+//? this one here is to skip comment and empty line (lines that contain only spaces) in the config file
+bool IsComment(const std::string& line) 
+{
+    if (line.find('#') != std::string::npos || Isspaces(line))
+    return true;
+    return false;
+}
+//*========================/TOOL-FUNCTIONS============================
 //? this function is where i read config file parse it content and etc 
 //*this is configParser entry point aka function
 void WebServ::ReadConfig(std::fstream& configFile)
@@ -119,51 +128,113 @@ void WebServ::ReadConfig(std::fstream& configFile)
     OpenConfigFile(configFile);
     while (std::getline(configFile, line)) {
         
-        if (line.find('#') != std::string::npos || Isspaces(line)) //? this one here is to skip comment and empty line (lines that contain only spaces) in the config file
+        if (IsComment(line)) //? this one here is to skip comment and empty line (lines that contain only spaces) in the config file
             continue;
         all_line.append(line);
         this->m_ConfigData.push_back(line);
     }
-
+    
     ServerLogs(all_line);
-    // int i = 0;
-    // for (std::vector<std::string>::iterator it = this->m_ConfigData.begin() ; it != this->m_ConfigData.end(); it++)
-    // {
-    //     std::cout << "line: " << ++i << "  "<< *it << std::endl;
-        
-    //     if (it->find("server") != std::string::npos)
-    //     {
-    //         serverBlock.server_name = "default_server";
-    //         serverBlock.listen = "80";
-    //         serverBlock.error_page = "404";
-    //         serverBlock.index = "index.html";
-    //         serverBlock.client_max_body_size = "100M";
-    //         this->m_ServerBlocks.push_back(serverBlock);
-    //     }
-    //     else if (it->find("location") != std::string::npos)
-    //     {
-    //         t_route_block routeBlock;
-    //         routeBlock.location = "/api";
-    //         routeBlock.methods = "GET, POST";
-    //         this->m_ServerBlocks.back().routes.push_back(routeBlock);
-    //     }
-    // }
-    // std::cout << "====================SERVER BLOCKS====================" << std::endl;
-    // for (size_t i = 0; i < this->m_ServerBlocks.size(); i++)
-    // {
-    //     std::cout << "server name: " << this->m_ServerBlocks[i].server_name << std::endl;
-    //     std::cout << "listen: " << this->m_ServerBlocks[i].listen << std::endl;
-    //     std::cout << "error page: " << this->m_ServerBlocks[i].error_page << std::endl;
-    //     std::cout << "index: " << this->m_ServerBlocks[i].index << std::endl;
-    //     std::cout << "client max body size: " << this->m_ServerBlocks[i].client_max_body_size << std::endl;
-    //     for (size_t j = 0; j < this->m_ServerBlocks[i].routes.size(); j++)
-    //     {
-    //         std::cout << "location: " << this->m_ServerBlocks[i].routes[j].location << std::endl;
-    //         std::cout << "methods: " << this->m_ServerBlocks[i].routes[j].methods << std::endl;
-    //     }
-    // }
+    dataScraper(m_ConfigData);
     
 }
+
+void WebServ::dataScraper(std::vector<std::string> lines)
+{
+    for (size_t i = 0; i < lines.size(); i++)
+    {
+        if (lines[i].find("server") != std::string::npos)
+        {
+            
+            t_server_block serverBlock;
+            serverBlock.server_name = "default_server";
+            serverBlock.listen = "80";
+            serverBlock.error_page = "404";
+            serverBlock.index = "index.html";
+            serverBlock.client_max_body_size = "100M";
+            this->m_ServerBlocks.push_back(serverBlock);
+        }
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//*======================printing==SERVER-BLOCK============================
+// int i = 0;
+// for (std::vector<std::string>::iterator it = this->m_ConfigData.begin() ; it != this->m_ConfigData.end(); it++)
+// {
+//     std::cout << "line: " << ++i << "  "<< *it << std::endl;
+    
+//     if (it->find("server") != std::string::npos)
+//     {
+//         serverBlock.server_name = "default_server";
+//         serverBlock.listen = "80";
+//         serverBlock.error_page = "404";
+//         serverBlock.index = "index.html";
+//         serverBlock.client_max_body_size = "100M";
+//         this->m_ServerBlocks.push_back(serverBlock);
+//     }
+//     else if (it->find("location") != std::string::npos)
+//     {
+//         t_route_block routeBlock;
+//         routeBlock.location = "/api";
+//         routeBlock.methods = "GET, POST";
+//         this->m_ServerBlocks.back().routes.push_back(routeBlock);
+//     }
+// }
+// std::cout << "====================SERVER BLOCKS====================" << std::endl;
+// for (size_t i = 0; i < this->m_ServerBlocks.size(); i++)
+// {
+//     std::cout << "server name: " << this->m_ServerBlocks[i].server_name << std::endl;
+//     std::cout << "listen: " << this->m_ServerBlocks[i].listen << std::endl;
+//     std::cout << "error page: " << this->m_ServerBlocks[i].error_page << std::endl;
+//     std::cout << "index: " << this->m_ServerBlocks[i].index << std::endl;
+//     std::cout << "client max body size: " << this->m_ServerBlocks[i].client_max_body_size << std::endl;
+//     for (size_t j = 0; j < this->m_ServerBlocks[i].routes.size(); j++)
+//     {
+//         std::cout << "location: " << this->m_ServerBlocks[i].routes[j].location << std::endl;
+//         std::cout << "methods: " << this->m_ServerBlocks[i].routes[j].methods << std::endl;
+//     }
+// }
+
+//*======================printing=================================
 //todo close file 
 // for ( std::map<e_tokens, std::string>::iterator it = GrammerMap.begin(); it != GrammerMap.end(); it++)
 // {
