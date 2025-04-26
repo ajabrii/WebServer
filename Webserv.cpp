@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:46:05 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/26 11:25:49 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/26 12:15:57 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,13 @@ void WebServ::initGrammerMap() {
 WebServ::WebServ()
 {
     m_FileName = "./config/default_config.config";
+    initGrammerMap();
 }
 
 WebServ::WebServ(std::string config) {
     this->m_FileName = config;
+    initGrammerMap();
+
 }
 
 WebServ::WebServ(const WebServ& other)
@@ -63,6 +66,10 @@ WebServ::~WebServ()
 }
 //*=====================getters/setters=================================
 
+std::vector<t_token> WebServ::GetTokens()
+{
+    return (m_Tokens);
+}
 
 std::string WebServ::GetFileName()
 {
@@ -114,17 +121,18 @@ void WebServ::ReadConfig(std::fstream& configFile)
             continue;
         this->m_ConfigData.push_back(line);
     }
-    //TODO 1
-    //*i should build a lexer so i can give tokenize all configuration 
-    //todo 2
-    //* 
     for (size_t i = 0; i < this->m_ConfigData.size(); i++)
         ServerLogs(this->m_ConfigData[i]);
-    initGrammerMap();
     for ( std::map<e_tokens, std::string>::iterator it = GrammerMap.begin(); it != GrammerMap.end(); it++)
     {
-        // ServerLogs(GrammerMap[i].second);
         std::cout << "key: " << it->first << " value: " << it->second << std::endl;
     }
-    
+    for (size_t i = 0; i < this->m_ConfigData.size(); i++)
+    {
+        //todo take line by line and assign it to a token
+        //todo: function
+        
+    }
 }
+
+//todo close file 

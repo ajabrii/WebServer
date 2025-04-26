@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:39:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/26 11:15:14 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/26 12:03:19 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ class WebServ
     private:
         std::string m_FileName;
         std::vector<std::string> m_ConfigData;
+        std::vector<t_token> m_Tokens;
 
     public:
         WebServ();
@@ -62,6 +63,7 @@ class WebServ
         WebServ& operator=(const WebServ& other);
         ~WebServ();
         std::string GetFileName();
+        std::vector<t_token> GetTokens();
         void OpenConfigFile(std::fstream& configFile);
         void ReadConfig(std::fstream& configFile);
         std::vector<std::string> GetConfigData();
