@@ -6,46 +6,46 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:46:05 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/26 12:15:57 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/26 17:56:03 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "webserv.hpp"
 
 
-//*=====================GRAMMAR=================================
-std::map<e_tokens, std::string> WebServ::GrammerMap;
+//!=====================GRAMMAR=================================
+// std::map<e_tokens, std::string> WebServ::GrammerMap;
 
-void WebServ::initGrammerMap() {
-    GrammerMap[TOKEN_SERVER_BLOCK] = "server";
-    GrammerMap[TOKEN_LOCATION_BLOCK] = "location";
-    GrammerMap[TOKEN_LISTEN] = "listen";
-    GrammerMap[TOKEN_SERVER_NAME] = "server_name";
-    GrammerMap[TOKEN_ERROR_PAGE] = "error_page";
-    GrammerMap[TOKEN_CLIENT_MAX_BODY_SIZE] = "client_max_body_size";
-    GrammerMap[TOKEN_ROOT] = "root";
-    GrammerMap[TOKEN_INDEX] = "index";
-    GrammerMap[TOKEN_METHODS] = "methods";
-    GrammerMap[TOKEN_AUTOINDEX] = "autoindex";
-    GrammerMap[TOKEN_UPLOAD] = "upload";
-    GrammerMap[TOKEN_CGI_PASS] = "cgi_pass";
-    GrammerMap[TOKEN_LBRACE] = "{";
-    GrammerMap[TOKEN_RBRACE] = "}";
-    GrammerMap[TOKEN_SEMICOLON] = ";";
-    GrammerMap[TOKEN_UNKNOWN] = "unknown";
-    GrammerMap[TOKEN_VALUE] = "value";
-}
+// void WebServ::initGrammerMap() {
+//     GrammerMap[TOKEN_SERVER_BLOCK] = "server";
+//     GrammerMap[TOKEN_LOCATION_BLOCK] = "location";
+//     GrammerMap[TOKEN_LISTEN] = "listen";
+//     GrammerMap[TOKEN_SERVER_NAME] = "server_name";
+//     GrammerMap[TOKEN_ERROR_PAGE] = "error_page";
+//     GrammerMap[TOKEN_CLIENT_MAX_BODY_SIZE] = "client_max_body_size";
+//     GrammerMap[TOKEN_ROOT] = "root";
+//     GrammerMap[TOKEN_INDEX] = "index";
+//     GrammerMap[TOKEN_METHODS] = "methods";
+//     GrammerMap[TOKEN_AUTOINDEX] = "autoindex";
+//     GrammerMap[TOKEN_UPLOAD] = "upload";
+//     GrammerMap[TOKEN_CGI_PASS] = "cgi_pass";
+//     GrammerMap[TOKEN_LBRACE] = "{";
+//     GrammerMap[TOKEN_RBRACE] = "}";
+//     GrammerMap[TOKEN_SEMICOLON] = ";";
+//     GrammerMap[TOKEN_UNKNOWN] = "unknown";
+//     GrammerMap[TOKEN_VALUE] = "value";
+// }
 
 //*=====================CANONICAL=================================
 WebServ::WebServ()
 {
     m_FileName = "./config/default_config.config";
-    initGrammerMap();
+    // initGrammerMap();
 }
 
 WebServ::WebServ(std::string config) {
     this->m_FileName = config;
-    initGrammerMap();
+    // initGrammerMap();
 
 }
 
@@ -66,10 +66,10 @@ WebServ::~WebServ()
 }
 //*=====================getters/setters=================================
 
-std::vector<t_token> WebServ::GetTokens()
-{
-    return (m_Tokens);
-}
+// std::vector<t_token> WebServ::GetTokens()
+// {
+//     return (m_Tokens);
+// }
 
 std::string WebServ::GetFileName()
 {
@@ -113,26 +113,63 @@ bool Isspaces(const std::string& line)
 void WebServ::ReadConfig(std::fstream& configFile)
 {
     std::string line;
+    std::string all_line;
     
+    t_server_block serverBlock;
     OpenConfigFile(configFile);
     while (std::getline(configFile, line)) {
         
         if (line.find('#') != std::string::npos || Isspaces(line)) //? this one here is to skip comment and empty line (lines that contain only spaces) in the config file
             continue;
+        all_line.append(line);
         this->m_ConfigData.push_back(line);
     }
-    for (size_t i = 0; i < this->m_ConfigData.size(); i++)
-        ServerLogs(this->m_ConfigData[i]);
-    for ( std::map<e_tokens, std::string>::iterator it = GrammerMap.begin(); it != GrammerMap.end(); it++)
-    {
-        std::cout << "key: " << it->first << " value: " << it->second << std::endl;
-    }
-    for (size_t i = 0; i < this->m_ConfigData.size(); i++)
-    {
-        //todo take line by line and assign it to a token
-        //todo: function
-        
-    }
-}
 
+    ServerLogs(all_line);
+    // int i = 0;
+    // for (std::vector<std::string>::iterator it = this->m_ConfigData.begin() ; it != this->m_ConfigData.end(); it++)
+    // {
+    //     std::cout << "line: " << ++i << "  "<< *it << std::endl;
+        
+    //     if (it->find("server") != std::string::npos)
+    //     {
+    //         serverBlock.server_name = "default_server";
+    //         serverBlock.listen = "80";
+    //         serverBlock.error_page = "404";
+    //         serverBlock.index = "index.html";
+    //         serverBlock.client_max_body_size = "100M";
+    //         this->m_ServerBlocks.push_back(serverBlock);
+    //     }
+    //     else if (it->find("location") != std::string::npos)
+    //     {
+    //         t_route_block routeBlock;
+    //         routeBlock.location = "/api";
+    //         routeBlock.methods = "GET, POST";
+    //         this->m_ServerBlocks.back().routes.push_back(routeBlock);
+    //     }
+    // }
+    // std::cout << "====================SERVER BLOCKS====================" << std::endl;
+    // for (size_t i = 0; i < this->m_ServerBlocks.size(); i++)
+    // {
+    //     std::cout << "server name: " << this->m_ServerBlocks[i].server_name << std::endl;
+    //     std::cout << "listen: " << this->m_ServerBlocks[i].listen << std::endl;
+    //     std::cout << "error page: " << this->m_ServerBlocks[i].error_page << std::endl;
+    //     std::cout << "index: " << this->m_ServerBlocks[i].index << std::endl;
+    //     std::cout << "client max body size: " << this->m_ServerBlocks[i].client_max_body_size << std::endl;
+    //     for (size_t j = 0; j < this->m_ServerBlocks[i].routes.size(); j++)
+    //     {
+    //         std::cout << "location: " << this->m_ServerBlocks[i].routes[j].location << std::endl;
+    //         std::cout << "methods: " << this->m_ServerBlocks[i].routes[j].methods << std::endl;
+    //     }
+    // }
+    
+}
 //todo close file 
+// for ( std::map<e_tokens, std::string>::iterator it = GrammerMap.begin(); it != GrammerMap.end(); it++)
+// {
+//     std::cout << "key: " << it->first << " value: " << it->second << std::endl;
+// }
+// for (size_t i = 0; i < this->m_ConfigData.size(); i++)
+// {
+//     //todo take line by line and assign it to a token
+//     //todo: function
