@@ -6,12 +6,35 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:46:05 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/25 20:06:29 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/26 11:25:49 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "webserv.hpp"
 
+
+//*=====================GRAMMAR=================================
+std::map<e_tokens, std::string> WebServ::GrammerMap;
+
+void WebServ::initGrammerMap() {
+    GrammerMap[TOKEN_SERVER_BLOCK] = "server";
+    GrammerMap[TOKEN_LOCATION_BLOCK] = "location";
+    GrammerMap[TOKEN_LISTEN] = "listen";
+    GrammerMap[TOKEN_SERVER_NAME] = "server_name";
+    GrammerMap[TOKEN_ERROR_PAGE] = "error_page";
+    GrammerMap[TOKEN_CLIENT_MAX_BODY_SIZE] = "client_max_body_size";
+    GrammerMap[TOKEN_ROOT] = "root";
+    GrammerMap[TOKEN_INDEX] = "index";
+    GrammerMap[TOKEN_METHODS] = "methods";
+    GrammerMap[TOKEN_AUTOINDEX] = "autoindex";
+    GrammerMap[TOKEN_UPLOAD] = "upload";
+    GrammerMap[TOKEN_CGI_PASS] = "cgi_pass";
+    GrammerMap[TOKEN_LBRACE] = "{";
+    GrammerMap[TOKEN_RBRACE] = "}";
+    GrammerMap[TOKEN_SEMICOLON] = ";";
+    GrammerMap[TOKEN_UNKNOWN] = "unknown";
+    GrammerMap[TOKEN_VALUE] = "value";
+}
 
 //*=====================CANONICAL=================================
 WebServ::WebServ()
@@ -97,5 +120,11 @@ void WebServ::ReadConfig(std::fstream& configFile)
     //* 
     for (size_t i = 0; i < this->m_ConfigData.size(); i++)
         ServerLogs(this->m_ConfigData[i]);
+    initGrammerMap();
+    for ( std::map<e_tokens, std::string>::iterator it = GrammerMap.begin(); it != GrammerMap.end(); it++)
+    {
+        // ServerLogs(GrammerMap[i].second);
+        std::cout << "key: " << it->first << " value: " << it->second << std::endl;
+    }
     
 }
