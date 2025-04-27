@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:46:05 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/27 16:34:26 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/27 16:52:38 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,17 +131,33 @@ void WebServ::ReadConfig(std::fstream& configFile)
 {
     std::string line;
     std::string all_line;
+    std::string tmp;
     
     t_server_block serverBlock;
     OpenConfigFile(configFile);
     while (std::getline(configFile, line)) {
         
-        if (IsComment(line)) //? this one here is to skip comment and empty line (lines that contain only spaces) in the config file
+        if (IsComment(line))
             continue;
-        // ServerLogs(line);
-        this->m_ConfigData.push_back(Trim(line));
+        size_t pos = line.find('{');
+        if (pos != std::string::npos && pos != 0) {
+            tmp = line.substr(0, pos);
+            this->m_ConfigData.push_back(Trim(tmp));
+            tmp = line.substr(pos, line.length() - 1);
+            this->m_ConfigData.push_back(Trim(tmp));
+            // std::cerr << "Error: invalid line format `" << tmp <<"'"<< std::endl;
+            // exit(1);
+            continue;
+        }
+        else
+            this->m_ConfigData.push_back(Trim(line));
     }
-    dataScraper(m_ConfigData);
+    // dataScraper(m_ConfigData);
+    for (size_t i = 0; i < m_ConfigData.size(); i++)
+    {
+        std::cout << "line: " << i + 1 << "  "<< m_ConfigData[i] << std::endl;
+    }
+    // exit(120);
     
 }
 
@@ -183,7 +199,7 @@ void WebServ::getServerData(std::string& line, t_server_block& block) // host = 
     
 }
 
-void WebServ::getRouteData(std::string& line, t_server_block& block) // host = 0.0.0.0
+void WebServ::getRouteData(std::string& line, t_server_block& block)
 {
     (void)block;
     // size_t pos;
@@ -208,15 +224,8 @@ void WebServ::ServerData(std::vector<std::string> &lines, size_t& i)
             i++;
             
         }
-
         getServerData(lines[i],serverBlock);
-        // std::cout <<"`"<< lines[i] <<"'"<< std::endl;
-        
         i++;
-        
-        //todo -> 2,> subster the key value (ex: host = 0.0.0.0)
-        //? -> subser line = compare keywords then store the value in server block vecotr 
-        //ex: host = 0.0.0.0 -> subsr -> host> compare host with our defind key works host = 0.0.0.0 
     }
     std::cout << "====================SERVER BLOCKS====================" << std::endl;
     m_ServerBlocks.push_back(serverBlock);
@@ -237,14 +246,12 @@ void WebServ::dataScraper(std::vector<std::string> &lines)
         {
             if (lines[i+1] == "{")
             {
-                // std::cout << "server block found" << std::endl;
                 serverFlag = 1;
                 ServerData(m_ConfigData, i += 2);  
             }
             if (serverFlag != 0)
             {
                 ServerLogs("Error: server block not closed");
-                // serverFlag = -1;
             }
         
     }
