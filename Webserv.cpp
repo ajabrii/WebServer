@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:46:05 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/27 16:52:38 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/27 16:56:38 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,6 +132,7 @@ void WebServ::ReadConfig(std::fstream& configFile)
     std::string line;
     std::string all_line;
     std::string tmp;
+    size_t pos;
     
     t_server_block serverBlock;
     OpenConfigFile(configFile);
@@ -139,26 +140,19 @@ void WebServ::ReadConfig(std::fstream& configFile)
         
         if (IsComment(line))
             continue;
-        size_t pos = line.find('{');
+        //? youness is this is where fix this error server { and server \n{
+        pos = line.find('{');
         if (pos != std::string::npos && pos != 0) {
             tmp = line.substr(0, pos);
             this->m_ConfigData.push_back(Trim(tmp));
             tmp = line.substr(pos, line.length() - 1);
             this->m_ConfigData.push_back(Trim(tmp));
-            // std::cerr << "Error: invalid line format `" << tmp <<"'"<< std::endl;
-            // exit(1);
             continue;
         }
         else
             this->m_ConfigData.push_back(Trim(line));
     }
-    // dataScraper(m_ConfigData);
-    for (size_t i = 0; i < m_ConfigData.size(); i++)
-    {
-        std::cout << "line: " << i + 1 << "  "<< m_ConfigData[i] << std::endl;
-    }
-    // exit(120);
-    
+    dataScraper(m_ConfigData);
 }
 
 std::string WebServ::Trim(std::string& str)
