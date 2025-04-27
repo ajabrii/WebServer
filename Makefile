@@ -1,7 +1,7 @@
 CXX = c++
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98
 NAME = Webserv
-SRC =   main.cpp Webserv.cpp
+SRC =   main.cpp Webserv.cpp Server/Socket.cpp Server/Server.cpp
 OBJ = $(SRC:.cpp=.o)
 HEADER = webserv.hpp
 

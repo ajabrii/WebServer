@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:39:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/27 16:37:18 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/27 18:57:33 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 # include <cctype>
 # include <ctime>
 # include <map>
+# include "Server/Server.hpp"
 
 typedef struct s_routes_block
 {
@@ -30,6 +31,7 @@ typedef struct s_routes_block
 
 typedef struct _server_block
 {
+    int index;
     std::string server_name;
     std::string listen; // port
     std::string error_page; // 404.html
@@ -63,6 +65,8 @@ class WebServ
         std::string Trim(std::string& str);
         void getServerData(std::string& line, t_server_block& block);
         void getRouteData(std::string& line, t_server_block& block);
+        t_server_block getBlock(int index);
+        void printBlock(t_server_block block);
         int serverFlag;
         int routeFlag;
         

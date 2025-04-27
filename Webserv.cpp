@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:46:05 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/27 16:56:38 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/27 18:40:50 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,6 +207,7 @@ void WebServ::getRouteData(std::string& line, t_server_block& block)
 void WebServ::ServerData(std::vector<std::string> &lines, size_t& i)
 {
     t_server_block serverBlock;
+    static int index;
 
     while (i < lines.size()) {
         if (lines[i] == "}") {
@@ -221,13 +222,15 @@ void WebServ::ServerData(std::vector<std::string> &lines, size_t& i)
         getServerData(lines[i],serverBlock);
         i++;
     }
-    std::cout << "====================SERVER BLOCKS====================" << std::endl;
+    // std::cout << "====================SERVER BLOCKS====================" << std::endl;
+    serverBlock.index = index;
     m_ServerBlocks.push_back(serverBlock);
-    std::cout << "server name: " << serverBlock.server_name << std::endl;
-    std::cout << "port: " << serverBlock.listen << std::endl;
-    std::cout << "host: " << serverBlock.host << std::endl;
-    std::cout << "error page: " << serverBlock.error_page << std::endl;
-    std::cout << "client max body size: " << serverBlock.client_max_body_size << std::endl;
+    index++;
+    // std::cout << "server name: " << serverBlock.server_name << std::endl;
+    // std::cout << "port: " << serverBlock.listen << std::endl;
+    // std::cout << "host: " << serverBlock.host << std::endl;
+    // std::cout << "error page: " << serverBlock.error_page << std::endl;
+    // std::cout << "client max body size: " << serverBlock.client_max_body_size << std::endl;
     
 }
 
@@ -250,6 +253,30 @@ void WebServ::dataScraper(std::vector<std::string> &lines)
         
     }
     }
+}
+
+t_server_block WebServ::getBlock(int index)
+{
+    int block_number;
+    
+    block_number = m_ServerBlocks.size();
+    if (index >= block_number)
+    {
+        std::cerr << "Invalid range max is : " << block_number 
+            << ", you enterd: " << index << std::endl;
+        exit (12);
+    }
+    return (m_ServerBlocks[index]);
+}
+
+void WebServ::printBlock(t_server_block serverBlock)
+{
+    std::cout << "====================SERVER BLOCK NUM: " << serverBlock.index << "====================" << std::endl;
+    std::cout << "server name: " << serverBlock.server_name << std::endl;
+    std::cout << "port: " << serverBlock.listen << std::endl;
+    std::cout << "host: " << serverBlock.host << std::endl;
+    std::cout << "error page: " << serverBlock.error_page << std::endl;
+    std::cout << "client max body size: " << serverBlock.client_max_body_size << std::endl;
 }
 
 
