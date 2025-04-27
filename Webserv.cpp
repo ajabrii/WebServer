@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:46:05 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/26 18:25:38 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/27 16:34:26 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,10 +115,18 @@ bool IsComment(const std::string& line)
     if (line.find('#') != std::string::npos || Isspaces(line))
     return true;
     return false;
+    
 }
+
+// void  fixVecotrData(std::vector<std::string>& lines)
+// {
+
+// }
+
 //*========================/TOOL-FUNCTIONS============================
 //? this function is where i read config file parse it content and etc 
 //*this is configParser entry point aka function
+
 void WebServ::ReadConfig(std::fstream& configFile)
 {
     std::string line;
@@ -130,35 +138,118 @@ void WebServ::ReadConfig(std::fstream& configFile)
         
         if (IsComment(line)) //? this one here is to skip comment and empty line (lines that contain only spaces) in the config file
             continue;
-        all_line.append(line);
-        this->m_ConfigData.push_back(line);
+        // ServerLogs(line);
+        this->m_ConfigData.push_back(Trim(line));
     }
-    
-    ServerLogs(all_line);
     dataScraper(m_ConfigData);
     
 }
 
-void WebServ::dataScraper(std::vector<std::string> lines)
+std::string WebServ::Trim(std::string& str)
 {
-    for (size_t i = 0; i < lines.size(); i++)
-    {
-        if (lines[i].find("server") != std::string::npos)
-        {
-            
-            t_server_block serverBlock;
-            serverBlock.server_name = "default_server";
-            serverBlock.listen = "80";
-            serverBlock.error_page = "404";
-            serverBlock.index = "index.html";
-            serverBlock.client_max_body_size = "100M";
-            this->m_ServerBlocks.push_back(serverBlock);
-        }
-        
+      size_t first = 0;
+    while (first < str.length() && isspace(str[first])) {
+        first++;
+    }
+    
+    size_t last = str.length();
+    while (last > first && isspace(str[last - 1])) {
+        last--;
+    }
+    
+    return str.substr(first, last - first);
+}
+
+void WebServ::getServerData(std::string& line, t_server_block& block) // host = 0.0.0.0
+{
+    size_t pos;
+    pos = line.find('=');
+    std::string key = line.substr(0, pos - 1);
+    key = Trim(key);
+    std::string Value = line.substr(pos + 1, line.length() - 1);
+    Value = Trim(Value);
+    if (key == "host")
+        block.host = Value;
+    else if (key == "port")
+        block.listen = Value;
+    else if (key == "server_name")
+        block.server_name = Value;
+    else if (key == "error_page")
+        block.error_page = Value;
+    else if (key == "client_max_body_size")
+        block.client_max_body_size = Value;
+    else
+        std::cerr << "Error: unknown key " << key << std::endl;
+    
+}
+
+void WebServ::getRouteData(std::string& line, t_server_block& block) // host = 0.0.0.0
+{
+    (void)block;
+    // size_t pos;
+    if (line.find("route") == std::string::npos) {
+        ServerLogs("Error: invalid line format " + line);
+        //exit(1);
+        return;
     }
 }
 
+void WebServ::ServerData(std::vector<std::string> &lines, size_t& i)
+{
+    t_server_block serverBlock;
 
+    while (i < lines.size()) {
+        if (lines[i] == "}") {
+            serverFlag = 0;
+            break;
+        }
+        if (lines[i].find('=') == std::string::npos) {
+            getRouteData(lines[i],serverBlock);
+            i++;
+            
+        }
+
+        getServerData(lines[i],serverBlock);
+        // std::cout <<"`"<< lines[i] <<"'"<< std::endl;
+        
+        i++;
+        
+        //todo -> 2,> subster the key value (ex: host = 0.0.0.0)
+        //? -> subser line = compare keywords then store the value in server block vecotr 
+        //ex: host = 0.0.0.0 -> subsr -> host> compare host with our defind key works host = 0.0.0.0 
+    }
+    std::cout << "====================SERVER BLOCKS====================" << std::endl;
+    m_ServerBlocks.push_back(serverBlock);
+    std::cout << "server name: " << serverBlock.server_name << std::endl;
+    std::cout << "port: " << serverBlock.listen << std::endl;
+    std::cout << "host: " << serverBlock.host << std::endl;
+    std::cout << "error page: " << serverBlock.error_page << std::endl;
+    std::cout << "client max body size: " << serverBlock.client_max_body_size << std::endl;
+    
+}
+
+void WebServ::dataScraper(std::vector<std::string> &lines)
+{
+    serverFlag = -1;
+    for (size_t i = 0; i < lines.size(); i++)
+    {
+        if (lines[i] == "server")
+        {
+            if (lines[i+1] == "{")
+            {
+                // std::cout << "server block found" << std::endl;
+                serverFlag = 1;
+                ServerData(m_ConfigData, i += 2);  
+            }
+            if (serverFlag != 0)
+            {
+                ServerLogs("Error: server block not closed");
+                // serverFlag = -1;
+            }
+        
+    }
+    }
+}
 
 
 

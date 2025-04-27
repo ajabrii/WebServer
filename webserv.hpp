@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:39:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/26 18:24:07 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/27 16:33:52 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,8 @@ typedef struct _server_block
     std::string server_name;    // this is for server name
     std::string listen; // this is for listen
     std::string error_page; // this is for error page
-    std::string index; // this is for index
     std::string client_max_body_size; // this is for max body size
+    std::string host;
     // std::string root;   // this is for root
     // std::string autoindex; // this is for autoindex
     // std::string upload; // this is for upload
@@ -50,7 +50,6 @@ class WebServ
         std::string m_FileName;
         std::vector<std::string> m_ConfigData;
         std::vector<t_server_block> m_ServerBlocks;
-        // std::vector<t_token> m_Tokens;
 
     public:
         WebServ();
@@ -59,14 +58,17 @@ class WebServ
         WebServ& operator=(const WebServ& other);
         ~WebServ();
         std::string GetFileName();
-        // std::vector<t_token> GetTokens();
         void OpenConfigFile(std::fstream& configFile);
         void ReadConfig(std::fstream& configFile);
         std::vector<std::string> GetConfigData();
         static void ServerLogs(std::string logs);
-        // static void initGrammerMap();
-        // static std::map<e_tokens, std::string> GrammerMap;
-        void dataScraper(std::vector<std::string> lines);
+        void dataScraper(std::vector<std::string> &lines);
+        void ServerData(std::vector<std::string> &lines, size_t& i);
+        std::string Trim(std::string& str);
+        void getServerData(std::string& line, t_server_block& block);
+        void getRouteData(std::string& line, t_server_block& block);
+        int serverFlag;
+        int routeFlag;
         
 };
 
