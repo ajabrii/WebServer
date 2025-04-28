@@ -9,10 +9,16 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 
+#define DOMAIN
+
 class Socket
 {
     private:
-        int fd;
+        int arry[4]
+        // int domain;
+        // int type;
+        // int protocol;
+        // int fd;
     public:
         Socket(int domain, int type, int protocol);
         ~Socket();

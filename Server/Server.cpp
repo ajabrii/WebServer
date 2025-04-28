@@ -1,6 +1,11 @@
 #include "Server.hpp"
 
-Server::Server(Socket sock) : sock(sock) {}
+Server::Server(Socket sock) : sock(sock) 
+{
+    serverAddress.sin_family = sock;
+    serverAddress.sin_port = htons(8080);
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
+}
 Server::~Server()
 {
 
