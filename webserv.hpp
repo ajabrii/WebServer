@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:39:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/27 16:37:18 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/28 11:18:04 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,19 @@
 # include <cctype>
 # include <ctime>
 # include <map>
+#include <cstring>      // For memset
+#include <unistd.h>     // For close()
+#include <sys/socket.h> // For socket functions
+#include <netinet/in.h> // For sockaddr_in
+#include <arpa/inet.h>  // For inet_ntoa()
+
+
+#define RED "\033[1;31m"
+#define GREEN "\033[1;32m"
+#define YELLOW "\033[1;33m"
+#define RES "\033[0m"
+
+
 
 typedef struct s_routes_block
 {

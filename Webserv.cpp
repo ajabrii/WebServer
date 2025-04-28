@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:46:05 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/27 16:56:38 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/27 18:35:42 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,8 +188,10 @@ void WebServ::getServerData(std::string& line, t_server_block& block) // host = 
         block.error_page = Value;
     else if (key == "client_max_body_size")
         block.client_max_body_size = Value;
-    else
+    else {
         std::cerr << "Error: unknown key " << key << std::endl;
+        return;
+    }
     
 }
 
@@ -221,13 +223,13 @@ void WebServ::ServerData(std::vector<std::string> &lines, size_t& i)
         getServerData(lines[i],serverBlock);
         i++;
     }
-    std::cout << "====================SERVER BLOCKS====================" << std::endl;
+    // std::cout << "====================SERVER BLOCKS====================" << std::endl;
     m_ServerBlocks.push_back(serverBlock);
-    std::cout << "server name: " << serverBlock.server_name << std::endl;
-    std::cout << "port: " << serverBlock.listen << std::endl;
-    std::cout << "host: " << serverBlock.host << std::endl;
-    std::cout << "error page: " << serverBlock.error_page << std::endl;
-    std::cout << "client max body size: " << serverBlock.client_max_body_size << std::endl;
+    // std::cout << "server name: " << serverBlock.server_name << std::endl;
+    // std::cout << "port: " << serverBlock.listen << std::endl;
+    // std::cout << "host: " << serverBlock.host << std::endl;
+    // std::cout << "error page: " << serverBlock.error_page << std::endl;
+    // std::cout << "client max body size: " << serverBlock.client_max_body_size << std::endl;
     
 }
 
