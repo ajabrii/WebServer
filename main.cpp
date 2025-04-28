@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 18:44:48 by kali              #+#    #+#             */
-/*   Updated: 2025/04/28 12:22:50 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/28 13:47:33 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ int main(int ac, char **av)
     memset(&address, 0, sizeof(address)); // we memset the address to 0 so we can avoid garbage values
     address.sin_family = AF_INET; // sin_family = AF_INET means we are using IPv4
     address.sin_addr.s_addr = INADDR_ANY; // sin_addr = INADDR_ANY means we are using all interfaces default interface
-    address.sin_port = htons(8080); // htons() stands for host to network short, it converts the port number from host byte order to network byte order
+    address.sin_port = htons(8081); // htons() stands for host to network short, it converts the port number from host byte order to network byte order
     //*3. Bind socket to address
 
     //? bind() associates the socket with the address and port number specified in the sockaddr_in structure (example: address = 192.168.43.1 and port = 8080sd )
@@ -74,15 +74,38 @@ int main(int ac, char **av)
         }
         std::cout <<YELLOW<< "Client connected from " <<RES<<GREEN<< inet_ntoa(address.sin_addr) <<RES <<std::endl;
         // ? accept() accepts a connection on the socket and creates a new socket for the client. It returns the new socket file descriptor.
-        //*6. Send a simple HTTP response
-        const char *response = 
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/plain\r\n"
-            "Content-Length: 13\r\n"
-            "\r\n"
-            "Hello, World!";
-        // send(clientFd, response, strlen(response), 0);
-        write(clientFd, response, strlen(response));
+     // Here is your new HTML body
+        const char *html_body = 
+        "<!DOCTYPE html>\n"
+        "<html lang=\"en\">\n"
+        "<head>\n"
+        "<meta charset=\"UTF-8\">\n"
+        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+        "<title>ARPANET++</title>\n"
+        "<link rel=\"icon\" href=\"./www/t.png\" type=\"image/x-icon\">"
+        "</head>\n"
+        "<body>\n"
+        "<div style=\"display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f0f0;\">"
+            "<h1 style=\"display: flex; font-weight:200; flex-direction: column;\">Webserv repo </h1>\n"
+            "<button style=\"background-color: green; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin-left: 10px\"><a href=\"https://github.com/ajabrii/WebServer/\" style=\"text-decoration: none; color: white;\">Click Me</a></button>"
+        "</div>"
+        "</body>\n"
+        "</html>\n";
+
+        // Create the full HTTP response
+        char response[4096];
+        sprintf(response,
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/html\r\n"
+        "Content-Length: %lu\r\n"
+        "\r\n"
+        "%s",
+        strlen(html_body),
+        html_body);
+
+        // Send the HTTP response
+        send(clientFd, response, strlen(response), 0);
+
         
         // ? send() sends the response to the client. It takes the socket file descriptor, the response string, the length of the response, and flags (0 in this case).
         //*7. Close sockets
