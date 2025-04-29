@@ -1,12 +1,17 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/27 17:03:29 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/27 17:03:30 by ajabri           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#include "Server.hpp"
 
+Server::Server(Socket sock) : sock(sock) 
+{
+    serverAddress.sin_family = sock.getDomain();
+    serverAddress.sin_port = htons(8080);
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
+}
+Server::~Server()
+{
+
+}
+
+Socket Server::getSocket() const
+{
+    return (sock);
+}

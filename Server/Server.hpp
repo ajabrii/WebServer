@@ -1,12 +1,19 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/27 17:03:35 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/27 17:03:36 by ajabri           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#ifndef SERVER_HPP
+#define SERVER_HPP
 
+#include "Socket.hpp"
+
+class Server
+{
+    private:
+        Socket sock;
+        sockaddr_in serverAddress;
+    public:
+        Server(Socket sock);
+        ~Server();
+        Socket getSocket() const;
+
+};
+
+
+#endif
