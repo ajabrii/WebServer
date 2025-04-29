@@ -1,9 +1,9 @@
 CXX = c++
-CPPFLAGS = -Wall -Wextra -Werror -std=c++98
+CPPFLAGS = -Wall -Wextra -Werror #-std=c++98
 NAME = Webserv
-SRC =   main.cpp Webserv.cpp
+SRC =   main.cpp Webserver.cpp config_parser.cpp
 OBJ = $(SRC:.cpp=.o)
-HEADER = webserv.hpp
+HEADER = Webserver.hpp
 
 all: $(NAME)
 

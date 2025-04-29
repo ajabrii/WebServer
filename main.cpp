@@ -10,23 +10,33 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-# include "webserv.hpp"
+# include "Webserver.hpp"
 // include poll() header
 # include <poll.h>
 
 int main(int ac, char **av)
 {
-
     WebServ data(av[1]);
+    (void)ac;
+    data.parseConfig();
+    data.printConfig();
+    // std::cout << "here" << std::endl;
+}
+
+
+// int main(int ac, char **av)
+// {
+
+//     WebServ data(av[1]);
     
-    (void)av;
-    if (ac != 2) {
-       WebServ::ServerLogs("Error:\n[usage]-> ./webserv configFile.config.");
-        return (1);
-    }
-    std::fstream configFile;
-    data.ReadConfig(configFile);
-    std::cout << "=========================SERVER-BLOCK============================" << std::endl;
+//     (void)av;
+//     if (ac != 2) {
+//        WebServ::ServerLogs("Error:\n[usage]-> ./webserv configFile.config.");
+//         return (1);
+//     }
+//     std::fstream configFile;
+//     data.ReadConfig(configFile);
+//     std::cout << "=========================SERVER-BLOCK============================" << std::endl;
 
     // int sockFd;
     // int clientFd;
@@ -132,134 +142,4 @@ int main(int ac, char **av)
     // close(sockFd);
     
 
-}
-
-
-// #include <iostream>
-// #include <string>
-// #include <cstring>
-// #include <unistd.h>
-// #include <netinet/in.h>
-// #include <arpa/inet.h>
-// #include <sys/socket.h>
-
-// #define PORT 8080
-
-// std::string html_page() {
-//     return 
-//         "<!DOCTYPE html>\n"
-//         "<html lang=\"en\">\n"
-//         "<head>\n"
-//         "<meta charset=\"UTF-8\">\n"
-//         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-//         "<title>WebServ</title>\n"
-//         "<style>\n"
-//         "body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }\n"
-//         "h1 { color: #333; margin-bottom: 20px; }\n"
-//         "button { padding: 10px 20px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; }\n"
-//         "button:hover { background: #555; }\n"
-//         "form input { padding: 8px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; }\n"
-//         "</style>\n"
-//         "</head>\n"
-//         "<body>\n"
-//         "<h1>Hello, my name is Ali</h1>\n"
-//         "<form method=\"POST\" action=\"/\">\n"
-//         "<input type=\"text\" name=\"name\" placeholder=\"Enter your name\" />\n"
-//         "<br/>\n"
-//         "<button type=\"submit\">Submit</button>\n"
-//         "</form>\n"
-//         "</body>\n"
-//         "</html>\n";
-// }
-
-// int main() {
-//     int server_fd, client_fd;
-//     struct sockaddr_in address;
-//     socklen_t addrlen = sizeof(address);
-//     char buffer[8192];
-
-//     // Create socket
-//     server_fd = socket(AF_INET, SOCK_STREAM, 0);
-//     if (server_fd == -1) {
-//         perror("socket");
-//         return 1;
-//     }
-
-//     // Prepare address struct
-//     memset(&address, 0, sizeof(address));
-//     address.sin_family = AF_INET;
-//     address.sin_addr.s_addr = INADDR_ANY;
-//     address.sin_port = htons(PORT);
-
-//     // Bind
-//     if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
-//         perror("bind");
-//         close(server_fd);
-//         return 1;
-//     }
-
-//     // Listen
-//     if (listen(server_fd, 5) < 0) {
-//         perror("listen");
-//         close(server_fd);
-//         return 1;
-//     }
-
-//     std::cout << "Server listening on http://0.0.0.0:" << PORT << std::endl;
-
-//     while (1) {
-//         client_fd = accept(server_fd, (struct sockaddr*)&address, &addrlen);
-//         if (client_fd < 0) {
-//             perror("accept");
-//             continue;
-//         }
-
-//         memset(buffer, 0, sizeof(buffer));
-//         int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-//         if (bytes_received <= 0) {
-//             close(client_fd);
-//             continue;
-//         }
-
-//         std::string request(buffer);
-//         std::string body = "";
-//         std::string response;
-
-//         if (request.substr(0, 4) == "POST") {
-//             // Get Content-Length
-//             size_t content_length_pos = request.find("Content-Length:");
-//             if (content_length_pos != std::string::npos) {
-//                 size_t value_start = request.find_first_of("0123456789", content_length_pos);
-//                 size_t value_end = request.find("\r\n", value_start);
-//                 int content_length = std::atoi(request.substr(value_start, value_end - value_start).c_str());
-
-//                 size_t body_start = request.find("\r\n\r\n");
-//                 if (body_start != std::string::npos) {
-//                     body = request.substr(body_start + 4, content_length);
-//                     std::cout << "[POST DATA] → " << body << std::endl;
-//                 }
-//             }
-
-//             std::string success_page = 
-//                 "<html><body><h1>POST Received</h1><p>Data: " + body + "</p></body></html>";
-//             response =
-//                 "HTTP/1.1 200 OK\r\n"
-//                 "Content-Type: text/html\r\n"
-//                 "Content-Length: " + std::to_string(success_page.size()) + "\r\n"
-//                 "\r\n" + success_page;
-//         } else {
-//             std::string html = html_page();
-//             response =
-//                 "HTTP/1.1 200 OK\r\n"
-//                 "Content-Type: text/html\r\n"
-//                 "Content-Length: " + std::to_string(html.size()) + "\r\n"
-//                 "\r\n" + html;
-//         }
-
-//         send(client_fd, response.c_str(), response.size(), 0);
-//         close(client_fd);
-//     }
-
-//     close(server_fd);
-//     return 0;
 // }
