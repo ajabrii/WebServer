@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:46:05 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/27 18:35:42 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/29 10:04:27 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,7 +189,7 @@ void WebServ::getServerData(std::string& line, t_server_block& block) // host = 
     else if (key == "client_max_body_size")
         block.client_max_body_size = Value;
     else {
-        std::cerr << "Error: unknown key " << key << std::endl;
+        // std::cerr << "Error: unknown key " << key << std::endl;
         return;
     }
     
@@ -200,7 +200,7 @@ void WebServ::getRouteData(std::string& line, t_server_block& block)
     (void)block;
     // size_t pos;
     if (line.find("route") == std::string::npos) {
-        ServerLogs("Error: invalid line format " + line);
+        // ServerLogs("Error: invalid line format " + line);
         //exit(1);
         return;
     }
@@ -225,11 +225,18 @@ void WebServ::ServerData(std::vector<std::string> &lines, size_t& i)
     }
     // std::cout << "====================SERVER BLOCKS====================" << std::endl;
     m_ServerBlocks.push_back(serverBlock);
-    // std::cout << "server name: " << serverBlock.server_name << std::endl;
-    // std::cout << "port: " << serverBlock.listen << std::endl;
-    // std::cout << "host: " << serverBlock.host << std::endl;
-    // std::cout << "error page: " << serverBlock.error_page << std::endl;
-    // std::cout << "client max body size: " << serverBlock.client_max_body_size << std::endl;
+    // for (size_t i = 0; i < m_ServerBlocks.size(); i++)
+    // {
+    //     std::cout << "server name: " << m_ServerBlocks[i].server_name << std::endl;
+    //     std::cout << "listen: " << m_ServerBlocks[i].listen << std::endl;
+    //     std::cout << "error page: " << m_ServerBlocks[i].error_page << std::endl;
+    //     std::cout << "client max body size: " << m_ServerBlocks[i].client_max_body_size << std::endl;
+    //     for (size_t j = 0; j < m_ServerBlocks[i].routes.size(); j++)
+    //     {
+    //         std::cout << "location: " << m_ServerBlocks[i].routes[j].location << std::endl;
+    //         std::cout << "methods: " << m_ServerBlocks[i].routes[j].methods << std::endl;
+    //     }
+    // }
     
 }
 
@@ -252,6 +259,21 @@ void WebServ::dataScraper(std::vector<std::string> &lines)
         
     }
     }
+    // m_ServerBlocks.push_back(serverBlock);
+    for (size_t i = 0; i < m_ServerBlocks.size(); i++)
+    {
+        std::cout << "host: " << m_ServerBlocks[i].host << std::endl;
+        std::cout << "listen: " << m_ServerBlocks[i].listen << std::endl;
+        std::cout << "server name: " << m_ServerBlocks[i].server_name << std::endl;
+        std::cout << "error page: " << m_ServerBlocks[i].error_page << std::endl;
+        std::cout << "client max body size: " << m_ServerBlocks[i].client_max_body_size << std::endl;
+        for (size_t j = 0; j < m_ServerBlocks[i].routes.size(); j++)
+        {
+            std::cout << "location: " << m_ServerBlocks[i].routes[j].location << std::endl;
+            std::cout << "methods: " << m_ServerBlocks[i].routes[j].methods << std::endl;
+        }
+    }
+    
 }
 
 
