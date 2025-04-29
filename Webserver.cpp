@@ -16,6 +16,7 @@ WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeF
     std::string line;
     while (std::getline(infile, line))
     {
+        // std::cout << "std::line :: " << line << "\n"; 
         m_ConfigData.push_back(line);
     }
     infile.close();
@@ -64,10 +65,8 @@ void WebServ::parseConfig()
 
     for (size_t i = 0; i < m_ConfigData.size(); ++i)
     {
-
-        line = trim(m_ConfigData[i]); //*remove spaces
-
-        if (line.empty() || line.find('#')) //* skip comments
+        line = trim(m_ConfigData[i]);
+        if (IsComment(line)) //* skip comments
             continue;
 
         if (line == "server {")

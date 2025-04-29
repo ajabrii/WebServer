@@ -256,7 +256,14 @@ void WebServ::dataScraper(std::vector<std::string> &lines)
 
 
 
-
+bool IsComment(const std::string& line) 
+{
+    //! handle comment in the same line ex: error_page 404 = /404.html; #comment 
+    if (line.empty() || line.find('#') != std::string::npos || Isspaces(line))
+        return true;
+    return false;
+    
+}
 
 
 
