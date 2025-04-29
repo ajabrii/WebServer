@@ -3,11 +3,12 @@
 WebServ::WebServ()
 {
     m_FileName = "./config/default_config.config";
-    // initGrammerMap();
+    
 }
 
 WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeFlag(0)
 {
+    std::cout << m_FileName << "\n";
     std::ifstream infile(config.c_str());
     if (!infile.is_open())
         throw std::runtime_error("Cannot open config file");
@@ -15,6 +16,7 @@ WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeF
     std::string line;
     while (std::getline(infile, line))
     {
+        // std::cout << "std::line :: " << line << "\n"; 
         m_ConfigData.push_back(line);
     }
     infile.close();
@@ -36,6 +38,15 @@ WebServ::~WebServ()
 {
 }
 
+bool Isspaces(const std::string& line) 
+{
+    for (size_t i = 0; i < line.length(); i++)
+    {
+        if (!std::isspace(line[i]))
+            return false;
+    }
+    return true;
+}
 
 bool IsComment(const std::string& line) 
 {
@@ -54,11 +65,10 @@ void WebServ::parseConfig()
 
     for (size_t i = 0; i < m_ConfigData.size(); ++i)
     {
-
+        line = trim(m_ConfigData[i]);
         if (IsComment(line)) //* skip comments
             continue;
 
-        line = trim(m_ConfigData[i]); //*remove spaces
         if (line == "server {")
         {
             serverFlag = 1;
