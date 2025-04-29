@@ -3,12 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   old_Webserv.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/25 16:46:05 by ajabri            #+#    #+#             */
-/*   Updated: 2025/04/28 15:59:18 by youness          ###   ########.fr       */
+/*   Created: Invalid date        by                   #+#    #+#             */
+/*   Updated: 2025/04/29 14:51:29 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 # include "old_webserv.hpp"
 
@@ -209,6 +210,7 @@ void WebServ::getRouteData(std::string& line, t_server_block& block)
 void WebServ::ServerData(std::vector<std::string> &lines, size_t& i)
 {
     t_server_block serverBlock;
+    static int index;
 
     while (i < lines.size()) {
         if (lines[i] == "}") {
