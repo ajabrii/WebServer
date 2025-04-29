@@ -37,18 +37,28 @@ WebServ::~WebServ()
 }
 
 
+bool IsComment(const std::string& line) 
+{
+    //! handle comment in the same line ex: error_page 404 = /404.html; #comment 
+    if (line.empty() || line.find('#') != std::string::npos || Isspaces(line))
+        return true;
+    return false;
+    
+}
+
 void WebServ::parseConfig()
 {
     Server_block current_server;
     RouteConfig current_route;
+    std::string line;
 
     for (size_t i = 0; i < m_ConfigData.size(); ++i)
     {
-        std::string line = trim(m_ConfigData[i]); //*remove spaces
 
-        if (line.empty() || line[0] == '#') //* skip comments
+        if (IsComment(line)) //* skip comments
             continue;
 
+        line = trim(m_ConfigData[i]); //*remove spaces
         if (line == "server {")
         {
             serverFlag = 1;
