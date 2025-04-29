@@ -9,20 +9,24 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 
-#define DOMAIN
+#define DOMAIN 0
+#define TYPE 1
+#define PROTOCOL 2
+#define FD 3
 
 class Socket
 {
     private:
-        int arry[4]
-        // int domain;
-        // int type;
-        // int protocol;
-        // int fd;
+        int arry[4];
     public:
         Socket(int domain, int type, int protocol);
         ~Socket();
-        int getFd();
+        int getDomain(void) const;
+        int getType(void) const;
+        int getProtocol(void) const;
+        int getFd(void) const;
+
+        
 };
 
 #endif
