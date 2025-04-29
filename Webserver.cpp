@@ -8,6 +8,8 @@ WebServ::WebServ()
 
 WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeFlag(0)
 {
+    std::string tmp;
+    size_t pos;
     std::cout << m_FileName << "\n";
     std::ifstream infile(config.c_str());
     if (!infile.is_open())
@@ -17,8 +19,20 @@ WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeF
     while (std::getline(infile, line))
     {
         // std::cout << "std::line :: " << line << "\n"; 
-        m_ConfigData.push_back(line);
+        pos = line.find('{');
+        if (pos != std::string::npos && pos != 0) {
+            tmp = line.substr(0, pos);
+            this->m_ConfigData.push_back(trim(tmp));
+            tmp = line.substr(pos, line.length() - 1);
+            this->m_ConfigData.push_back(trim(tmp));
+            continue;
+        }
+        m_ConfigData.push_back(trim(line));
     }
+    // for (size_t i = 0; i < m_ConfigData.size(); ++i)
+    // {
+    //     std::cout << "std::line :: " << m_ConfigData[i] << "\n";
+    // }
     infile.close();
 }
 
@@ -63,18 +77,21 @@ void WebServ::parseConfig()
     RouteConfig current_route;
     std::string line;
 
-    for (size_t i = 0; i < m_ConfigData.size(); ++i)
+    for (size_t i = 0; i < m_ConfigData.size(); i++)
     {
-        line = trim(m_ConfigData[i]);
+        line = m_ConfigData[i];
         if (IsComment(line)) //* skip comments
             continue;
-
-        if (line == "server {")
+        if (line == "server")
         {
-            serverFlag = 1;
-            continue;
+            if (m_ConfigData[i+1] == "{")
+            {
+                std::cout << "Server block found\n";
+                serverFlag = 1;
+                i++;
+                continue;
+            }
         }
-
         if (line == "}" && routeFlag)
         {
             // End of route block
@@ -94,13 +111,20 @@ void WebServ::parseConfig()
 
         if (line.substr(0, 5) == "route")
         {
-            routeFlag = 1;
-            current_route.path = extractPathFromRouteLine(line);
+            if (m_ConfigData[i+1] == "{")
+            {
+                // std::cout << "Server block found\n";
+                current_route.path = extractPathFromRouteLine(line);
+                routeFlag = 1;
+                i++;
+                continue;
+            }
             continue;
         }
 
         if (serverFlag && !routeFlag)
         {
+            
             parseServerLine(current_server, line);
         }
         else if (serverFlag && routeFlag)

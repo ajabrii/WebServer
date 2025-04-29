@@ -22,6 +22,8 @@ std::string WebServ::extractPathFromRouteLine(const std::string& line) {
 void WebServ::parseServerLine(Server_block& server, const std::string& line)
 {
     // std::cout 
+    std::cout << "line: " << line << "\n";
+
     size_t equal = line.find('=');
     if (equal == std::string::npos)
         throw std::runtime_error("Invalid server line: " + line);
@@ -65,6 +67,7 @@ void WebServ::parseServerLine(Server_block& server, const std::string& line)
 
 void WebServ::parseRouteLine(RouteConfig& route, const std::string& line)
 {
+    // std::cout << "--------------------------------------------->line: " << line << "\n";
     size_t equal = line.find('=');
     if (equal == std::string::npos)
         throw std::runtime_error("Invalid route line: " + line);

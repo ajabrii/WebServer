@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 18:44:48 by kali              #+#    #+#             */
-/*   Updated: 2025/04/29 10:00:38 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/04/29 13:28:45 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,18 @@
 
 int main(int ac, char **av)
 {
-    WebServ data(av[1]);
     (void)ac;
-    data.parseConfig();
-    data.printConfig();
+    try
+    {
+        WebServ data(av[1]);
+        data.parseConfig();
+        data.printConfig();
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
     // std::cout << "here" << std::endl;
 }
 
