@@ -97,7 +97,6 @@ void WebServ::parseRouteLine(RouteConfig& route, const std::string& line)
 
 void WebServ::printConfig() const
 {
-    // Iterate over each serve
     for (const auto& server : m_ServerBlocks)
     {
         std::cout << "Server Configuration:\n";
