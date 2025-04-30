@@ -67,9 +67,12 @@ class WebServ
         void parseServerLine(Server_block& server, const std::string& line);
         std::string extractPathFromRouteLine(const std::string& line);
         void parseRouteLine(RouteConfig& route, const std::string& line);
+        void checkValues() const;
         int serverFlag;
         int routeFlag;
 
+        bool Isspaces(const std::string& line); 
+        bool IsComment(const std::string& line);
         void printConfig() const;
         
 };

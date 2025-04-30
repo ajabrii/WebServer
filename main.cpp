@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 18:44:48 by kali              #+#    #+#             */
-/*   Updated: 2025/04/29 14:54:15 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/04/30 15:47:17 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ int main(int ac, char **av)
         WebServ data(av[1]);
         data.parseConfig();
         data.printConfig();
+        data.checkValues();
     }
     catch (const std::exception& e)
     {
