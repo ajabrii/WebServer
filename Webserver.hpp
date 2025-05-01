@@ -39,6 +39,8 @@ struct Server_block {
     size_t client_max_body_size = 0;    // Example: 5MB
     std::map<int, std::string> error_pages; // Example: 404 -> "/404.html"
     std::vector<RouteConfig> routes;    // List of routes
+
+    Server_block();                    // Constructor
 };
 
 struct Config {

@@ -16,6 +16,8 @@ WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeF
     std::ifstream infile(config.c_str());
     if (!infile.is_open())
         throw std::runtime_error("Cannot open config file");
+    if (infile.peek() == std::ifstream::traits_type::eof())
+        throw std::runtime_error("Config file is empty");
     
     while (std::getline(infile, line))
     {

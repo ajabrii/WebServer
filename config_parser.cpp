@@ -39,10 +39,17 @@ void WebServ::parseServerLine(Server_block& server, const std::string& line)
     std::string key = trim(line.substr(0, equal));
     std::string value = trim(line.substr(equal + 1));
 
-    if (key == "host")
+    if (key == "host") {
+        if (!server.host.empty()) //? handle duplicate host
+            throw std::runtime_error("Duplicate 'host' entry in server block.");
         server.host = value;
+    }
     else if (key == "port")
+    {
+        if (server.port != 0) //? handle duplicate port
+            throw std::runtime_error("Duplicate 'port' entry in server block.");
         server.port = std::atoi(value.c_str());
+    }
     else if (key == "server_name")
     {
         std::stringstream ss(value);
@@ -50,8 +57,10 @@ void WebServ::parseServerLine(Server_block& server, const std::string& line)
         while (ss >> name)
             server.server_names.push_back(name);
     }
-    else if (key == "client_max_body_size")
+    else if (key == "client_max_body_size") //? i have to handle if number is negative
     {
+        if (value.empty()) //? handle empty value
+            throw std::runtime_error("Invalid client_max_body_size value: " + value);
         if (value.back() == 'M') {
             value.pop_back(); //* remove 'M'
             server.client_max_body_size = std::atoi(value.c_str()) * 1024 * 1024; //? if size in megabyts
@@ -114,6 +123,8 @@ void WebServ::checkValues() const
             throw std::runtime_error("Host is not set for a server block.");
         if (m_ServerBlocks[i].port == 0)
             throw std::runtime_error("Port is not set for a server block.");
+        if (m_ServerBlocks[i].client_max_body_size <= 0) //? handle max body size
+            throw std::runtime_error("Client max body size is not set correct for a server block.");
         for (size_t j = 0; j < m_ServerBlocks[i].routes.size(); j++)
         {
             if (m_ServerBlocks[i].routes[j].path.empty())
