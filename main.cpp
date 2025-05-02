@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 18:44:48 by kali              #+#    #+#             */
-/*   Updated: 2025/04/29 14:54:15 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/05/02 11:06:50 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,21 +14,88 @@
 // include poll() header
 # include <poll.h>
 
+// bool run_server(std::vector<Server>& servers)
+// {
+//     // Create a pollfd array to hold the server sockets
+// }
+
 int main(int ac, char **av)
 {
-    (void)ac;
+    if (ac != 2) {
+        std::cerr << "Error:\n[usage]-> ./webserv configFile.config." << std::endl;
+        return 1;
+    }
+    WebServ data(av[1]);
     try
     {
-        WebServ data(av[1]);
         data.parseConfig();
-        data.printConfig();
+        // data.printConfig();
     }
     catch (const std::exception& e)
     {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
-    // std::cout << "here" << std::endl;
+    std::vector<Server> servers;
+    size_t size = data.getServerBlocks().size();
+    Socket socks[size];
+    for (size_t i = 0; i < size; i++)
+    {
+        socks[i].setSocket(AF_INET, SOCK_STREAM, 0);
+        // std::cout << socks[i].getFd() << std::endl;
+        Server server(socks[i]);
+        std::cout << "Socket created with fd: " << server.getSocket().getFd() << std::endl;
+        sockaddr_in addr;
+        std::memset(&addr, 0, sizeof(addr));
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(data.getServerBlocks()[i].port); // <-- from config
+        std::cout << data.getServerBlocks()[i].port << std::endl;
+        addr.sin_addr.s_addr = INADDR_ANY; // or from config
+    
+        if (bind(socks[i].getFd(), (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+            perror("bind");
+            close(socks[i].getFd());
+            continue;
+        }
+        while (listen(socks[i].getFd(), CLIENT_QUEUE) < 0) {
+            perror("listen");
+            close(socks[i].getFd());
+            continue;
+        }
+        std::cout << "Server listening on port " << data.getServerBlocks()[i].port << std::endl;
+        server.setServerAddress(addr); // <- you'll need to create this setter
+        servers.push_back(server);
+    }
+    std::cout << "Servers running...\n";
+    while (true) {
+        for (size_t i = 0; i < servers.size(); ++i) {
+            int client_fd;
+            sockaddr_in client_addr;
+            socklen_t addr_len = sizeof(client_addr);
+
+            // Accept will block — for multiple fds, you need select() or poll()
+            client_fd = accept(servers[i].getSocket().getFd(), (struct sockaddr*)&client_addr, &addr_len);
+            if (client_fd < 0) {
+                perror("accept");
+                continue;
+            }
+
+            std::cout << "Accepted connection on server " << i << ", fd: " << client_fd << std::endl;
+
+            // Send simple HTTP response (for testing)
+            std::string response =
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: text/plain\r\n"
+                "Content-Length: 12\r\n"
+                "\r\n"
+                "Hello world\r\n";
+
+            send(client_fd, response.c_str(), response.size(), 0);
+            close(client_fd);
+        }
+    }
+
+    return 0;
 }
 
 

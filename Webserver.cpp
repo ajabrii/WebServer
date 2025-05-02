@@ -36,6 +36,11 @@ WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeF
     infile.close();
 }
 
+std::vector<Server_block> WebServ::getServerBlocks() const
+{
+    return m_ServerBlocks;
+}
+
 WebServ::WebServ(const WebServ& other)
 {
     *this = other; //TODO
@@ -86,7 +91,6 @@ void WebServ::parseConfig()
         {
             if (m_ConfigData[i+1] == "{")
             {
-                std::cout << "Server block found\n";
                 serverFlag = 1;
                 i++;
                 continue;
@@ -124,7 +128,7 @@ void WebServ::parseConfig()
 
         if (serverFlag && !routeFlag)
         {
-            
+            // std::cout << i << " : " << line << "\n";
             parseServerLine(current_server, line);
         }
         else if (serverFlag && routeFlag)

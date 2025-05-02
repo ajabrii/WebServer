@@ -17,11 +17,15 @@
 #include <sstream> // for stringstream() to spil string
 
 
+#include "Socket/Socket.hpp"
+#include "Server/Server.hpp"
+
 #define RED "\033[1;31m"
 #define GREEN "\033[1;32m"
 #define YELLOW "\033[1;33m"
 #define RES "\033[0m"
 
+# define CLIENT_QUEUE 0
 
 
 struct RouteConfig {
@@ -70,6 +74,8 @@ class WebServ
         int serverFlag;
         int routeFlag;
 
+        std::vector<Server_block> getServerBlocks() const;
+        // std::vector<std::string> getConfigData() const;
         void printConfig() const;
         
 };
