@@ -6,14 +6,12 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 18:44:48 by kali              #+#    #+#             */
-/*   Updated: 2025/05/03 11:20:15 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/05/03 12:12:37 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "Webserver.hpp"
-// include poll() header
-# include <poll.h>
-# include <fcntl.h>
+
 
 int set_nonblocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
@@ -104,7 +102,7 @@ int main(int ac, char **av)
 
         for (size_t i = 0; i < poll_fds.size(); ++i)
         {
-            std::cout << "bit mask: " << poll_fds[i].revents << " PLLin -> "<< POLLIN <<std::endl;
+            // std::cout << "bit mask: " << poll_fds[i].revents << " PLLin -> "<< POLLIN <<std::endl;
             if (poll_fds[i].revents & POLLIN) {
                 sockaddr_in client_addr;
                 socklen_t addr_len = sizeof(client_addr);
@@ -113,17 +111,21 @@ int main(int ac, char **av)
                     perror("accept");
                     continue;
                 }
-                poll_fds.push_back({client_fd, POLLIN, 0});
+                // poll_fds.push_back({client_fd, POLLIN, 0});
 
                 // std::cout << "Accepted connection on fd: " << client_fd << std::endl;
 
                 // Basic HTTP response
                 std::string response =
-                    "HTTP/1.1 200 OK\r\n"
-                    "Content-Type: text/plain\r\n"
-                    "Content-Length: 12\r\n"
-                    "\r\n"
-                    "Hello world\r\n";
+                                "HTTP/1.1 200 OK\r\n"
+                                "Content-Type: text/plain\r\n"
+                                "Content-Length: 12\r\n"
+                                "\r\n"
+                                "Hello world\r\n";
+
+                // std:: cout << "******************************\n";
+                // std::cout << response << std::endl;
+                // std:: cout << "******************************\n";
 
                 send(client_fd, response.c_str(), response.size(), 0);
                 // close(client_fd);
@@ -134,7 +136,30 @@ int main(int ac, char **av)
     return 0;
 }
 
+// int main(int ac, char **av) {
 
+//     if (ac != 2) {
+//         std::cerr << "Warning\n server needs a config file to run" << std::endl;
+//         return 1;
+//     }
+    
+//     WebServ srv(av[1]);
+//     try {
+//         srv.parseConfig();
+//     }
+//     catch (std::exception &e) {
+//         std::cerr << "execption catched : " << e.what() << "\n";
+//     }
+
+//     std::vector<Server> srvBlock;
+//     size_t size = srv.getServerBlocks().size();
+//     Socket sokets[size];
+    
+//     for (size_t i = 0; i < size; i++) {
+//         sokets[i].setSocket(AF_INET, SOCK_STREAM, 0)
+//     }
+//    return 0; 
+// }
 
 
 

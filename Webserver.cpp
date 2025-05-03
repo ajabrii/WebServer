@@ -10,7 +10,6 @@ WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeF
 {
     std::string tmp;
     size_t pos;
-    std::cout << m_FileName << "\n";
     std::ifstream infile(config.c_str());
     if (!infile.is_open())
         throw std::runtime_error("Cannot open config file");

@@ -15,7 +15,8 @@
 #include <netinet/in.h> // For sockaddr_in
 #include <arpa/inet.h>  // For inet_ntoa()
 #include <sstream> // for stringstream() to spil string
-
+# include <poll.h>
+# include <fcntl.h>
 
 #include "Socket/Socket.hpp"
 #include "Server/Server.hpp"
