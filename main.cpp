@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 18:44:48 by kali              #+#    #+#             */
-/*   Updated: 2025/05/03 12:12:37 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/05/05 09:42:03 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,7 +102,6 @@ int main(int ac, char **av)
 
         for (size_t i = 0; i < poll_fds.size(); ++i)
         {
-            // std::cout << "bit mask: " << poll_fds[i].revents << " PLLin -> "<< POLLIN <<std::endl;
             if (poll_fds[i].revents & POLLIN) {
                 sockaddr_in client_addr;
                 socklen_t addr_len = sizeof(client_addr);
@@ -111,11 +110,6 @@ int main(int ac, char **av)
                     perror("accept");
                     continue;
                 }
-                // poll_fds.push_back({client_fd, POLLIN, 0});
-
-                // std::cout << "Accepted connection on fd: " << client_fd << std::endl;
-
-                // Basic HTTP response
                 std::string response =
                                 "HTTP/1.1 200 OK\r\n"
                                 "Content-Type: text/plain\r\n"
@@ -129,119 +123,20 @@ int main(int ac, char **av)
 
                 send(client_fd, response.c_str(), response.size(), 0);
                 // close(client_fd);
+                // here i will receive the request
+                char buffer[1024];
+                ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+                if (bytes_received > 0) {
+                    buffer[bytes_received] = '\0'; // Null-terminate the received data
+                    std::cout << "Received request:\n" << buffer << std::endl;
+                } else if (bytes_received < 0) {
+                    perror("recv");
+                }
+                close(client_fd);
+                std::cout << "Client disconnected" << std::endl;
             }
         }
     }
 
     return 0;
 }
-
-// int main(int ac, char **av) {
-
-//     if (ac != 2) {
-//         std::cerr << "Warning\n server needs a config file to run" << std::endl;
-//         return 1;
-//     }
-    
-//     WebServ srv(av[1]);
-//     try {
-//         srv.parseConfig();
-//     }
-//     catch (std::exception &e) {
-//         std::cerr << "execption catched : " << e.what() << "\n";
-//     }
-
-//     std::vector<Server> srvBlock;
-//     size_t size = srv.getServerBlocks().size();
-//     Socket sokets[size];
-    
-//     for (size_t i = 0; i < size; i++) {
-//         sokets[i].setSocket(AF_INET, SOCK_STREAM, 0)
-//     }
-//    return 0; 
-// }
-
-
-
-
-
-
-/*===============================================-main-==================================================*/
-// int main(int ac, char **av)
-// {
-//     if (ac != 2) {
-//         std::cerr << "Error:\n[usage]-> ./webserv configFile.config." << std::endl;
-//         return 1;
-//     }
-//     WebServ data(av[1]);
-//     try
-//     {
-//         data.parseConfig();
-//         // data.printConfig();
-//     }
-//     catch (const std::exception& e)
-//     {
-//         std::cerr << "Error: " << e.what() << std::endl;
-//         return 1;
-//     }
-//     std::vector<Server> servers;
-//     size_t size = data.getServerBlocks().size();
-//     Socket socks[size];
-//     for (size_t i = 0; i < size; i++)
-//     {
-//         socks[i].setSocket(AF_INET, SOCK_STREAM, 0);
-//         Server server(socks[i]);
-//         std::cout << "Socket created with fd: " << server.getSocket().getFd() << std::endl;
-//         sockaddr_in addr;
-//         std::memset(&addr, 0, sizeof(addr));
-//         addr.sin_family = AF_INET;
-//         addr.sin_port = htons(data.getServerBlocks()[i].port); // <-- from config
-//         std::cout << data.getServerBlocks()[i].port << std::endl;
-//         addr.sin_addr.s_addr = INADDR_ANY; // or from config
-    
-//         if (bind(socks[i].getFd(), (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-//             perror("bind");
-//             close(socks[i].getFd());
-//             continue;
-//         }
-//         while (listen(socks[i].getFd(), CLIENT_QUEUE) < 0) {
-//             perror("listen");
-//             close(socks[i].getFd());
-//             continue;
-//         }
-//         std::cout << "Server listening on port " << data.getServerBlocks()[i].port << std::endl;
-//         server.setServerAddress(addr); // <- you'll need to create this setter
-//         servers.push_back(server);
-//     }
-//     std::cout << "Servers running...\n";
-//     while (true) {
-//         for (size_t i = 0; i < servers.size(); ++i) {
-//             int client_fd;
-//             sockaddr_in client_addr;
-//             socklen_t addr_len = sizeof(client_addr);
-
-//             // Accept will block — for multiple fds, you need select() or poll()
-//             client_fd = accept(servers[i].getSocket().getFd(), (struct sockaddr*)&client_addr, &addr_len);
-//             if (client_fd < 0) {
-//                 perror("accept");
-//                 continue;
-//             }
-
-//             std::cout << "Accepted connection on server " << i << ", fd: " << client_fd << std::endl;
-
-//             // Send simple HTTP response (for testing)
-//             std::string response =
-//                 "HTTP/1.1 200 OK\r\n"
-//                 "Content-Type: text/plain\r\n"
-//                 "Content-Length: 12\r\n"
-//                 "\r\n"
-//                 "Hello world\r\n";
-
-//             send(client_fd, response.c_str(), response.size(), 0);
-//             close(client_fd);
-//         }
-//     }
-
-//     return 0;
-// }
-
