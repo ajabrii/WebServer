@@ -5,33 +5,51 @@ std::string WebServ::trim(const std::string& str)
 {
     size_t first = str.find_first_not_of(" \t\n\r");
     if (first == std::string::npos)
-        return ""; // string is all spaces
+        return "";
 
     size_t last = str.find_last_not_of(" \t\n\r");
     return str.substr(first, (last - first + 1));
 }
 
 std::string WebServ::extractPathFromRouteLine(const std::string& line) {
-    size_t start = line.find("route") + 5; // Length of "route"
-    size_t end = line.find("{");
-    std::string path = line.substr(start, end - start);
-    trim(path);
-    return path;
+    size_t start = 0;
+    std::string path;
+
+    if ((line.find("route")) != std::string::npos) {
+        start = line.find("route") + 5;
+    } else if ((line.find("location")) != std::string::npos) {
+        start = line.find("location") + 8;
+    }
+
+    size_t end = line.find("{"); //? i will change later
+    if (end <= start)
+        throw std::runtime_error("Invalid route line: " + line);
+
+    path = line.substr(start, end - start);
+    return trim(path);
 }
+
 
 void WebServ::parseServerLine(Server_block& server, const std::string& line)
 {
     size_t equal = line.find('=');
-    if (equal == std::string::npos)
+    if (equal == std::string::npos && line.find("error_page") != 0)
         throw std::runtime_error("Invalid server line: " + line);
 
     std::string key = trim(line.substr(0, equal));
     std::string value = trim(line.substr(equal + 1));
 
-    if (key == "host")
+    if (key == "host") {
+        if (!server.host.empty()) //? handle duplicate host
+            throw std::runtime_error("Duplicate 'host' entry in server block.");
         server.host = value;
+    }
     else if (key == "port")
+    {
+        if (server.port != 0) //? handle duplicate port
+            throw std::runtime_error("Duplicate 'port' entry in server block.");
         server.port = std::atoi(value.c_str());
+    }
     else if (key == "server_name")
     {
         std::stringstream ss(value);
@@ -39,8 +57,10 @@ void WebServ::parseServerLine(Server_block& server, const std::string& line)
         while (ss >> name)
             server.server_names.push_back(name);
     }
-    else if (key == "client_max_body_size")
+    else if (key == "client_max_body_size") //? i have to handle if number is negative
     {
+        if (value.empty()) //? handle empty value
+            throw std::runtime_error("Invalid client_max_body_size value: " + value);
         if (value.back() == 'M') {
             value.pop_back(); //* remove 'M'
             server.client_max_body_size = std::atoi(value.c_str()) * 1024 * 1024; //? if size in megabyts
@@ -94,6 +114,26 @@ void WebServ::parseRouteLine(RouteConfig& route, const std::string& line)
         throw std::runtime_error("Unknown route option: " + key);
 }
 
+
+void WebServ::checkValues() const
+{
+    for (size_t i = 0; i < m_ServerBlocks.size(); i++)
+    {
+        if (m_ServerBlocks[i].host.empty())
+            throw std::runtime_error("Host is not set for a server block.");
+        if (m_ServerBlocks[i].port == 0)
+            throw std::runtime_error("Port is not set for a server block.");
+        if (m_ServerBlocks[i].client_max_body_size <= 0) //? handle max body size
+            throw std::runtime_error("Client max body size is not set correct for a server block.");
+        for (size_t j = 0; j < m_ServerBlocks[i].routes.size(); j++)
+        {
+            if (m_ServerBlocks[i].routes[j].path.empty())
+                throw std::runtime_error("Route path is not set.");
+            if (m_ServerBlocks[i].routes[j].methods.empty())
+                throw std::runtime_error("No methods specified for route: " + m_ServerBlocks[i].routes[j].path);
+        }
+    }
+}
 
 void WebServ::printConfig() const
 {

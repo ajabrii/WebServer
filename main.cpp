@@ -3,9 +3,11 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
+/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 18:44:48 by kali              #+#    #+#             */
+/*   Updated: 2025/05/03 13:18:58 by ytarhoua         ###   ########.fr       */
 /*   Updated: 2025/05/05 09:42:03 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
@@ -30,6 +32,11 @@ int main(int ac, char **av)
 
     try {
         data.parseConfig();
+        data.printConfig();
+        data.checkValues();
+    }
+    catch (const std::exception& e)
+    {
         // data.printConfig();
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
