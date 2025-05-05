@@ -12,7 +12,7 @@ WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeF
     std::vector<std::string> blockKeywords = {"server", "location", "route"};
     bool matched;
     std::string keyword;
-    std::cout << m_FileName << "\n";
+    // std::cout << m_FileName << "\n";
     std::ifstream infile(config.c_str());
     if (!infile.is_open())
         throw std::runtime_error("Cannot open config file");
@@ -104,10 +104,10 @@ void WebServ::parseConfig()
     RouteConfig current_route;
     std::string line;
 
-    for (size_t i = 0; i < m_ConfigData.size(); i++)
-    {
-        std::cout << "std::line :: " << m_ConfigData[i] << "\n";
-    }
+    // for (size_t i = 0; i < m_ConfigData.size(); i++)
+    // {
+    //     std::cout << "std::line :: " << m_ConfigData[i] << "\n";
+    // }
     for (size_t i = 0; i < m_ConfigData.size(); i++)
     {
         line = m_ConfigData[i];
