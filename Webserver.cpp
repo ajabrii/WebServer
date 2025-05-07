@@ -18,7 +18,7 @@ WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeF
         throw std::runtime_error("Cannot open config file");
     if (infile.peek() == std::ifstream::traits_type::eof())
         throw std::runtime_error("Config file is empty");
-    
+
     while (std::getline(infile, line))
     {
         commentPos = line.find('#'); //?  here i handle the position of the comment like "server { #comment"
@@ -63,6 +63,12 @@ WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeF
     infile.close();
 }
 
+//! this function is for printing error in std::ceer;
+void WebServ::logs(std::string err)
+{
+    std::cerr << err << std::endl;
+}
+
 std::vector<Server_block> WebServ::getServerBlocks() const
 {
     return m_ServerBlocks;
@@ -84,7 +90,7 @@ WebServ::~WebServ()
 {
 }
 
-bool WebServ::Isspaces(const std::string& line) 
+bool WebServ::Isspaces(const std::string& line)
 {
     for (size_t i = 0; i < line.length(); i++)
     {
@@ -94,9 +100,9 @@ bool WebServ::Isspaces(const std::string& line)
     return true;
 }
 
-bool WebServ:: IsComment(const std::string& line) 
+bool WebServ:: IsComment(const std::string& line)
 {
-    //! handle comment in the same line ex: error_page 404 = /404.html; #comment 
+    //! handle comment in the same line ex: error_page 404 = /404.html; #comment
     //? done
     if (line.empty() || line.find('#') != std::string::npos || Isspaces(line))
         return true;
@@ -116,7 +122,7 @@ void WebServ::parseConfig()
     for (size_t i = 0; i < m_ConfigData.size(); i++)
     {
         line = m_ConfigData[i];
-        if (IsComment(line)) 
+        if (IsComment(line))
             continue;
 
         if (line == "server")
@@ -203,15 +209,15 @@ int WebServ::set_nonblocking(int fd) {
     return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
-void WebServ::SoketBind(sockaddr_in addr, Socket& sock, int i)
+void WebServ::SoketBind(Server &serv, Socket& sock, int i)
 {
     // std::cout << "Socket created with fd: " << server.getSocket().getFd() << std::endl;
-
+    sockaddr_in addr = serv.getServerAddress();
     std::memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(this->getServerBlocks()[i].port);
     addr.sin_addr.s_addr = INADDR_ANY;
-    
+
     //*2 here we create the address and bind it to the socket
     if (bind(sock.getFd(), (struct sockaddr*)&addr, sizeof(addr)) < 0) {
         perror("bind");
@@ -255,7 +261,7 @@ void WebServ::IniServers()
         //*1 here we create the socket & bind it to the address
         socks[i].setSocket(AF_INET, SOCK_STREAM, 0);
         Server server(socks[i]);
-        this->SoketBind(server.getServerAddress(), socks[i], i);
+        this->SoketBind(server, socks[i], i);
 
 
         // std::cout << "Socket created with fd: " << server.getSocket().getFd() << std::endl;
@@ -275,7 +281,7 @@ void WebServ::IniServers()
 
         // std::cout << "Server listening on port " << data.getServerBlocks()[i].port << std::endl;
         // server.setServerAddress(addr); // implement this if not already
-        //*5 storing the server block to the server vector 
+        //*5 storing the server block to the server vector
         this->m_Servers.push_back(server);
     }
 }
@@ -311,7 +317,7 @@ void WebServ::eventLoop()
 
                 if (this->m_isServFD[this->m_PollFDs[i].fd] == true)
                 {
-                    
+
                     // here i will accept the new connection
                     this->handleNewConnection(this->m_PollFDs[i].fd);
                 }
@@ -324,11 +330,11 @@ void WebServ::eventLoop()
                     if (bytes_received > 0) {
                         buffer[bytes_received] = '\0'; // Null-terminate the received data
                         std::cout << "Received request:\n" << buffer << std::endl;
-                        
+
                         // *2. send the response
                         std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
                         send(client_fd, response.c_str(), response.size(), 0);
-                        
+
                     } else if (bytes_received < 0) {
                         if (errno == EAGAIN || errno == EWOULDBLOCK) {
                             // No data available, continue to the next iteration
@@ -346,17 +352,17 @@ void WebServ::eventLoop()
                 }
             }
         }
-}
+    }
 }
 
 
 void WebServ::Login() {
     std::cout<<YELLOW << R"(
- _    _      _     _____                 
-| |  | |    | |   /  ___|                
+ _    _      _     _____
+| |  | |    | |   /  ___|
 | |  | | ___| |__ \ `--.  ___ _ ____   __
 | |/\| |/ _ \ '_ \ `--. \/ _ \ '__\ \ / /
-\  /\  /  __/ |_) /\__/ /  __/ |   \ V / 
- \/  \/ \___|_.__/\____/ \___|_|    \_/  
+\  /\  /  __/ |_) /\__/ /  __/ |   \ V /
+ \/  \/ \___|_.__/\____/ \___|_|    \_/
 )" << RES<<std::endl;
 }

@@ -84,7 +84,7 @@ class WebServ
         int routeFlag;
 
         std::vector<Server_block> getServerBlocks() const;
-        bool Isspaces(const std::string& line); 
+        bool Isspaces(const std::string& line);
         bool IsComment(const std::string& line);
         void printConfig() const;
 
@@ -93,7 +93,7 @@ class WebServ
         void run(); // this is the entry point of the web server
         //*1 create a socket and bind it to the address
         void IniServers();
-        void SoketBind(sockaddr_in addr, Socket& sock, int i);
+        void SoketBind(Server &serv, Socket& sock, int i);
         //*2 create pollfd vector and add the server fds to it
         void addPollFDs();
         //*3 event loop
@@ -112,7 +112,8 @@ class WebServ
         // {
         //     return m_PollFDs;
         // }
-        
+
+        static void  logs(std::string err);
 };
 
 #endif

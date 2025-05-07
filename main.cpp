@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: kali <kali@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/05/07 12:25:43 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/05/07 14:36:49 by kali             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 int main(int ac, char **av)
 {
     if (ac != 2) {
-        std::cerr << "Error:\n[usage]-> ./webserv configFile.config." << std::endl;
+        WebServ::logs("Error:\n[usage]-> ./webserv configFile.config.");
         return 1;
     }
     WebServ Websev(av[1]);
@@ -49,7 +49,7 @@ int main(int ac, char **av)
     //     addr.sin_port = htons(data.getServerBlocks()[i].port);
     //     // std::cout << data.getServerBlocks()[i].port << std::endl;
     //     addr.sin_addr.s_addr = INADDR_ANY;
-        
+
     //     //*2 here we create the address and bind it to the socket
     //     if (bind(socks[i].getFd(), (struct sockaddr*)&addr, sizeof(addr)) < 0) {
     //         perror("bind");
@@ -71,7 +71,7 @@ int main(int ac, char **av)
 
     //     // std::cout << "Server listening on port " << data.getServerBlocks()[i].port << std::endl;
     //     server.setServerAddress(addr); // implement this if not already
-    //     //*5 storing the server block to the server vector 
+    //     //*5 storing the server block to the server vector
     //     servers.push_back(server);
     // }
 
@@ -105,7 +105,7 @@ int main(int ac, char **av)
 
     //             if (isServFD[poll_fds[i].fd] == true)
     //             {
-                    
+
     //                 sockaddr_in client_addr;
     //                 socklen_t addr_len = sizeof(client_addr);
     //                 int client_fd = accept(poll_fds[i].fd, (struct sockaddr*)&client_addr, &addr_len);
@@ -137,11 +137,11 @@ int main(int ac, char **av)
     //                 if (bytes_received > 0) {
     //                     buffer[bytes_received] = '\0'; // Null-terminate the received data
     //                     std::cout << "Received request:\n" << buffer << std::endl;
-                        
+
     //                     // *2. send the response
     //                     std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
     //                     send(client_fd, response.c_str(), response.size(), 0);
-                        
+
     //                 } else if (bytes_received < 0) {
     //                         // !~remove the client from the poll_fds and clients map (disconnect ones)
     //                         std::cerr << "Error receiving data from client: " << client_fd << std::endl;
