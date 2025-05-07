@@ -303,7 +303,9 @@ void WebServ::addPollFDs()
 
 void WebServ::eventLoop()
 {
-    while (true) {
+    Request tmp;
+    while (true)
+    {
         int ret = poll(this->m_PollFDs.data(), this->m_PollFDs.size(), -1);
         if (ret < 0) {
             perror("poll");
@@ -323,38 +325,61 @@ void WebServ::eventLoop()
                 }
             // *1. receive the request
                 } else if (this->m_isServFD[this->m_PollFDs[i].fd] == false) {
+
+                    request(this->m_PollFDs[i].fd);
                     // here i will receive the request
-                    int client_fd = this->m_PollFDs[i].fd;
-                    char buffer[1024];
-                    ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-                    if (bytes_received > 0) {
-                        buffer[bytes_received] = '\0'; // Null-terminate the received data
-                        std::cout << "Received request:\n" << buffer << std::endl;
-
-                        // *2. send the response
-                        std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
-                        send(client_fd, response.c_str(), response.size(), 0);
-
-                    } else if (bytes_received < 0) {
-                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                            // No data available, continue to the next iteration
-                            continue;
-                        } else {
-                            // !~remove the client from the this->m_PollFDs and clients map (disconnect ones)
-                            std::cerr << "Error receiving data from client: " << client_fd << std::endl;
-                            close(client_fd);
-                            this->m_PollFDs.erase(this->m_PollFDs.begin() + i);
-                            this->m_Clients.erase(client_fd);
-                            this->m_isServFD.erase(client_fd);
-                            i--;
+                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                        // No data available, continue to the next iteration
+                        continue;
+                    } else {
+                        // !~remove the client from the this->m_PollFDs and clients map (disconnect ones)
+                        std::cerr << "Error receiving data from client: " << this->m_PollFDs[i].fd << std::endl;
+                        close(this->m_PollFDs[i].fd);
+                        this->m_PollFDs.erase(this->m_PollFDs.begin() + i);
+                        this->m_Clients.erase(this->m_PollFDs[i].fd);
+                        this->m_isServFD.erase(this->m_PollFDs[i].fd);
+                        i--;
                         perror("recv");
                     }
                 }
             }
         }
-    }
 }
 
+
+void WebServ::request(int fd)
+{
+    Request tmp;
+
+    ssize_t bytes_received = recv(fd,tmp.requesto, sizeof(tmp.requesto) - 1, 0);
+    if (bytes_received > 0) {
+        tmp.isComplate = false;
+        tmp.requesto[bytes_received] = '\0'; // Null-terminate the received data
+        std::cout << "Received request:\n" << tmp.requesto << std::endl;
+        tmp.parseHttpRequest();
+        // i will print the request
+        std::cout << "method: `" << tmp.method <<"'"<< std::endl;
+        std::cout << "path: " << tmp.path << std::endl;
+        std::cout << "version: " << tmp.version << std::endl;
+        std::cout << "headers: " << std::endl;
+        for (std::map<std::string, std::string>::iterator it = tmp.headers.begin(); it != tmp.headers.end(); ++it) {
+            std::cout << "  " << it->first << ": " << it->second << std::endl;
+        }
+        std::cout << "body: "<< RED << tmp.body << RES<<std::endl;
+        this->m_Requests[fd] = tmp;
+
+        // *2. send the response
+        std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
+        send(fd, response.c_str(), response.size(), 0);
+
+    }
+
+}
+
+// void WebServ::ParseRequest()
+// {
+
+// }
 
 void WebServ::Login() {
     std::cout<<YELLOW << R"(

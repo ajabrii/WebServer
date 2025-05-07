@@ -21,6 +21,7 @@
 #include "Socket/Socket.hpp"
 #include "Server/Server.hpp"
 #include "Client/Client.hpp"
+# include "HTTP/Request.hpp"
 
 #define RED "\033[1;31m"
 #define GREEN "\033[1;32m"
@@ -65,6 +66,8 @@ class WebServ
         std::vector<pollfd> m_PollFDs; // pollfd objects
         std::map<int, bool> m_isServFD; // map to check if the fd is a server fd
         std::map<int, Client> m_Clients; // map to store client objects
+
+        std::map<int, Request> m_Requests;
 
     public:
         WebServ();
@@ -112,6 +115,8 @@ class WebServ
         // {
         //     return m_PollFDs;
         // }
+        void request(int fd);
+        // void ParseRequest();
 
         static void  logs(std::string err);
 };
