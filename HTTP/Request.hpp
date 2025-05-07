@@ -4,19 +4,14 @@
 #include <iostream>
 #include <sstream>
 #include <map>
-// #include "../Webserver.hpp"
+# include <sys/socket.h>
+# define GET "GET"
+# define POST "POST"
+# define DELETE "DELETE"
+
 
 #define BUFFER_SIZE 1024
 
-// struct HttpRequest
-// {
-//     std::string method;
-//     std::string path;
-//     std::string version;
-//     // std::map<std::string, std::string> headers;
-//     std::string body;
-
-// };
 
 
 class Request
@@ -34,4 +29,7 @@ class Request
         Request() {};
         ~Request() {};
         void parseHttpRequest();
+        void sendResponse(int fd, const std::string &response);
+        //here we will generate the response
+        void generateResponse(int fd);
 };

@@ -6,11 +6,12 @@
 /*   By: kali <kali@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/07 15:35:16 by kali              #+#    #+#             */
-/*   Updated: 2025/05/07 16:21:30 by kali             ###   ########.fr       */
+/*   Updated: 2025/05/07 17:32:33 by kali             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
+#include <fstream>
 
 
 
@@ -19,13 +20,10 @@ void Request::parseHttpRequest()
 
     std::string rawRequest = this->requesto;
 
-    // std:: cout << "rawRequest: " << rawRequest << std::endl;
     Request req;
     size_t headerEnd = rawRequest.find("\r\n\r\n");
-    // std::cout << "headerEnd:----------------------------------------> " << headerEnd << std::endl;
 
     std::string headerSection = rawRequest.substr(0, headerEnd);
-    // std::cout << "headerSection:----------------------------------------> " << headerSection << std::endl;
     std::string bodySection = rawRequest.substr(headerEnd + 4);
 
     std::istringstream stream(headerSection);
@@ -57,3 +55,48 @@ void Request::parseHttpRequest()
     this->headers = req.headers;
 }
 
+
+void Request::sendResponse(int fd, const std::string &response)
+{
+    send(fd, response.c_str(), response.size(), 0);
+}
+
+void Request::generateResponse(int fd)
+{
+    std::string response;
+
+    // Define the file path (you can later set this dynamically from this->path)
+    // std::string path = "index.html";
+
+    // Try opening the file
+    // std::ifstream file(path.c_str());
+    // if (!file.is_open())
+    // {
+    //     std::cerr << "Error opening file: " << path << std::endl;
+    //     // Send 404 response
+    //     response = this->version + " 404 Not Found\r\n";
+    //     response += "Content-Type: text/plain\r\n";
+    //     response += "Content-Length: 13\r\n";
+    //     response += "\r\n";
+    //     response += "404 Not Found\n";
+    //     sendResponse(fd, response);
+    //     return;
+    // }
+
+    // Read file contents
+    // std::string fileContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    // file.close();
+
+    // Build the response
+    response += this->version + " 200 OK\r\n";
+    response += "Content-Type: text/html\r\n";  // You can later improve this using file extension
+    response += "Content-Length: 14" "\r\n";
+    response += "\r\n"; // End of headers
+    response += "hello world\r\n"; // Body
+    response += "\r\n"; // End of body
+    response += "\r\n"; // End of body
+
+
+    // Send the response
+    sendResponse(fd, response);
+}

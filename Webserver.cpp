@@ -357,20 +357,33 @@ void WebServ::request(int fd)
         tmp.requesto[bytes_received] = '\0'; // Null-terminate the received data
         std::cout << "Received request:\n" << tmp.requesto << std::endl;
         tmp.parseHttpRequest();
-        // i will print the request
-        std::cout << "method: `" << tmp.method <<"'"<< std::endl;
-        std::cout << "path: " << tmp.path << std::endl;
-        std::cout << "version: " << tmp.version << std::endl;
-        std::cout << "headers: " << std::endl;
-        for (std::map<std::string, std::string>::iterator it = tmp.headers.begin(); it != tmp.headers.end(); ++it) {
-            std::cout << "  " << it->first << ": " << it->second << std::endl;
+        if (tmp.method == GET)
+        {
+
         }
-        std::cout << "body: "<< RED << tmp.body << RES<<std::endl;
-        this->m_Requests[fd] = tmp;
+        else if (tmp.method == POST)
+        {
+            std::cout << "POST request received" << std::endl;
+        }
+        else
+        {
+            std::cout << "Unknown request method: " << tmp.method << std::endl;
+        }
+        // i will print the request
+        // std::cout << "method: `" << tmp.method <<"'"<< std::endl;
+        // std::cout << "path: " << tmp.path << std::endl;
+        // std::cout << "version: " << tmp.version << std::endl;
+        // std::cout << "headers: " << std::endl;
+        // for (std::map<std::string, std::string>::iterator it = tmp.headers.begin(); it != tmp.headers.end(); ++it) {
+        //     std::cout << "  " << it->first << ": " << it->second << std::endl;
+        // }
+        // std::cout << "body: "<< RED << tmp.body << RES<<std::endl;
+        // this->m_Requests[fd] = tmp;
 
         // *2. send the response
-        std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
-        send(fd, response.c_str(), response.size(), 0);
+        tmp.generateResponse(fd);
+        // std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
+        // send(fd, response.c_str(), response.size(), 0);
 
     }
 
