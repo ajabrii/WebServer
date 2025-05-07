@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/04 13:34:44 by ajabri            #+#    #+#             */
-/*   Updated: 2025/05/07 11:02:39 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/05/07 12:41:48 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,5 +28,13 @@ class Client
         ~Client();
         int getClientFD();
         void setClientFD(int fd);
+        sockaddr_in getClientAddr() const
+        {
+            return m_Client_add;
+        }
+        void setClientAddr(sockaddr_in addr)
+        {
+            m_Client_add = addr;
+        }
         // void setClientAddr()
 };

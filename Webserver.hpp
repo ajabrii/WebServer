@@ -88,15 +88,18 @@ class WebServ
         bool IsComment(const std::string& line);
         void printConfig() const;
 
-
+        void Login();
         int set_nonblocking(int fd);
         void run(); // this is the entry point of the web server
         //*1 create a socket and bind it to the address
         void IniServers();
+        void SoketBind(sockaddr_in addr, Socket& sock, int i);
         //*2 create pollfd vector and add the server fds to it
         void addPollFDs();
         //*3 event loop
         void eventLoop();
+        void handleNewConnection(int fd);
+
         void handleClient(int fd);
         void handleServer(int fd);
         void handleError(int fd);

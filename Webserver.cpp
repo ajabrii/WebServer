@@ -189,6 +189,8 @@ void WebServ::run()
     this->parseConfig();
     // printConfig();
     // checkValues();
+    this->Login();
+
     this->IniServers();
     std::cout << GREEN"Servers running..." << RES << std::endl;
     this->addPollFDs();
@@ -201,33 +203,63 @@ int WebServ::set_nonblocking(int fd) {
     return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
+void WebServ::SoketBind(sockaddr_in addr, Socket& sock, int i)
+{
+    // std::cout << "Socket created with fd: " << server.getSocket().getFd() << std::endl;
+
+    std::memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(this->getServerBlocks()[i].port);
+    addr.sin_addr.s_addr = INADDR_ANY;
+    
+    //*2 here we create the address and bind it to the socket
+    if (bind(sock.getFd(), (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        perror("bind");
+        close(sock.getFd());
+        return;
+    }
+}
+
+void WebServ::handleNewConnection(int fd)
+{
+    sockaddr_in client_addr = m_Clients[fd].getClientAddr();
+    socklen_t addr_len = sizeof(client_addr);
+    int client_fd = accept(fd, (struct sockaddr*)&client_addr, &addr_len);
+    if (client_fd < 0) {
+        std::cerr << "Error accepting connection  " << client_fd<<std::endl;
+        // perror("accept");
+        return;
+    } else {
+        if (set_nonblocking(client_fd) < 0) {
+            perror("fcntl");
+            close(client_fd);
+            return;
+        }
+        this->m_Clients[client_fd] = Client(client_fd, client_addr, addr_len);
+        pollfd clintpfd;
+        clintpfd.fd = client_fd;
+        clintpfd.events = POLLIN;
+        clintpfd.revents = 0;
+        this->m_PollFDs.push_back(clintpfd);
+        std::cout << "New client connected: " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << std::endl;
+    }
+}
+
 void WebServ::IniServers()
 {
     size_t size = this->getServerBlocks().size();
-    // Socket socks[size];
     std::vector<Socket> socks(size);
 
     for (size_t i = 0; i < size; ++i)
     {
-        //*1 here we create the socket
+        //*1 here we create the socket & bind it to the address
         socks[i].setSocket(AF_INET, SOCK_STREAM, 0);
         Server server(socks[i]);
+        this->SoketBind(server.getServerAddress(), socks[i], i);
+
 
         // std::cout << "Socket created with fd: " << server.getSocket().getFd() << std::endl;
 
-        sockaddr_in addr;
-        std::memset(&addr, 0, sizeof(addr));
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(this->getServerBlocks()[i].port);
-        // std::cout << data.getServerBlocks()[i].port << std::endl;
-        addr.sin_addr.s_addr = INADDR_ANY;
-        
-        //*2 here we create the address and bind it to the socket
-        if (bind(socks[i].getFd(), (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-            perror("bind");
-            close(socks[i].getFd());
-            continue;
-        }
         //*3 here we listen to the socket
         if (listen(socks[i].getFd(), CLIENT_QUEUE) < 0) {
             perror("listen");
@@ -242,7 +274,7 @@ void WebServ::IniServers()
         }
 
         // std::cout << "Server listening on port " << data.getServerBlocks()[i].port << std::endl;
-        server.setServerAddress(addr); // implement this if not already
+        // server.setServerAddress(addr); // implement this if not already
         //*5 storing the server block to the server vector 
         this->m_Servers.push_back(server);
     }
@@ -253,7 +285,6 @@ void WebServ::IniServers()
 void WebServ::addPollFDs()
 {
     pollfd pfd;
-    // std::vector<Server> servers = data.getServers();
     for (size_t i = 0; i < this->m_Servers.size(); ++i) {
         pfd.fd = this->m_Servers[i].getSocket().getFd();
         this->m_isServFD[pfd.fd] = true;
@@ -266,9 +297,7 @@ void WebServ::addPollFDs()
 
 void WebServ::eventLoop()
 {
-    // std::map<int, Client> clients;
     while (true) {
-        // std::cout << "Waiting for events..." << std::endl;
         int ret = poll(this->m_PollFDs.data(), this->m_PollFDs.size(), -1);
         if (ret < 0) {
             perror("poll");
@@ -283,27 +312,8 @@ void WebServ::eventLoop()
                 if (this->m_isServFD[this->m_PollFDs[i].fd] == true)
                 {
                     
-                    sockaddr_in client_addr;
-                    socklen_t addr_len = sizeof(client_addr);
-                    int client_fd = accept(this->m_PollFDs[i].fd, (struct sockaddr*)&client_addr, &addr_len);
-                    if (client_fd < 0) {
-                        std::cerr << "Error accepting connection  " << client_fd<<std::endl;
-                        // perror("accept");
-                        continue;
-                    } else {
-                        if (set_nonblocking(client_fd) < 0) {
-                            perror("fcntl");
-                            close(client_fd);
-                            continue;
-                        }
-                        this->m_Clients[client_fd] = Client(client_fd, client_addr, addr_len);
-                        pollfd clintpfd;
-                        clintpfd.fd = client_fd;
-                        clintpfd.events = POLLIN;
-                        clintpfd.revents = 0;
-                        this->m_PollFDs.push_back(clintpfd);
-                        std::cout << "New client connected: " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << std::endl;
-                    }
+                    // here i will accept the new connection
+                    this->handleNewConnection(this->m_PollFDs[i].fd);
                 }
             // *1. receive the request
                 } else if (this->m_isServFD[this->m_PollFDs[i].fd] == false) {
@@ -320,6 +330,10 @@ void WebServ::eventLoop()
                         send(client_fd, response.c_str(), response.size(), 0);
                         
                     } else if (bytes_received < 0) {
+                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                            // No data available, continue to the next iteration
+                            continue;
+                        } else {
                             // !~remove the client from the this->m_PollFDs and clients map (disconnect ones)
                             std::cerr << "Error receiving data from client: " << client_fd << std::endl;
                             close(client_fd);
@@ -332,4 +346,17 @@ void WebServ::eventLoop()
                 }
             }
         }
+}
+}
+
+
+void WebServ::Login() {
+    std::cout<<YELLOW << R"(
+ _    _      _     _____                 
+| |  | |    | |   /  ___|                
+| |  | | ___| |__ \ `--.  ___ _ ____   __
+| |/\| |/ _ \ '_ \ `--. \/ _ \ '__\ \ / /
+\  /\  /  __/ |_) /\__/ /  __/ |   \ V / 
+ \/  \/ \___|_.__/\____/ \___|_|    \_/  
+)" << RES<<std::endl;
 }
