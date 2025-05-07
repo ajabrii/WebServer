@@ -20,6 +20,7 @@
 
 #include "Socket/Socket.hpp"
 #include "Server/Server.hpp"
+#include "Client/Client.hpp"
 
 #define RED "\033[1;31m"
 #define GREEN "\033[1;32m"
@@ -60,6 +61,10 @@ class WebServ
         std::string m_FileName;
         std::vector<std::string> m_ConfigData;
         std::vector<Server_block> m_ServerBlocks;
+        std::vector<Server> m_Servers; // server objects
+        std::vector<pollfd> m_PollFDs; // pollfd objects
+        std::map<int, bool> m_isServFD; // map to check if the fd is a server fd
+        std::map<int, Client> m_Clients; // map to store client objects
 
     public:
         WebServ();
@@ -82,6 +87,28 @@ class WebServ
         bool Isspaces(const std::string& line); 
         bool IsComment(const std::string& line);
         void printConfig() const;
+
+
+        int set_nonblocking(int fd);
+        void run(); // this is the entry point of the web server
+        //*1 create a socket and bind it to the address
+        void IniServers();
+        //*2 create pollfd vector and add the server fds to it
+        void addPollFDs();
+        //*3 event loop
+        void eventLoop();
+        void handleClient(int fd);
+        void handleServer(int fd);
+        void handleError(int fd);
+
+        std::vector<Server> getServers() const
+        {
+            return m_Servers;
+        }
+        // std::vector<pollfd> getPollFDs() const
+        // {
+        //     return m_PollFDs;
+        // }
         
 };
 
