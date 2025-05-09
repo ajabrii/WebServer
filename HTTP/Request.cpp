@@ -1,17 +1,26 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Request.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: kali <kali@student.42.fr>                  +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/07 15:35:16 by kali              #+#    #+#             */
+/*   Updated: 2025/05/07 17:32:33 by kali             ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Request.hpp"
+#include <fstream>
 
-std::string trim(const std::string& str)
+
+
+void Request::parseHttpRequest()
 {
-    size_t first = str.find_first_not_of(" \t\n\r");
-    if (first == std::string::npos)
-        return "";
 
-    size_t last = str.find_last_not_of(" \t\n\r");
-    return str.substr(first, (last - first + 1));
-}
+    std::string rawRequest = this->requesto;
 
-HttpRequest parseHttpRequest(const std::string& rawRequest) {
-    HttpRequest req;
+    Request req;
     size_t headerEnd = rawRequest.find("\r\n\r\n");
 
     std::string headerSection = rawRequest.substr(0, headerEnd);
@@ -24,22 +33,70 @@ HttpRequest parseHttpRequest(const std::string& rawRequest) {
     std::getline(stream, line);
     std::istringstream requestLine(line);
     requestLine >> req.method >> req.path >> req.version;
+    this->path = req.path;
+    this->method = req.method;
+    this->version = req.version;
 
-    // Remaining lines: headers
+    // *Remaining lines: headers
     while (std::getline(stream, line)) {
-        if (line.back() == '\r') 
+        if (line.back() == '\r')
             line.pop_back(); // remove \r
 
         size_t colon = line.find(":");
         if (colon != std::string::npos) {
             std::string key = line.substr(0, colon);
             std::string value = line.substr(colon + 1);
-            value = trim(value);
+            value = value;
             req.headers[key] = value;
         }
     }
 
-    req.body = bodySection;
-    return req;
+    this->body = bodySection;
+    this->headers = req.headers;
 }
 
+
+void Request::sendResponse(int fd, const std::string &response)
+{
+    send(fd, response.c_str(), response.size(), 0);
+}
+
+void Request::generateResponse(int fd)
+{
+    std::string response;
+
+    // Define the file path (you can later set this dynamically from this->path)
+    // std::string path = "index.html";
+
+    // Try opening the file
+    // std::ifstream file(path.c_str());
+    // if (!file.is_open())
+    // {
+    //     std::cerr << "Error opening file: " << path << std::endl;
+    //     // Send 404 response
+    //     response = this->version + " 404 Not Found\r\n";
+    //     response += "Content-Type: text/plain\r\n";
+    //     response += "Content-Length: 13\r\n";
+    //     response += "\r\n";
+    //     response += "404 Not Found\n";
+    //     sendResponse(fd, response);
+    //     return;
+    // }
+
+    // Read file contents
+    // std::string fileContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    // file.close();
+
+    // Build the response
+    response += this->version + " 200 OK\r\n";
+    response += "Content-Type: text/html\r\n";  // You can later improve this using file extension
+    response += "Content-Length: 14" "\r\n";
+    response += "\r\n"; // End of headers
+    response += "hello world\r\n"; // Body
+    response += "\r\n"; // End of body
+    response += "\r\n"; // End of body
+
+
+    // Send the response
+    sendResponse(fd, response);
+}

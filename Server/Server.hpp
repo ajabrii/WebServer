@@ -6,12 +6,21 @@
 class Server
 {
     private:
-        Socket sock;
+        Socket &sock;
         sockaddr_in serverAddress;
     public:
-        Server(Socket sock);
+        Server(Socket &sock);
         ~Server();
-        Socket getSocket() const;
+        Socket& getSocket() const;
+        sockaddr_in getServerAddress() const
+        {
+            return serverAddress;
+        }
+        void setServerAddress(sockaddr_in addr)
+        {
+            serverAddress = addr;
+        }
+        // void SetSocket(Socket sock);
 
 };
 

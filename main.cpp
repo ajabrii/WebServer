@@ -3,152 +3,155 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: kali <kali@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/16 18:44:48 by kali              #+#    #+#             */
-/*   Updated: 2025/05/03 13:18:58 by ytarhoua         ###   ########.fr       */
+/*   Created: Invalid date        by                   #+#    #+#             */
+/*   Updated: 2025/05/07 14:36:49 by kali             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+/* ************************************************************************** */
+
 # include "Webserver.hpp"
-// include poll() header
-# include <poll.h>
 
 int main(int ac, char **av)
 {
-    (void)ac;
-    try
-    {
-        WebServ data(av[1]);
-        data.parseConfig();
-        data.printConfig();
-        data.checkValues();
+    if (ac != 2) {
+        WebServ::logs("Error:\n[usage]-> ./webserv configFile.config.");
+        return 1;
     }
-    catch (const std::exception& e)
-    {
+    WebServ Websev(av[1]);
+    try {
+        Websev.run();
+    } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
-    // std::cout << "here" << std::endl;
+    return 0;
 }
 
 
-// int main(int ac, char **av)
-// {
+    // std::vector<Server> servers;
+    // size_t size = data.getServerBlocks().size();
+    // Socket socks[size];
 
-//     WebServ data(av[1]);
-    
-//     (void)av;
-//     if (ac != 2) {
-//        WebServ::ServerLogs("Error:\n[usage]-> ./webserv configFile.config.");
-//         return (1);
-//     }
-//     std::fstream configFile;
-//     data.ReadConfig(configFile);
-//     std::cout << "=========================SERVER-BLOCK============================" << std::endl;
+    // for (size_t i = 0; i < size; ++i)
+    // {
+    //     //*1 here we create the socket
+    //     socks[i].setSocket(AF_INET, SOCK_STREAM, 0);
+    //     Server server(socks[i]);
 
-    // int sockFd;
-    // int clientFd;
-    // struct sockaddr_in address;
-    // int addrslen = sizeof(address);
+    //     // std::cout << "Socket created with fd: " << server.getSocket().getFd() << std::endl;
 
-    // (void)clientFd; 
-    // (void)addrslen;
-    // // *1. Create socket (IPv4, TCP)
-    // sockFd = socket(AF_INET, SOCK_STREAM, 0);
-    // if (sockFd == -1) {
-    //     WebServ::ServerLogs("Error: socket creation failed");
-    //     return 1;
-    // }
-    // //*2. Set address info
-    // memset(&address, 0, sizeof(address)); // we memset the address to 0 so we can avoid garbage values
-    // address.sin_family = AF_INET; // sin_family = AF_INET means we are using IPv4
-    // address.sin_addr.s_addr = INADDR_ANY; // sin_addr = INADDR_ANY means we are using all interfaces default interface
-    // address.sin_port = htons(8081); // htons() stands for host to network short, it converts the port number from host byte order to network byte order
-    // //*3. Bind socket to address
+    //     sockaddr_in addr;
+    //     std::memset(&addr, 0, sizeof(addr));
+    //     addr.sin_family = AF_INET;
+    //     addr.sin_port = htons(data.getServerBlocks()[i].port);
+    //     // std::cout << data.getServerBlocks()[i].port << std::endl;
+    //     addr.sin_addr.s_addr = INADDR_ANY;
 
-    // //? bind() associates the socket with the address and port number specified in the sockaddr_in structure (example: address = 192.168.43.1 and port = 8080sd )
-    // if (bind(sockFd,(struct sockaddr *)&address, sizeof(address)) == -1) {
-    //     WebServ::ServerLogs("Error: bind failed");
-    //     close(sockFd);
-    //     return 1;
-    // }
-    
-    // //*4. Listen
-    // while (1) {
-        
-    //     if (listen(sockFd, 5) == -1) {
-    //         WebServ::ServerLogs("Error: listen failed");
-    //         close(sockFd);
-    //         return 1;
+    //     //*2 here we create the address and bind it to the socket
+    //     if (bind(socks[i].getFd(), (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+    //         perror("bind");
+    //         close(socks[i].getFd());
+    //         continue;
     //     }
-    //     WebServ::ServerLogs(GREEN"Server listening on pot 8080..."RES);
-    //     // ? listen accepts in it parameter the number of clients that can be queued to connect to the server. and the socket fd.
-    //     //*5. Accept loop (accept one client for now)
-    //     clientFd = accept(sockFd, (struct sockaddr *)&address, (socklen_t*)&addrslen);
-    //     if (clientFd == -1) {
-    //         WebServ::ServerLogs("Error: accept failed");
-    //         close(sockFd);
-    //         return 1;
+    //     //*3 here we listen to the socket
+    //     if (listen(socks[i].getFd(), CLIENT_QUEUE) < 0) {
+    //         perror("listen");
+    //         close(socks[i].getFd());
+    //         continue;
     //     }
-    //     std::cout <<YELLOW<< "Client connected from " <<RES<<GREEN<< inet_ntoa(address.sin_addr) <<RES <<std::endl;
-    //     // ? accept() accepts a connection on the socket and creates a new socket for the client. It returns the new socket file descriptor.
-    //  // Here is your new HTML body
-    //     const char *html_body = 
-    //     "<!DOCTYPE html>\n"
-    //     "<html lang=\"en\">\n"
-    //     "<head>\n"
-    //     "<meta charset=\"UTF-8\">\n"
-    //     "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-    //     "<title>ARPANET++</title>\n"
-    //     "<link rel=\"icon\" href=\"./www/t.png\" type=\"image/x-icon\">"
-    //     "</head>\n"
-    //     "<body>\n"
-    //     "<div style=\"display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f0f0;\">"
-    //         "<h1 style=\"display: flex; font-weight:200; flex-direction: column;\">Webserv repo </h1>\n"
-    //         "<button style=\"background-color: green; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin-left: 10px\"><a href=\"https://github.com/ajabrii/WebServer/\" style=\"text-decoration: none; color: white;\">Click Me</a></button>"
-    //     "</div>"
-    //     "</body>\n"
-    //     "</html>\n";
-
-    //     // Create the full HTTP response
-    //     char response[4096];
-    //     sprintf(response,
-    //     "HTTP/1.1 404 OK\r\n"
-    //     "Content-Type: text/html\r\n"
-    //     "Content-Length: %lu\r\n"
-    //     "\r\n"
-    //     "%s",
-    //     strlen(html_body),
-    //     html_body);
-
-    //     // Send the HTTP response
-    //     send(clientFd, response, strlen(response), 0);
-
-        
-    //     // ? send() sends the response to the client. It takes the socket file descriptor, the response string, the length of the response, and flags (0 in this case).
-    //     //*7. Close sockets
-    
-    //     char buffer[1024];
-    //     int bytesReceived = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
-    //     if (bytesReceived > 0) {
-    //         buffer[bytesReceived] = '\0'; // Null-terminate the received data
-    //         std::cout  << buffer << std::endl;
-    //     } else {
-    //         std::cerr << "Error receiving data" << std::endl;
+    //     //*4 here we set the socket to non-blocking
+    //     if (set_nonblocking(socks[i].getFd()) < 0) {
+    //         perror("fcntl");
+    //         close(socks[i].getFd());
+    //         continue;
     //     }
+
+    //     // std::cout << "Server listening on port " << data.getServerBlocks()[i].port << std::endl;
+    //     server.setServerAddress(addr); // implement this if not already
+    //     //*5 storing the server block to the server vector
+    //     servers.push_back(server);
     // }
-    // // while (1)
-    // //     ;
-    // // ? poll() is used to wait for events on file descriptors. In this case, it waits for 1 second (1000 milliseconds) before continuing.
-    
-    
-    
-    
-    // // ? recv() receives data from the client. It takes the socket file descriptor, a buffer to store the received data, the size of the buffer, and flags (0 in this case).
-    
-    // close(clientFd);
-    // close(sockFd);
-    
 
-// }
+    // std::cout << GREEN"Servers running..." << RES << std::endl;
+
+    // *6 Create pollfd list
+    // std::vector<pollfd> poll_fds;
+    // std::map<int, bool> isServFD;
+    // pollfd pfd;
+    // std::vector<Server> servers = data.getServers();
+    // for (size_t i = 0; i < servers.size(); ++i) {
+    //     pfd.fd = servers[i].getSocket().getFd();
+    //     isServFD[pfd.fd] = true;
+    //     pfd.events = POLLIN;
+    //     pfd.revents = 0;
+    //     poll_fds.push_back(pfd);
+    // }
+
+    // !Event loop
+    // std::map<int, Client> clients;
+    // while (true) {
+    //     int ret = poll(poll_fds.data(), poll_fds.size(), -1);
+    //     if (ret < 0) {
+    //         perror("poll");
+    //         break;
+    //     }
+
+    //     for (size_t i = 0; i < poll_fds.size(); ++i)
+    //     {
+    //         if (poll_fds[i].revents & POLLIN) {
+
+    //             if (isServFD[poll_fds[i].fd] == true)
+    //             {
+
+    //                 sockaddr_in client_addr;
+    //                 socklen_t addr_len = sizeof(client_addr);
+    //                 int client_fd = accept(poll_fds[i].fd, (struct sockaddr*)&client_addr, &addr_len);
+    //                 if (client_fd < 0) {
+    //                     std::cerr << "Error accepting connection  " << client_fd<<std::endl;
+    //                     // perror("accept");
+    //                     continue;
+    //                 } else {
+    //                     if (set_nonblocking(client_fd) < 0) {
+    //                         perror("fcntl");
+    //                         close(client_fd);
+    //                         continue;
+    //                     }
+    //                     clients[client_fd] = Client(client_fd, client_addr, addr_len);
+    //                     pollfd clintpfd;
+    //                     clintpfd.fd = client_fd;
+    //                     clintpfd.events = POLLIN;
+    //                     clintpfd.revents = 0;
+    //                     poll_fds.push_back(clintpfd);
+    //                     std::cout << "New client connected: " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << std::endl;
+    //                 }
+    //             }
+    //         // *1. receive the request
+    //             } else if (isServFD[poll_fds[i].fd] == false) {
+    //                 // here i will receive the request
+    //                 int client_fd = poll_fds[i].fd;
+    //                 char buffer[1024];
+    //                 ssize_t bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+    //                 if (bytes_received > 0) {
+    //                     buffer[bytes_received] = '\0'; // Null-terminate the received data
+    //                     std::cout << "Received request:\n" << buffer << std::endl;
+
+    //                     // *2. send the response
+    //                     std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
+    //                     send(client_fd, response.c_str(), response.size(), 0);
+
+    //                 } else if (bytes_received < 0) {
+    //                         // !~remove the client from the poll_fds and clients map (disconnect ones)
+    //                         std::cerr << "Error receiving data from client: " << client_fd << std::endl;
+    //                         close(client_fd);
+    //                         poll_fds.erase(poll_fds.begin() + i);
+    //                         clients.erase(client_fd);
+    //                         isServFD.erase(client_fd);
+    //                         i--;
+    //                     perror("recv");
+    //                 }
+    //             }
+    //         }
+    //     }

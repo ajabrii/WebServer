@@ -18,7 +18,7 @@ WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeF
         throw std::runtime_error("Cannot open config file");
     if (infile.peek() == std::ifstream::traits_type::eof())
         throw std::runtime_error("Config file is empty");
-    
+
     while (std::getline(infile, line))
     {
         commentPos = line.find('#'); //?  here i handle the position of the comment like "server { #comment"
@@ -63,6 +63,17 @@ WebServ::WebServ(std::string config) : m_FileName(config), serverFlag(0), routeF
     infile.close();
 }
 
+//! this function is for printing error in std::ceer;
+void WebServ::logs(std::string err)
+{
+    std::cerr << err << std::endl;
+}
+
+std::vector<Server_block> WebServ::getServerBlocks() const
+{
+    return m_ServerBlocks;
+}
+
 WebServ::WebServ(const WebServ& other)
 {
     *this = other; //TODO
@@ -79,7 +90,7 @@ WebServ::~WebServ()
 {
 }
 
-bool WebServ::Isspaces(const std::string& line) 
+bool WebServ::Isspaces(const std::string& line)
 {
     for (size_t i = 0; i < line.length(); i++)
     {
@@ -89,9 +100,9 @@ bool WebServ::Isspaces(const std::string& line)
     return true;
 }
 
-bool WebServ:: IsComment(const std::string& line) 
+bool WebServ:: IsComment(const std::string& line)
 {
-    //! handle comment in the same line ex: error_page 404 = /404.html; #comment 
+    //! handle comment in the same line ex: error_page 404 = /404.html; #comment
     //? done
     if (line.empty() || line.find('#') != std::string::npos || Isspaces(line))
         return true;
@@ -111,14 +122,13 @@ void WebServ::parseConfig()
     for (size_t i = 0; i < m_ConfigData.size(); i++)
     {
         line = m_ConfigData[i];
-        if (IsComment(line)) 
+        if (IsComment(line))
             continue;
 
         if (line == "server")
         {
             if (i + 1 < m_ConfigData.size() && m_ConfigData[i + 1] == "{")
             {
-                std::cout << "Server block found\n";
                 serverFlag = 1;
                 ++i;
                 continue;
@@ -179,90 +189,319 @@ void WebServ::parseConfig()
     }
 }
 
+//* run the entry point of the web server !!
+void WebServ::run()
+{
+    this->parseConfig();
+    // printConfig();
+    // checkValues();
+    this->Login();
 
-// void WebServ::parseConfig()
+    this->IniServers();
+    std::cout << GREEN"Servers running..." << RES << std::endl;
+    this->addPollFDs();
+    this->eventLoop();
+}
+
+int WebServ::set_nonblocking(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags < 0) return -1;
+    return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+}
+
+void WebServ::SoketBind(Server &serv, Socket& sock, int i)
+{
+    // std::cout << "Socket created with fd: " << server.getSocket().getFd() << std::endl;
+    sockaddr_in addr = serv.getServerAddress();
+    std::memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(this->getServerBlocks()[i].port);
+    addr.sin_addr.s_addr = INADDR_ANY;
+
+    //*2 here we create the address and bind it to the socket
+    if (bind(sock.getFd(), (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        perror("bind");
+        close(sock.getFd());
+        return;
+    }
+}
+
+void WebServ::handleNewConnection(int fd)
+{
+    sockaddr_in client_addr = m_Clients[fd].getClientAddr();
+    socklen_t addr_len = sizeof(client_addr);
+    int client_fd = accept(fd, (struct sockaddr*)&client_addr, &addr_len);
+    if (client_fd < 0) {
+        std::cerr << "Error accepting connection  " << client_fd<<std::endl;
+        // perror("accept");
+        return;
+    } else {
+        if (set_nonblocking(client_fd) < 0) {
+            perror("fcntl");
+            close(client_fd);
+            return;
+        }
+        this->m_Clients[client_fd] = Client(client_fd, client_addr, addr_len);
+        pollfd clintpfd;
+        clintpfd.fd = client_fd;
+        clintpfd.events = POLLIN;
+        clintpfd.revents = 0;
+        this->m_PollFDs.push_back(clintpfd);
+        std::cout << "New client connected: " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << std::endl;
+    }
+}
+
+void WebServ::IniServers()
+{
+    size_t size = this->getServerBlocks().size();
+    std::vector<Socket> socks(size);
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        //*1 here we create the socket & bind it to the address
+        socks[i].setSocket(AF_INET, SOCK_STREAM, 0);
+        Server server(socks[i]);
+        this->SoketBind(server, socks[i], i);
+
+
+        // std::cout << "Socket created with fd: " << server.getSocket().getFd() << std::endl;
+
+        //*3 here we listen to the socket
+        if (listen(socks[i].getFd(), CLIENT_QUEUE) < 0) {
+            perror("listen");
+            close(socks[i].getFd());
+            continue;
+        }
+        //*4 here we set the socket to non-blocking
+        if (set_nonblocking(socks[i].getFd()) < 0) {
+            perror("fcntl");
+            close(socks[i].getFd());
+            continue;
+        }
+
+        // std::cout << "Server listening on port " << data.getServerBlocks()[i].port << std::endl;
+        // server.setServerAddress(addr); // implement this if not already
+        //*5 storing the server block to the server vector
+        this->m_Servers.push_back(server);
+    }
+}
+
+
+
+void WebServ::addPollFDs()
+{
+    pollfd pfd;
+    for (size_t i = 0; i < this->m_Servers.size(); ++i) {
+        pfd.fd = this->m_Servers[i].getSocket().getFd();
+        this->m_isServFD[pfd.fd] = true;
+        pfd.events = POLLIN;
+        pfd.revents = 0;
+        this->m_PollFDs.push_back(pfd);
+    }
+
+}
+
+void WebServ::eventLoop()
+{
+    Request tmp;
+    while (true)
+    {
+        int ret = poll(this->m_PollFDs.data(), this->m_PollFDs.size(), -1);
+        if (ret < 0) {
+            perror("poll");
+            break;
+        }
+
+        for (size_t i = 0; i < this->m_PollFDs.size(); ++i)
+        {
+            // std::cout << "Waiting for events..." << std::endl;
+            if (this->m_PollFDs[i].revents & POLLIN) {
+
+                if (this->m_isServFD[this->m_PollFDs[i].fd] == true)
+                {
+
+                    // here i will accept the new connection
+                    this->handleNewConnection(this->m_PollFDs[i].fd);
+                }
+            // *1. receive the request
+                } else if (this->m_isServFD[this->m_PollFDs[i].fd] == false) {
+
+                    request(this->m_PollFDs[i].fd);
+                    // here i will receive the request
+                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                        // No data available, continue to the next iteration
+                        continue;
+                    } else {
+                        // !~remove the client from the this->m_PollFDs and clients map (disconnect ones)
+                        std::cerr << "Error receiving data from client: " << this->m_PollFDs[i].fd << std::endl;
+                        close(this->m_PollFDs[i].fd);
+                        this->m_PollFDs.erase(this->m_PollFDs.begin() + i);
+                        this->m_Clients.erase(this->m_PollFDs[i].fd);
+                        this->m_isServFD.erase(this->m_PollFDs[i].fd);
+                        i--;
+                        perror("recv");
+                    }
+                }
+            }
+        }
+}
+
+
+void WebServ::request(int fd)
+{
+    Request tmp;
+
+    ssize_t bytes_received = recv(fd,tmp.requesto, sizeof(tmp.requesto) - 1, 0);
+    if (bytes_received > 0) {
+        tmp.isComplate = false;
+        tmp.requesto[bytes_received] = '\0'; // Null-terminate the received data
+        std::cout << "Received request:\n" << tmp.requesto << std::endl;
+        tmp.parseHttpRequest();
+        if (tmp.method == GET)
+        {
+            this->routing(fd, tmp);
+            std::cout << "GET request received" << std::endl;
+        }
+        else if (tmp.method == POST)
+        {
+            std::cout << "POST request received" << std::endl;
+        }
+        else
+        {
+            std::cout << "Unknown request method: " << tmp.method << std::endl;
+        }
+        // i will print the request
+        // std::cout << "method: `" << tmp.method <<"'"<< std::endl;
+        // std::cout << "path: " << tmp.path << std::endl;
+        // std::cout << "version: " << tmp.version << std::endl;
+        // std::cout << "headers: " << std::endl;
+        // for (std::map<std::string, std::string>::iterator it = tmp.headers.begin(); it != tmp.headers.end(); ++it) {
+        //     std::cout << "  " << it->first << ": " << it->second << std::endl;
+        // }
+        // std::cout << "body: "<< RED << tmp.body << RES<<std::endl;
+        // this->m_Requests[fd] = tmp;
+
+        // *2. send the response
+        // tmp.generateResponse(fd);
+        // std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
+        // send(fd, response.c_str(), response.size(), 0);
+
+    }
+
+}
+
+void WebServ::routing(int fd, Request& request)
+{
+    //! Here I will route the request to the right server but i have to find the server first
+    std::cout << "Routing request to server..." << std::endl;
+    bool serverFound = false;
+
+    for (size_t i = 0; i < this->m_Servers.size(); ++i)
+    {
+        if (this->m_Servers[i].getSocket().getFd() == fd)
+        {
+            // Server found, handle the request
+            serverFound = true;
+            this->matchingRoute(fd, request);
+            break;
+        }
+    }
+
+    // If no matching server was found, send an error response
+    if (!serverFound)
+    {
+        std::cerr << "Error: No matching server found for fd: " << fd << std::endl;
+        std::string error_response = "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\n\r\n";
+        error_response += "<html><body><h1>500 Internal Server Error</h1><p>No matching server found.</p></body></html>";
+        send(fd, error_response.c_str(), error_response.size(), 0);
+        close(fd);
+    }
+}
+
+std::string DirectoryListing(const std::string& path, const std::string& urlPath) {
+    DIR* dir = opendir(path.c_str());
+    if (!dir) {
+        return "<html><body><h1>403 Forbidden</h1></body></html>"; // or use your error page
+    }
+
+    std::ostringstream html;
+    html << "<html><head><title>Index of " << urlPath << "</title></head><body>";
+    html << "<h1>Index of " << urlPath << "</h1><ul>";
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL) {
+        std::string name = entry->d_name;
+        if (name == ".") continue;
+        std::string link = urlPath + (urlPath.back() == '/' ? "" : "/") + name;
+        html << "<li><a href=\"" << link << "\">" << name << "</a></li>";
+    }
+
+    html << "</ul></body></html>";
+    closedir(dir);
+
+    return html.str();
+}
+void WebServ::matchingRoute(int fd, Request& request)
+{
+    // here i will match the route with the request
+    std::cout << "Matching route..." << std::endl;
+    RouteConfig* match = nullptr;
+    for (size_t i = 0; i < this->m_ServerBlocks.size(); ++i)
+    {
+        for (size_t j = 0; j < m_ServerBlocks[i].routes.size(); ++j) {
+            if (request.path.compare(0, m_ServerBlocks[i].routes[j].path.length(), m_ServerBlocks[i].routes[j].path) == 0) {
+                if (!match || m_ServerBlocks[i].routes[j].path.length() > match->path.length()) {
+                    match = &m_ServerBlocks[i].routes[j]; // Longest prefix match
+                }
+            }
+        }
+    }
+    if (!match->redirect.empty()) {
+        match->path = match->redirect;
+    }
+
+    std::string filePath = match->root + request.path.substr(match->path.length());
+    std::cout << "File path: " << filePath << std::endl;
+    match->root = filePath;
+
+    // Check if the file path is a directory
+    if (match->directory_listing) {
+        std::string directoryListing = DirectoryListing(filePath, request.path);
+        send(fd, directoryListing.c_str(), directoryListing.size(), 0);
+    } else {
+        // Handle file serving here
+        std::cout << "Serving file: " << filePath << std::endl;
+        std::ifstream file(filePath);
+        if (file) {
+            std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            send(fd, content.c_str(), content.size(), 0);
+        } else {
+            std::cerr << "File not found: " << filePath << std::endl;
+    
+             // Send a 404 response
+            std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n";
+            error_response += "<html><body><h1>404 Not Found</h1></body></html>";
+            send(fd, error_response.c_str(), error_response.size(), 0);
+}
+
+
+
+    }
+
+}
+
+// void WebServ::ParseRequest()
 // {
-//     Server_block current_server;
-//     RouteConfig current_route;
-//     std::string line;
 
-//     for (size_t i = 0; i < m_ConfigData.size(); ++i)
-//     {
-//         std::cout << "std::line :: " << m_ConfigData[i] << "\n";
-//     }
-//     for (size_t i = 0; i < m_ConfigData.size(); i++)
-//     {
-//         line = m_ConfigData[i];
-//         if (IsComment(line)) //* skip comments
-//             continue;
-//         if (line == "server")
-//         {
-//             if (m_ConfigData[i+1] == "{")
-//             {
-//                 std::cout << "Server block found\n";
-//                 serverFlag = 1;
-//                 i++;
-//                 continue;
-//             }
-//             else
-//                 throw std::runtime_error("Invalid server block syntax");
-//         }
-//         if (line == "}" && routeFlag)
-//         {
-//             // End of route block
-//             current_server.routes.push_back(current_route);
-//             current_route = RouteConfig(); // reset
-//             routeFlag = 0;
-//             continue;
-//         }
-//         else if (line == "}" && serverFlag)
-//         {
-//             // End of server block
-//             m_ServerBlocks.push_back(current_server);
-//             current_server = Server_block(); // reset
-//             serverFlag = 0;
-//             continue;
-//         }
-//         if (line == "}" && !serverFlag && !routeFlag)
-//         {
-//             throw std::runtime_error("Invalid config file syntax");
-//         }
-//         if (line == "{" && !serverFlag && !routeFlag)
-//         {
-//             throw std::runtime_error("Invalid config file syntax");
-//         }
-//         if (line == "{" && serverFlag && !routeFlag)
-//         {
-//             throw std::runtime_error("Invalid config file syntax");
-//         }
-//         if (line == "{" && serverFlag && routeFlag)
-//         {
-//             throw std::runtime_error("Invalid config file syntax");
-//         }
-
-//         if (line.substr(0, 5) == "route" || line.substr(0, 8) == "location")
-//         {
-//             if (m_ConfigData[i+1] == "{")
-//             {
-//                 // std::cout << "Server block found\n";
-//                 current_route.path = extractPathFromRouteLine(line);
-//                 routeFlag = 1;
-//                 i++;
-//                 continue;
-//             }
-//             else
-//                 throw std::runtime_error("Invalid route block syntax");
-//         }
-
-//         if (serverFlag && !routeFlag)
-//         {
-            
-//             parseServerLine(current_server, line);
-//         }
-//         else if (serverFlag && routeFlag)
-//         {
-//             parseRouteLine(current_route, line);
-//         }
-//     }
 // }
 
+void WebServ::Login() {
+    std::cout<<YELLOW << R"(
+ _    _      _     _____
+| |  | |    | |   /  ___|
+| |  | | ___| |__ \ `--.  ___ _ ____   __
+| |/\| |/ _ \ '_ \ `--. \/ _ \ '__\ \ / /
+\  /\  /  __/ |_) /\__/ /  __/ |   \ V /
+ \/  \/ \___|_.__/\____/ \___|_|    \_/
+)" << RES<<std::endl;
+}

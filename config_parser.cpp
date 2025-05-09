@@ -137,7 +137,6 @@ void WebServ::checkValues() const
 
 void WebServ::printConfig() const
 {
-    // Iterate over each serve
     for (const auto& server : m_ServerBlocks)
     {
         std::cout << "Server Configuration:\n";

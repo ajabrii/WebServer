@@ -1,17 +1,26 @@
 #include "Socket.hpp"
 
 
-Socket::Socket(int domain, int type, int protocol)
+Socket::Socket()
 {
+    // std::cout << "Socket constructor called" << std::endl;
+    arry[DOMAIN] = AF_INET;
+    arry[TYPE] = SOCK_STREAM;
+    arry[PROTOCOL] = 0;
+}
+
+Socket::Socket(int domain, int type, int protocol) 
+{
+    std::cout << "Socket constructor called" << std::endl;
     arry[DOMAIN] = domain;
     arry[TYPE] = type;
     arry[PROTOCOL] = protocol;
-    arry[FD] = socket(domain, type, protocol);
-    if (arry[FD] == -1)
-    {
-        std::cerr << "Invalid File discreptor for socket!!" << std::endl;
-        exit (errno);
-    }
+    // fd = socket(domain, type, protocol);
+    // if (fd == -1)
+    // {
+    //     std::cerr << "Invalid File discreptor for socket!!" << std::endl;
+    //     exit (errno);
+    // }
 }
 
 int Socket::getDomain(void) const
@@ -31,10 +40,11 @@ int Socket::getProtocol(void) const
 
 int Socket::getFd(void) const
 {
-    return (arry[FD]);
+    return (fd);
 }
 
 Socket::~Socket()
 {
-    close(arry[FD]);
+    // std::cout << "Socket destructor called" << std::endl;
+    // close(fd);
 }
