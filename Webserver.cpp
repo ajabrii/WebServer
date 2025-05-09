@@ -351,12 +351,15 @@ void WebServ::request(int fd)
 {
     Request tmp;
 
-    ssize_t bytes_received = recv(fd,tmp.requesto, sizeof(tmp.requesto) - 1, 0);
+    ssize_t bytes_received = recv(fd, tmp.requesto, sizeof(tmp.requesto) - 1, 0);
     if (bytes_received > 0) {
         tmp.isComplate = false;
+        tmp.hasCgi = false;
         tmp.requesto[bytes_received] = '\0'; // Null-terminate the received data
         std::cout << "Received request:\n" << tmp.requesto << std::endl;
+
         tmp.parseHttpRequest();
+
         if (tmp.method == GET)
         {
 

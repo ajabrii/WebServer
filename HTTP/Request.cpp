@@ -3,26 +3,32 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kali <kali@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/07 15:35:16 by kali              #+#    #+#             */
-/*   Updated: 2025/05/07 17:32:33 by kali             ###   ########.fr       */
+/*   Updated: 2025/05/09 10:11:39 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 #include <fstream>
 
+void Request::check_cgi()
+{
+    size_t pos = this->path.find(".py");
 
+    std::string tmp = this->path.substr(pos);
+    std::cout << "----------------------------------------> `" << tmp << "'\n";
+    if (tmp == ".py")
+        this->hasCgi = true;
+}
 
 void Request::parseHttpRequest()
 {
 
     std::string rawRequest = this->requesto;
-
     Request req;
     size_t headerEnd = rawRequest.find("\r\n\r\n");
-
     std::string headerSection = rawRequest.substr(0, headerEnd);
     std::string bodySection = rawRequest.substr(headerEnd + 4);
 
@@ -30,10 +36,13 @@ void Request::parseHttpRequest()
     std::string line;
 
     // First line: method, path, version
+    std::cout << "----------------------------------------> bef`" << this->hasCgi << "'\n";
     std::getline(stream, line);
     std::istringstream requestLine(line);
     requestLine >> req.method >> req.path >> req.version;
     this->path = req.path;
+    this->check_cgi();// .find(.php) 
+    std::cout << "----------------------------------------> `" << this->hasCgi << "'\n";
     this->method = req.method;
     this->version = req.version;
 
@@ -46,7 +55,7 @@ void Request::parseHttpRequest()
         if (colon != std::string::npos) {
             std::string key = line.substr(0, colon);
             std::string value = line.substr(colon + 1);
-            value = value;
+            // value = value;
             req.headers[key] = value;
         }
     }
