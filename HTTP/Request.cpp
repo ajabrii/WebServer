@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kali <kali@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/07 15:35:16 by kali              #+#    #+#             */
-/*   Updated: 2025/05/07 17:32:33 by kali             ###   ########.fr       */
+/*   Updated: 2025/05/10 15:25:06 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,20 @@
 #include <fstream>
 
 
+void SubHost(Request &req, std::string value)
+{
+    size_t pos = value.find(":");
+
+    std::string port = value.substr(pos + 1);
+    std::string add = value.substr(0, pos);
+
+    if (pos != std::string::npos) {
+        req.headers["Port"] = port;
+        req.headers["Address"] = add;
+    } else {
+        req.headers["Host"] = value;
+    }
+}
 
 void Request::parseHttpRequest()
 {
@@ -47,10 +61,19 @@ void Request::parseHttpRequest()
             std::string key = line.substr(0, colon);
             std::string value = line.substr(colon + 1);
             value = value;
+            if (key == "Host")
+            {
+                SubHost(req, value);
+                continue;
+            }
             req.headers[key] = value;
         }
     }
 
+    // for (std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it) {
+    //     std::cout << "Header: " << it->first << ": " << it->second << std::endl;
+    // }
+    // exit(0);
     this->body = bodySection;
     this->headers = req.headers;
 }
