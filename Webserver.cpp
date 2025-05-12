@@ -368,6 +368,7 @@ void WebServ::request(int fd)
     Request tmp;
 
     ssize_t bytes_received = recv(fd,tmp.requesto, sizeof(tmp.requesto) - 1, 0);
+    // std::cout << "bytes_received:----------------------------------> " << bytes_received << std::endl;
     if (bytes_received > 0) {
         tmp.isComplate = false;
         tmp.requesto[bytes_received] = '\0'; // Null-terminate the received data
@@ -523,6 +524,9 @@ void WebServ::matchingRoute(Request& request, int i, int fd)
         }
         std::cout << "-----------match: " << match->path << std::endl;
 
+        if (request.path == "/") {
+            request.path = ""; // Handle root path
+        }
     std::string filePath = clean_line(match->root) + clean_line(request.path);
     std::cout << "request path: " << request.path << std::endl;
     std::cout << "match root: " << match->root << std::endl;
@@ -542,6 +546,7 @@ void WebServ::matchingRoute(Request& request, int i, int fd)
             response += content;
             send(fd, response.c_str(), response.size(), 0);
         } else {
+            // std::cout << "File found: " << filePath << std::endl;
             std::cerr << "File not found: " << filePath << std::endl;
             std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n";
             error_response += "<html><body><h1>404 Not Found</h1></body></html>";
