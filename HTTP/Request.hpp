@@ -13,7 +13,6 @@
 #define BUFFER_SIZE 1024
 
 
-//[.py, .php]
 class Request
 {
     public:
@@ -24,7 +23,6 @@ class Request
         std::string body;
         char requesto[BUFFER_SIZE];
         bool isComplate;
-        bool hasCgi;
 
     public:
         Request() {};
@@ -33,5 +31,4 @@ class Request
         void sendResponse(int fd, const std::string &response);
         //here we will generate the response
         void generateResponse(int fd);
-        void check_cgi();
 };

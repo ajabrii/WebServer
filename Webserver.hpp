@@ -17,6 +17,9 @@
 #include <sstream> // for stringstream() to spil string
 # include <poll.h>
 # include <fcntl.h>
+#include <dirent.h>
+#include <sys/stat.h>
+# include <set>
 
 #include "Socket/Socket.hpp"
 #include "Server/Server.hpp"
@@ -107,16 +110,12 @@ class WebServ
         void handleServer(int fd);
         void handleError(int fd);
 
-        std::vector<Server> getServers() const
-        {
-            return m_Servers;
-        }
-        // std::vector<pollfd> getPollFDs() const
-        // {
-        //     return m_PollFDs;
-        // }
         void request(int fd);
         // void ParseRequest();
+        void routing(int fd, Request& req);
+        void matchingRoute(Request& req, int i, int fd);
+        void buildRedirect(std::string redirect);
+        std::string clean_line(std::string line);
 
         static void  logs(std::string err);
 };

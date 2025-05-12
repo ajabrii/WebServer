@@ -89,8 +89,8 @@ void WebServ::parseRouteLine(RouteConfig& route, const std::string& line)
     if (equal == std::string::npos)
         throw std::runtime_error("Invalid route line: " + line);
 
-    std::string key = trim(line.substr(0, equal));
-    std::string value = trim(line.substr(equal + 1));
+    std::string key = clean_line(line.substr(0, equal));
+    std::string value = clean_line(line.substr(equal + 1));
 
     if (key == "methods")
     {

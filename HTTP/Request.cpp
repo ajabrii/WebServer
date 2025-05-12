@@ -3,28 +3,35 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/07 15:35:16 by kali              #+#    #+#             */
-/*   Updated: 2025/05/09 10:11:39 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/05/12 16:41:11 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 #include <fstream>
 
-void Request::check_cgi()
-{
-    size_t pos = this->path.find(".py");
 
-    std::string tmp = this->path.substr(pos);
-    std::cout << "----------------------------------------> `" << tmp << "'\n";
-    if (tmp == ".py")
-        this->hasCgi = true;
+void SubHost(Request &req, std::string value)
+{
+    size_t pos = value.find(":");
+
+    std::string port = value.substr(pos + 1);
+    std::string add = value.substr(0, pos);
+
+    if (pos != std::string::npos) {
+        req.headers["Port"] = port;
+        req.headers["Address"] = add;
+    } else {
+        req.headers["Host"] = value;
+    }
 }
 
 void Request::parseHttpRequest()
 {
+
 
     std::string rawRequest = this->requesto;
     Request req;
@@ -36,13 +43,11 @@ void Request::parseHttpRequest()
     std::string line;
 
     // First line: method, path, version
-    std::cout << "----------------------------------------> bef`" << this->hasCgi << "'\n";
+    // std::cout << "----------------------------------------> bef`" << this->hasCgi << "'\n";
     std::getline(stream, line);
     std::istringstream requestLine(line);
     requestLine >> req.method >> req.path >> req.version;
     this->path = req.path;
-    this->check_cgi();// .find(.php) 
-    std::cout << "----------------------------------------> `" << this->hasCgi << "'\n";
     this->method = req.method;
     this->version = req.version;
 
@@ -55,11 +60,19 @@ void Request::parseHttpRequest()
         if (colon != std::string::npos) {
             std::string key = line.substr(0, colon);
             std::string value = line.substr(colon + 1);
-            // value = value;
+            if (key == "Host")
+            {
+                SubHost(req, value);
+                continue;
+            }
             req.headers[key] = value;
         }
     }
 
+    // for (std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it) {
+    //     std::cout << "Header: " << it->first << ": " << it->second << std::endl;
+    // }
+    // exit(0);
     this->body = bodySection;
     this->headers = req.headers;
 }
