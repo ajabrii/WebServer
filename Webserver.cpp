@@ -514,8 +514,10 @@ void WebServ::matchingRoute(Request& request, int i, int fd)
     }
         
         // Handle redirect if any
+        std::cout<< "redirect: ------------------------------------------------->>" << match->redirect << std::endl;  
         if (!match->redirect.empty()) {
             std::string redirect_response = "HTTP/1.1 301 Moved Permanently\r\nLocation: " + match->redirect + "\r\n\r\n";
+            logs(redirect_response);
             send(fd, redirect_response.c_str(), redirect_response.size(), 0);
             return;
         }
@@ -564,3 +566,4 @@ void WebServ::Login() {
  \/  \/ \___|_.__/\____/ \___|_|    \_/
 )" << RES<<std::endl;
 }
+
