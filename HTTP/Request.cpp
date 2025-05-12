@@ -60,7 +60,6 @@ void Request::parseHttpRequest()
         if (colon != std::string::npos) {
             std::string key = line.substr(0, colon);
             std::string value = line.substr(colon + 1);
-            value = value;
             if (key == "Host")
             {
                 SubHost(req, value);

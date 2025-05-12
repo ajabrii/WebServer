@@ -109,11 +109,6 @@ class WebServ
         void handleServer(int fd);
         void handleError(int fd);
 
-        Server getServer(size_t index) const
-        {
-            if (index < m_Servers.size())
-                return m_Servers[index];
-        }
         void request(int fd);
         // void ParseRequest();
         void routing(int fd, Request& req);
