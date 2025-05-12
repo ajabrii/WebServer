@@ -19,6 +19,7 @@
 # include <fcntl.h>
 #include <dirent.h>
 #include <sys/stat.h>
+# include <set>
 
 #include "Socket/Socket.hpp"
 #include "Server/Server.hpp"

@@ -212,7 +212,7 @@ int WebServ::set_nonblocking(int fd) {
 void WebServ::SoketBind(Server &serv, Socket& sock, int i)
 {
     // std::cout << "Socket created with fd: " << server.getSocket().getFd() << std::endl;
-    sockaddr_in addr = serv.getServerAddress();
+    sockaddr_in addr;
     std::memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(this->getServerBlocks()[i].port);
@@ -224,6 +224,7 @@ void WebServ::SoketBind(Server &serv, Socket& sock, int i)
         close(sock.getFd());
         return;
     }
+    serv.setServerAddress(addr); // implement this if not already
 }
 
 void WebServ::handleNewConnection(int fd)
@@ -250,41 +251,55 @@ void WebServ::handleNewConnection(int fd)
         std::cout << "New client connected: " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << std::endl;
     }
 }
-
-void WebServ::IniServers()
-{
+void WebServ::IniServers() {
     size_t size = this->getServerBlocks().size();
+    std::set<uint16_t> bound_ports;
     std::vector<Socket> socks(size);
 
-    for (size_t i = 0; i < size; ++i)
-    {
-        //*1 here we create the socket & bind it to the address
+    for (size_t i = 0; i < size; ++i) {
+        uint16_t port = this->getServerBlocks()[i].port;
+
+        if (bound_ports.count(port)) {
+            std::cout << YELLOW"Port " << port << " already in use, skipping duplicate bind.\n" << RES;
+            continue;
+        }
+
+        bound_ports.insert(port);
         socks[i].setSocket(AF_INET, SOCK_STREAM, 0);
+
+        int opt = 1;
+        setsockopt(socks[i].getFd(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
         Server server(socks[i]);
-        this->SoketBind(server, socks[i], i);
+        sockaddr_in addr{};
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(port);
+        addr.sin_addr.s_addr = INADDR_ANY;
 
+        if (bind(socks[i].getFd(), (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+            perror("bind");
+            close(socks[i].getFd());
+            continue;
+        }
 
-        // std::cout << "Socket created with fd: " << server.getSocket().getFd() << std::endl;
+        server.setServerAddress(addr);
 
-        //*3 here we listen to the socket
         if (listen(socks[i].getFd(), CLIENT_QUEUE) < 0) {
             perror("listen");
             close(socks[i].getFd());
             continue;
         }
-        //*4 here we set the socket to non-blocking
+
         if (set_nonblocking(socks[i].getFd()) < 0) {
             perror("fcntl");
             close(socks[i].getFd());
             continue;
         }
 
-        // std::cout << "Server listening on port " << data.getServerBlocks()[i].port << std::endl;
-        // server.setServerAddress(addr); // implement this if not already
-        //*5 storing the server block to the server vector
         this->m_Servers.push_back(server);
     }
 }
+
 
 
 
@@ -332,9 +347,11 @@ void WebServ::eventLoop()
                     if (errno == EAGAIN || errno == EWOULDBLOCK) {
                         // No data available, continue to the next iteration
                         continue;
-                    } else {
+                    // } else {
                         // !~remove the client from the this->m_PollFDs and clients map (disconnect ones)
                         std::cerr << "Error receiving data from client: " << this->m_PollFDs[i].fd << std::endl;
+                        int client_fd = this->m_PollFDs[i].fd;
+                        close(client_fd);
                         close(this->m_PollFDs[i].fd);
                         this->m_PollFDs.erase(this->m_PollFDs.begin() + i);
                         this->m_Clients.erase(this->m_PollFDs[i].fd);
