@@ -316,51 +316,26 @@ void WebServ::addPollFDs()
 
 void WebServ::eventLoop()
 {
-    Request tmp;
-    while (true)
-    {
-        int ret = poll(this->m_PollFDs.data(), this->m_PollFDs.size(), -1);
-        if (ret < 0) {
-            perror("poll");
-            break;
+    while (true) {
+      int ret = poll(m_PollFDs.data(), m_PollFDs.size(), -1);
+      if (ret < 0) { perror("poll"); break; }
+  
+      for (size_t i = 0; i < m_PollFDs.size(); ++i) {
+        int fd = m_PollFDs[i].fd;
+        if (m_PollFDs[i].revents & POLLIN) {
+          if (m_isServFD[fd]) {
+            // New connection on a listening socket
+            handleNewConnection(fd);
+          }
+          else {
+            // Data ready on a client socket
+            request(fd);
+          }
         }
-
-        for (size_t i = 0; i < this->m_PollFDs.size(); ++i)
-        {
-            // std::cout << "Waiting for events..." << std::endl;
-            if (this->m_PollFDs[i].revents & POLLIN) {
-
-                if (this->m_isServFD[this->m_PollFDs[i].fd] == true)
-                {
-
-                    // here i will accept the new connection
-                    this->handleNewConnection(this->m_PollFDs[i].fd);
-                }
-            // *1. receive the request
-                } else if (this->m_isServFD[this->m_PollFDs[i].fd] == false) {
-
-                    request(this->m_PollFDs[i].fd);
-                    // std::cout << this->m_PollFDs[i].fd << " is a client fd" << std::endl;
-                    // here i will receive the request
-                    if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                        // No data available, continue to the next iteration
-                        continue;
-                    // } else {
-                        // !~remove the client from the this->m_PollFDs and clients map (disconnect ones)
-                        std::cerr << "Error receiving data from client: " << this->m_PollFDs[i].fd << std::endl;
-                        int client_fd = this->m_PollFDs[i].fd;
-                        close(client_fd);
-                        close(this->m_PollFDs[i].fd);
-                        this->m_PollFDs.erase(this->m_PollFDs.begin() + i);
-                        this->m_Clients.erase(this->m_PollFDs[i].fd);
-                        this->m_isServFD.erase(this->m_PollFDs[i].fd);
-                        i--;
-                        perror("recv");
-                    }
-                }
-            }
-        }
-}
+      }
+    }
+  }
+  
 
 
 void WebServ::request(int fd)
@@ -368,6 +343,7 @@ void WebServ::request(int fd)
     Request tmp;
 
     ssize_t bytes_received = recv(fd,tmp.requesto, sizeof(tmp.requesto) - 1, 0);
+    //handle client disconnection
     // std::cout << "bytes_received:----------------------------------> " << bytes_received << std::endl;
     if (bytes_received > 0) {
         tmp.isComplate = false;
