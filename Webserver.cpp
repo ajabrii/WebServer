@@ -251,6 +251,22 @@ void WebServ::handleNewConnection(int fd)
         std::cout << "New client connected: " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << std::endl;
     }
 }
+
+void WebServ::cleanupClientFD(int fd)
+{
+    close(fd);
+    m_Clients.erase(fd);
+    m_isServFD.erase(fd);
+    this->m_Requests.erase(fd);
+    for (size_t i = 0; i < m_PollFDs.size(); ++i) {
+        if (m_PollFDs[i].fd == fd) {
+            m_PollFDs.erase(m_PollFDs.begin() + i);
+            break;
+        }
+    }
+    std::cout << "Client disconnected: " << fd << std::endl;
+}
+
 void WebServ::IniServers() {
     size_t size = this->getServerBlocks().size();
     std::set<uint16_t> bound_ports;
@@ -343,13 +359,19 @@ void WebServ::request(int fd)
     Request tmp;
 
     ssize_t bytes_received = recv(fd,tmp.requesto, sizeof(tmp.requesto) - 1, 0);
-    //handle client disconnection
-    // std::cout << "bytes_received:----------------------------------> " << bytes_received << std::endl;
+    if (bytes_received == 0) {
+        cleanupClientFD(fd);
+        return;
+    } else if (bytes_received < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
+        // serious error
+        cleanupClientFD(fd);
+    }
     if (bytes_received > 0) {
         tmp.isComplate = false;
         tmp.requesto[bytes_received] = '\0'; // Null-terminate the received data
         std::cout << "Received request:\n" << tmp.requesto << std::endl;
         tmp.parseHttpRequest();
+        this->m_Requests[fd] = tmp;
         if (tmp.method == GET)
         {
             this->routing(fd, tmp);
@@ -358,6 +380,9 @@ void WebServ::request(int fd)
         else if (tmp.method == POST)
         {
             std::cout << "POST request received" << std::endl;
+        }
+        else if (tmp.method == DELETE) {
+            std::cout << "DELETE request received" << std::endl;
         }
         else
         {

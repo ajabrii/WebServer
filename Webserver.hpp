@@ -118,6 +118,8 @@ class WebServ
         std::string clean_line(std::string line);
 
         static void  logs(std::string err);
+        void cleanupClientFD(int fd);
+        
 };
 
 #endif
