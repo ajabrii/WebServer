@@ -31,7 +31,7 @@
 #define YELLOW "\033[1;33m"
 #define RES "\033[0m"
 
-# define CLIENT_QUEUE 0
+# define CLIENT_QUEUE 10
 
 
 struct RouteConfig {
@@ -119,6 +119,7 @@ class WebServ
 
         static void  logs(std::string err);
         void cleanupClientFD(int fd);
+        void SendError(int fd, int errorCode, std::string err);
         
 };
 

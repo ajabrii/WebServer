@@ -10,7 +10,7 @@
 # define DELETE "DELETE"
 
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 8024
 
 
 class Request
@@ -22,6 +22,7 @@ class Request
         std::map<std::string, std::string> headers;
         std::string body;
         char requesto[BUFFER_SIZE];
+        size_t reveivedBytes;
         bool isComplate;
 
     public:

@@ -115,10 +115,6 @@ void WebServ::parseConfig()
     RouteConfig current_route;
     std::string line;
 
-    // for (size_t i = 0; i < m_ConfigData.size(); i++)
-    // {
-    //     std::cout << "std::line :: " << m_ConfigData[i] << "\n";
-    // }
     for (size_t i = 0; i < m_ConfigData.size(); i++)
     {
         line = m_ConfigData[i];
@@ -203,7 +199,8 @@ void WebServ::run()
     this->eventLoop();
 }
 
-int WebServ::set_nonblocking(int fd) {
+int WebServ::set_nonblocking(int fd)
+{
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags < 0) return -1;
     return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
@@ -252,6 +249,17 @@ void WebServ::handleNewConnection(int fd)
     }
 }
 
+
+void WebServ::SendError(int fd, int errorCode, std::string err)
+{
+    std::cerr << "Error: " << err << std::endl;
+    std::string error_response = "HTTP/1.1 " + std::to_string(errorCode) + err +" \r\n";
+    error_response += "Content-Type: text/html\r\n";
+    error_response += "\r\n";
+    error_response += "<html><body><h1>" + std::to_string(errorCode) + err +"</h1></body></html>";
+    send(fd, error_response.c_str(), error_response.size(), 0);
+}
+
 void WebServ::cleanupClientFD(int fd)
 {
     close(fd);
@@ -267,7 +275,8 @@ void WebServ::cleanupClientFD(int fd)
     std::cout << "Client disconnected: " << fd << std::endl;
 }
 
-void WebServ::IniServers() {
+void WebServ::IniServers() 
+{
     size_t size = this->getServerBlocks().size();
     std::set<uint16_t> bound_ports;
     std::vector<Socket> socks(size);
@@ -284,8 +293,7 @@ void WebServ::IniServers() {
         socks[i].setSocket(AF_INET, SOCK_STREAM, 0);
 
         int opt = 1;
-        setsockopt(socks[i].getFd(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
+        setsockopt(socks[i].getFd(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));// to understand this
         Server server(socks[i]);
         sockaddr_in addr{};
         addr.sin_family = AF_INET;
@@ -300,7 +308,7 @@ void WebServ::IniServers() {
 
         server.setServerAddress(addr);
 
-        if (listen(socks[i].getFd(), CLIENT_QUEUE) < 0) {
+        if (listen(socks[i].getFd(), CLIENT_QUEUE) < 0) { // to see
             perror("listen");
             close(socks[i].getFd());
             continue;
@@ -336,7 +344,8 @@ void WebServ::eventLoop()
       int ret = poll(m_PollFDs.data(), m_PollFDs.size(), -1);
       if (ret < 0) { perror("poll"); break; }
   
-      for (size_t i = 0; i < m_PollFDs.size(); ++i) {
+      for (size_t i = 0; i < m_PollFDs.size(); ++i)
+      {
         int fd = m_PollFDs[i].fd;
         if (m_PollFDs[i].revents & POLLIN) {
           if (m_isServFD[fd]) {
@@ -353,17 +362,65 @@ void WebServ::eventLoop()
   }
   
 
+//   void WebServ::request(int fd) 
+//   {
+//     Request& req = m_Requests[fd]; 
+
+//     std::cout <<RED<< req.requesto <<RES<< std::endl;
+//     std::cout <<RED<< req.reveivedBytes << RES<<std::endl;
+//     // read into the buffer at its current end
+//     ssize_t n = recv(fd, req.requesto + req.reveivedBytes, BUFFER_SIZE - req.reveivedBytes - 1, 0);
+
+//     if (n == 0) {
+//         // client closed
+//         req.reveivedBytes = 0;
+//         cleanupClientFD(fd);
+//         return;
+//     }
+//     if (n < 0) {
+//         if (errno == EAGAIN || errno == EWOULDBLOCK)
+//             return; // no data right now
+//         cleanupClientFD(fd);
+//         return;
+//     }
+
+//     req.reveivedBytes += n;
+//     req.requesto[req.reveivedBytes] = '\0';
+
+//     // have we got the end of headers?
+//     if (!req.isComplate && strstr(req.requesto, "\r\n\r\n")) {
+//         req.isComplate = true;
+//         req.parseHttpRequest();
+//         this->m_Requests[fd] = req;
+//         if (req.method == GET)
+//         {
+//             this->routing(fd, req);
+//             std::cout << "GET request received" << std::endl;
+//         }
+//         else if (req.method == POST)
+//         {
+//             std::cout << "POST request received" << std::endl;
+//         }
+//         else if (req.method == DELETE) {
+//             std::cout << "DELETE request received" << std::endl;
+//         }
+//         else
+//         {
+//             std::cout << "Unknown request method: " << req.method << std::endl;
+//         }
+//     }
+// }
+
 
 void WebServ::request(int fd)
 {
-    Request tmp;
+    Request tmp = this->m_Requests[fd];
 
     ssize_t bytes_received = recv(fd,tmp.requesto, sizeof(tmp.requesto) - 1, 0);
     if (bytes_received == 0) {
         cleanupClientFD(fd);
         return;
     } else if (bytes_received < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
-        // serious error
         cleanupClientFD(fd);
     }
     if (bytes_received > 0) {
@@ -388,24 +445,7 @@ void WebServ::request(int fd)
         {
             std::cout << "Unknown request method: " << tmp.method << std::endl;
         }
-        // i will print the request
-        // std::cout << "method: `" << tmp.method <<"'"<< std::endl;
-        // std::cout << "path: " << tmp.path << std::endl;
-        // std::cout << "version: " << tmp.version << std::endl;
-        // std::cout << "headers: " << std::endl;
-        // for (std::map<std::string, std::string>::iterator it = tmp.headers.begin(); it != tmp.headers.end(); ++it) {
-        //     std::cout << "  " << it->first << ": " << it->second << std::endl;
-        // }
-        // std::cout << "body: "<< RED << tmp.body << RES<<std::endl;
-        // this->m_Requests[fd] = tmp;
-
-        // *2. send the response
-        // tmp.generateResponse(fd);
-        // std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
-        // send(fd, response.c_str(), response.size(), 0);
-
     }
-
 }
 
 std::string WebServ::clean_line(std::string line)
@@ -535,10 +575,11 @@ void WebServ::matchingRoute(Request& request, int i, int fd)
     std::cout << "match->directory_listing: " << match->directory_listing << std::endl;
 
     if (match->directory_listing) {
-        std::string listing = DirectoryListing(filePath, request.path);
-        std::string response = "HTTP/1.1 403 Forbidden \r\nContent-Type: text/html\r\n\r\n";
-        response += listing;
-        send(fd, response.c_str(),  response.size(), 0);
+        // std::string listing = DirectoryListing(filePath, request.path);
+        // std::string response = "HTTP/1.1 403 Forbidden \r\nContent-Type: text/html\r\n\r\n";
+        // response += listing;
+        // send(fd, response.c_str(),  response.size(), 0);
+        SendError(fd, 403, " Forbidden");
     } else {
         std::ifstream file(filePath.c_str());
         if (file) {
@@ -549,9 +590,10 @@ void WebServ::matchingRoute(Request& request, int i, int fd)
         } else {
             // std::cout << "File found: " << filePath << std::endl;
             std::cerr << "File not found: " << filePath << std::endl;
-            std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n";
-            error_response += "<html><body><h1>404 Not Found</h1></body></html>";
-            send(fd, error_response.c_str(), error_response.size(), 0);
+            SendError(fd, 404," not found");
+            // std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n";
+            // error_response += "<html><body><h1>404 Not Found</h1></body></html>";
+            // send(fd, error_response.c_str(), error_response.size(), 0);
         }
     }
 }
