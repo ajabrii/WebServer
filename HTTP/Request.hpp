@@ -23,6 +23,7 @@ class Request
         std::string body;
         char requesto[BUFFER_SIZE];
         size_t reveivedBytes;
+        int contentLength;
         bool isComplate;
 
     public:
@@ -32,4 +33,11 @@ class Request
         void sendResponse(int fd, const std::string &response);
         //here we will generate the response
         void generateResponse(int fd);
+        int getContentLength() const{
+            return contentLength;
+        };
+        void setContentLength(int length)
+        {
+            contentLength = length;
+        };
 };

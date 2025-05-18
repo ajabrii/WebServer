@@ -3,14 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    favicon.ico
+    <title>Webservhhhhh</title>
     <link rel="icon" href="www/t.png" type="image/x-icon"> <!-- favicon -->
 </head>
 <body>
-    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f0f0;">
-        <h1 style="display: flex; font-weight:200; flex-direction: column;" >Webserv</h1>
-        <button style="background-color: red; color: white; padding: 10px 20px; border: none; border-radius: 5px;"><a href="#" style="text-decoration: none; color: black;"></a>Click Me</button>
+    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background-color: #f0f0f0;">
+        <h1 style="font-weight: 200;">Webserv</h1>
+
+        <!-- Button (optional action) -->
+        <button style="background-color: red; color: white; padding: 10px 20px; border: none; border-radius: 5px;">
+            <a href="#" style="text-decoration: none; color: white;">Click Me</a>
+        </button>
+
+        <!-- File Upload Form -->
+        <form action="/upload" method="POST" enctype="multipart/form-data" style="margin-top: 20px;">
+            <input type="file" name="file">
+            <button type="submit" style="padding: 8px 16px; background-color: green; color: white; border: none; border-radius: 4px;">Upload</button>
+        </form>
     </div>
 </body>
 </html>

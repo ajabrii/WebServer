@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/07 15:35:16 by kali              #+#    #+#             */
-/*   Updated: 2025/05/12 16:41:11 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/05/18 11:05:59 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,10 @@ void Request::parseHttpRequest()
     std::string rawRequest = this->requesto;
     Request req;
     size_t headerEnd = rawRequest.find("\r\n\r\n");
+    if (headerEnd == std::string::npos) {
+        std::cerr << "Invalid HTTP request format" << std::endl;
+        return;
+    }
     std::string headerSection = rawRequest.substr(0, headerEnd);
     std::string bodySection = rawRequest.substr(headerEnd + 4);
 
@@ -53,6 +57,7 @@ void Request::parseHttpRequest()
 
     // *Remaining lines: headers
     while (std::getline(stream, line)) {
+        // std::cout << "line: " << line << std::endl;
         if (line.back() == '\r')
             line.pop_back(); // remove \r
 
@@ -66,6 +71,7 @@ void Request::parseHttpRequest()
                 continue;
             }
             req.headers[key] = value;
+            // std::cout << "key: " << key << " value: `" << value <<"'"<< std::endl;
         }
     }
 
@@ -74,6 +80,8 @@ void Request::parseHttpRequest()
     // }
     // exit(0);
     this->body = bodySection;
+    this->contentLength = this->body.length();
+    // std::cout << "------------------------> body: `" << this->body <<"'"<< "content-lenght : "<<this->body.length()<<std::endl;
     this->headers = req.headers;
 }
 

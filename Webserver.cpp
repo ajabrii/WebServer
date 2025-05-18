@@ -341,6 +341,7 @@ void WebServ::addPollFDs()
 void WebServ::eventLoop()
 {
     while (true) {
+    
       int ret = poll(m_PollFDs.data(), m_PollFDs.size(), -1);
       if (ret < 0) { perror("poll"); break; }
   
@@ -362,91 +363,93 @@ void WebServ::eventLoop()
   }
   
 
-//   void WebServ::request(int fd) 
-//   {
-//     Request& req = m_Requests[fd]; 
+  void WebServ::request(int fd) 
+  {
+    Request& req = m_Requests[fd]; 
 
-//     std::cout <<RED<< req.requesto <<RES<< std::endl;
-//     std::cout <<RED<< req.reveivedBytes << RES<<std::endl;
-//     // read into the buffer at its current end
-//     ssize_t n = recv(fd, req.requesto + req.reveivedBytes, BUFFER_SIZE - req.reveivedBytes - 1, 0);
+    std::cout <<RED<< req.requesto <<RES<< std::endl;
+    std::cout <<RED<< req.reveivedBytes << RES<<std::endl;
+    // read into the buffer at its current end
+    ssize_t n = recv(fd, req.requesto + req.reveivedBytes, BUFFER_SIZE - req.reveivedBytes - 1, 0);
 
-//     if (n == 0) {
-//         // client closed
-//         req.reveivedBytes = 0;
-//         cleanupClientFD(fd);
-//         return;
-//     }
-//     if (n < 0) {
-//         if (errno == EAGAIN || errno == EWOULDBLOCK)
-//             return; // no data right now
-//         cleanupClientFD(fd);
-//         return;
-//     }
-
-//     req.reveivedBytes += n;
-//     req.requesto[req.reveivedBytes] = '\0';
-
-//     // have we got the end of headers?
-//     if (!req.isComplate && strstr(req.requesto, "\r\n\r\n")) {
-//         req.isComplate = true;
-//         req.parseHttpRequest();
-//         this->m_Requests[fd] = req;
-//         if (req.method == GET)
-//         {
-//             this->routing(fd, req);
-//             std::cout << "GET request received" << std::endl;
-//         }
-//         else if (req.method == POST)
-//         {
-//             std::cout << "POST request received" << std::endl;
-//         }
-//         else if (req.method == DELETE) {
-//             std::cout << "DELETE request received" << std::endl;
-//         }
-//         else
-//         {
-//             std::cout << "Unknown request method: " << req.method << std::endl;
-//         }
-//     }
-// }
-
-
-void WebServ::request(int fd)
-{
-    Request tmp = this->m_Requests[fd];
-
-    ssize_t bytes_received = recv(fd,tmp.requesto, sizeof(tmp.requesto) - 1, 0);
-    if (bytes_received == 0) {
+    if (n == 0) {
+        // client closed
+        req.reveivedBytes = 0;
         cleanupClientFD(fd);
         return;
-    } else if (bytes_received < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
-        cleanupClientFD(fd);
     }
-    if (bytes_received > 0) {
-        tmp.isComplate = false;
-        tmp.requesto[bytes_received] = '\0'; // Null-terminate the received data
-        std::cout << "Received request:\n" << tmp.requesto << std::endl;
-        tmp.parseHttpRequest();
-        this->m_Requests[fd] = tmp;
-        if (tmp.method == GET)
+    if (n < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+            return; // no data right now
+        cleanupClientFD(fd);
+        return;
+    }
+
+    req.reveivedBytes += n;
+    req.requesto[req.reveivedBytes] = '\0';
+
+    // have we got the end of headers?
+    if (!req.isComplate && strstr(req.requesto, "\r\n\r\n")) {
+        req.isComplate = true;
+        req.parseHttpRequest();
+        this->m_Requests[fd] = req;
+        if (req.method == GET)
         {
-            this->routing(fd, tmp);
+            this->routing(fd, req);
             std::cout << "GET request received" << std::endl;
         }
-        else if (tmp.method == POST)
+        else if (req.method == POST)
         {
             std::cout << "POST request received" << std::endl;
         }
-        else if (tmp.method == DELETE) {
+        else if (req.method == DELETE) {
             std::cout << "DELETE request received" << std::endl;
         }
         else
         {
-            std::cout << "Unknown request method: " << tmp.method << std::endl;
+            std::cout << "Unknown request method: " << req.method << std::endl;
         }
     }
 }
+
+
+// void WebServ::request(int fd)
+// {
+//     Request tmp = this->m_Requests[fd];
+
+//     ssize_t bytes_received = recv(fd,tmp.requesto, sizeof(tmp.requesto) - 1, 0);
+//     if (bytes_received == 0) {
+//         cleanupClientFD(fd);
+//         return;
+//     } else if (bytes_received < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
+//         cleanupClientFD(fd);
+//     }
+//     if (bytes_received > 0) {
+//         tmp.isComplate = false;
+//         tmp.requesto[bytes_received] = '\0'; // Null-terminate the received data
+//         std::cout << "Received request:\n" << tmp.requesto << std::endl;
+//         tmp.parseHttpRequest();
+//         this->m_Requests[fd] = tmp;
+//         if (tmp.method == GET)
+//         {
+//             this->routing(fd, tmp);
+//             std::cout << "GET request received" << std::endl;
+//         }
+//         else if (tmp.method == POST)
+//         {
+//             //handle post request
+//             // this->routing(fd, tmp);
+//             std::cout << "POST request received" << std::endl;
+//         }
+//         else if (tmp.method == DELETE) {
+//             std::cout << "DELETE request received" << std::endl;
+//         }
+//         else
+//         {
+//             std::cout << "Unknown request method: " << tmp.method << std::endl;
+//         }
+//     }
+// }
 
 std::string WebServ::clean_line(std::string line)
 {
