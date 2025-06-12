@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/04 13:34:44 by ajabri            #+#    #+#             */
-/*   Updated: 2025/05/07 12:41:48 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/05/11 14:49:38 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ class Client
         int m_Client_fd; // client file descriptor
         sockaddr_in m_Client_add;
         socklen_t m_addrLen;
+        // int client_stage;
     public: 
         Client();
         Client(int fd, sockaddr_in addr, socklen_t addrLen);

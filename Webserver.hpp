@@ -22,6 +22,7 @@
 #include "Server/Server.hpp"
 #include "Client/Client.hpp"
 # include "HTTP/Request.hpp"
+# include "CGI/cgi.hpp"
 
 #define RED "\033[1;31m"
 #define GREEN "\033[1;32m"

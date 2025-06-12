@@ -6,21 +6,67 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/07 15:35:16 by kali              #+#    #+#             */
-/*   Updated: 2025/05/09 10:11:39 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/06/12 17:16:31 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 #include <fstream>
 
+std::string Request::exts[N_EXTENTION] = {".py", ".php", ".cpp"};
+
+
+bool isValidQueryString(const std::string& qs) {
+    size_t pos = 0;
+    while (pos < qs.length()) {
+        size_t eq = qs.find('=', pos);
+        size_t amp = qs.find('&', pos);
+
+        if (eq == std::string::npos || (amp != std::string::npos && eq > amp))
+            return false;
+
+        if (eq == pos) // empty key
+            return false;
+
+        pos = (amp == std::string::npos) ? qs.length() : amp + 1;
+    }
+    return true;
+}
+
+
 void Request::check_cgi()
 {
-    size_t pos = this->path.find(".py");
+    size_t pos;
+    std::string tmp;
+    bool is_query = false;
 
-    std::string tmp = this->path.substr(pos);
-    std::cout << "----------------------------------------> `" << tmp << "'\n";
-    if (tmp == ".py")
-        this->hasCgi = true;
+    for (size_t i = 0; i < N_EXTENTION; i++)
+    {
+        
+        pos = this->path.find(exts[i]);
+        if (pos == std::string::npos)
+            continue;
+        tmp = this->path.substr(pos);
+        std::cout << "----------------------------------------> `" << tmp << "'\n";
+        std::cout << "------------------tmp.substr(0, exts[i].size())----------------------> `" << tmp.substr(0, exts[i].size()) << "'\n";
+        std::cout << "-----------------------tmp.c_str()[exts[i].size()]-----------------> `" << tmp.c_str()[exts[i].size()] << "'\n";
+
+        if (tmp == exts[i] || (is_query = (tmp.substr(0, exts[i].size()) == exts[i] && tmp.c_str()[exts[i].size()] == '?')))
+        {
+            if (is_query)
+            {
+                
+                if (!(this->hasQurey = isValidQueryString(tmp.substr(exts[i].size()))))
+                std::cerr << "Query is invalid\n";
+                else
+                {
+                    this->query = tmp.substr(exts[i].size());
+                    std::cerr << "Query is valid : " << this->query << "\n";
+                }
+            }
+            this->hasCgi = true;
+        }
+    }
 }
 
 void Request::parseHttpRequest()

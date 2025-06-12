@@ -1,3 +1,6 @@
+#ifndef REQUEST_HPP
+#define REQUEST_HPP
+
 #include <unistd.h>
 #include <string>
 #include <cstring>
@@ -11,20 +14,24 @@
 
 
 #define BUFFER_SIZE 1024
+#define N_EXTENTION 3
 
 
 //[.py, .php]
 class Request
 {
     public:
+        static std::string exts[N_EXTENTION];
         std::string method;
         std::string path;
         std::string version;
+        std::string query;
         std::map<std::string, std::string> headers;
         std::string body;
         char requesto[BUFFER_SIZE];
         bool isComplate;
         bool hasCgi;
+        bool hasQurey;
 
     public:
         Request() {};
@@ -35,3 +42,5 @@ class Request
         void generateResponse(int fd);
         void check_cgi();
 };
+
+#endif

@@ -346,7 +346,6 @@ void WebServ::eventLoop()
         }
 }
 
-
 void WebServ::request(int fd)
 {
     Request tmp;
@@ -359,7 +358,9 @@ void WebServ::request(int fd)
         std::cout << "Received request:\n" << tmp.requesto << std::endl;
 
         tmp.parseHttpRequest();
-
+        std::cout << "---------------------------------" << tmp.hasCgi << "\n";
+        if (tmp.hasCgi)
+            cgi_runer(tmp);
         if (tmp.method == GET)
         {
 
