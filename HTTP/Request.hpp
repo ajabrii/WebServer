@@ -26,6 +26,7 @@ class Request
         std::string path;
         std::string version;
         std::string query;
+        std::string script_path;
         std::map<std::string, std::string> headers;
         std::string body;
         char requesto[BUFFER_SIZE];

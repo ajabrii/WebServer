@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/07 15:35:16 by kali              #+#    #+#             */
-/*   Updated: 2025/06/12 17:16:31 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/06/12 18:50:27 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,8 +62,11 @@ void Request::check_cgi()
                 {
                     this->query = tmp.substr(exts[i].size());
                     std::cerr << "Query is valid : " << this->query << "\n";
+                    this->script_path = this->path.substr(0, this->path.find('?'));
                 }
             }
+            else
+                this->script_path = tmp;
             this->hasCgi = true;
         }
     }

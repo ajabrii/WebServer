@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/06/12 15:30:36 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/06/15 15:46:12 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,16 @@
 
 # include "Webserver.hpp"
 
-int main(int ac, char **av)
+int main(int ac, char **av, char **envp)
 {
+    
+    for(int i = 0; envp[i] != NULL; i++)
+    {
+        std::string str;
+        str = envp[i];
+        if (str.find("PATH=") != std::string::npos && !(str.find("_PATH") != std::string::npos))
+            std::cout << envp[i] << "\n";
+    }
     if (ac != 2) {
         WebServ::logs("Error:\n[usage]-> ./webserv configFile.config.");
         return 1;
