@@ -1,9 +1,9 @@
 main() {
-    // Step 1: Parse the configuration file
+    //(Done) Step 1: Parse the configuration file
     ConfigInterpreter parser;
     parser.parse("config/webserv.conf");
 
-    // Step 2: Retrieve all parsed server configurations
+    // ( DONE )Step 2: Retrieve all parsed server configurations
     List<ServerConfig> configs = parser.getServerConfigs();
 
     // Step 3: Create a server instance for each configuration
