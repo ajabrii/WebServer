@@ -1,0 +1,50 @@
+main() {
+    // Step 1: Parse the configuration file
+    ConfigInterpreter parser;
+    parser.parse("config/webserv.conf");
+
+    // Step 2: Retrieve all parsed server configurations
+    List<ServerConfig> configs = parser.getServerConfigs();
+
+    // Step 3: Create a server instance for each configuration
+    List<HttpServer> servers;
+    for (each config in configs) {
+        HttpServer server(config);
+        servers.add(server);
+    }
+
+    // Step 4: Setup the Reactor (non-blocking I/O event manager)
+    Reactor reactor;
+    for (each server in servers) {
+        reactor.registerServer(server);
+    }
+
+    // Step 5: Main server loop — wait for and dispatch events
+    while (true) {
+        reactor.poll();  // Wait for readable/writable fds
+
+        for (each event in reactor.getReadyEvents()) {
+            Connection conn = reactor.getConnection(event.fd);
+
+            if (event.isNewConnection) {
+                conn = server.acceptConnection();
+                reactor.addConnection(conn);
+            }
+            else if (event.isReadable) {
+                conn.readData(); // Read raw HTTP request
+                if (conn.isRequestComplete()) {
+                    HttpRequest req = conn.parseRequest();
+                    HttpResponse res = server.handleRequest(req);
+                    conn.setResponse(res);
+                }
+            }
+            else if (event.isWritable) {
+                conn.writeResponse(); // Send response to client
+                if (conn.isFinished()) {
+                    reactor.removeConnection(conn);
+                    conn.close();
+                }
+            }
+        }
+    }
+}
