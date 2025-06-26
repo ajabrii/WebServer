@@ -41,12 +41,46 @@ int main(int ac, char **av)
         
         while (true)
         {
-            reactors.poll();
+            reactors.poll();  // Wait for readable/writable fds
 
-            // for (size_t i = 0; i < reactors.getReadyEvents().size(); i++)
-            // {
-            //     // if ()
-            // }
+            std::vector<Event> readyEvents = reactors.getReadyEvents();
+            for (size_t i = 0; i < readyEvents.size(); i++)
+            {
+                Event event = readyEvents[i];
+
+                if (event.isNewConnection) {
+                    // Find the appropriate server for this connection
+                    HttpServer* server = reactors.getServer(event.fd);
+                    if (server) {
+                        Connection conn = server->acceptConnection();
+                        reactors.addConnection(conn);
+                    }
+                }
+                else if (event.isReadable) {
+                    Connection& conn = reactors.getConnection(event.fd);
+                    std::string data = conn.readData(); // Read raw HTTP request
+                    
+                    // For now, we'll assume request is complete if we have data
+                    if (!data.empty()) {
+                        // Parse the raw data into HttpRequest
+                        HttpRequest req = HttpRequest::parse(data);
+                        
+                        // Use the first server for all connections (simple case)
+                        if (!servers.empty()) {
+                            HttpResponse res = servers[0].handleRequest(req);
+                            
+                            // Convert response to string and write it
+                            std::string responseStr = res.toString();
+                            conn.writeData(responseStr);
+                        }
+                    }
+                }
+                else if (event.isWritable) {
+                    // Handle writable events - for now we'll just remove finished connections
+                    // You may need to implement connection state tracking
+                    reactors.removeConnection(event.fd);
+                }
+            }
         }
 
     }
@@ -56,23 +90,3 @@ int main(int ac, char **av)
     }
     
 }
-
-
-// for (size_t i = 0; i < configs.size(); i++)
-        // {
-        //     std::cout <<"max bodysize "<< configs[i].clientMaxBodySize << "\nhost " << configs[i].host << std::endl;
-        //     std::cout << "port " << configs[i].port << "\nerrorpage " << configs[i].errorPage << std::endl;
-        //     std::cout << "servername " << configs[i].serverName << std::endl;  
-        //     for (size_t x = 0; x < configs[i].routes.size(); x++)
-        //     {
-        //         // std::cout << "\n";
-        //         std::cout << configs[i].routes[x].allowedMethods[0] << "\n";
-        //         std::cout << configs[i].routes[x].path << "\n";
-        //         std::cout << configs[i].routes[x].root << "\n";
-        //         std::cout << configs[i].routes[x].redirection << "\n";
-        //         std::cout << configs[i].routes[x].autoindex << "\n";
-        //         std::cout << configs[i].routes[x].indexFile << "\n";
-        //         std::cout << configs[i].routes[x].cgiExtension << "\n";
-        //         std::cout << configs[i].routes[x].uploadDir<< "\n";                
-        //     }          
-        // }
