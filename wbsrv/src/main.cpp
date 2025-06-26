@@ -6,12 +6,13 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/26 17:17:47 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/26 17:48:05 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/ConfigInterpreter.hpp"
 # include "../includes/HttpServer.hpp"
+# include "../includes/Reactor.hpp"
 
 int main(int ac, char **av)
 {
@@ -32,6 +33,21 @@ int main(int ac, char **av)
             servers.push_back(server);
         }
         
+        Reactor reactors;
+        for (size_t i = 0;i < servers.size(); i++)
+        {
+            reactors.registerServer(servers[i]);
+        }
+        
+        while (true)
+        {
+            reactors.poll();
+
+            // for (size_t i = 0; i < reactors.getReadyEvents().size(); i++)
+            // {
+            //     // if ()
+            // }
+        }
 
     }
     catch(const std::exception& e)

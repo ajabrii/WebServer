@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/26 16:23:41 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/26 17:40:15 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ private:
     std::vector<pollfd> pollFDs;
     std::map<int, HttpServer*> serverMap;
     std::map<int, Connection> connectionMap;
+    std::vector<Event> readyEvents;
 
 public:
     void registerServer(HttpServer& server);
