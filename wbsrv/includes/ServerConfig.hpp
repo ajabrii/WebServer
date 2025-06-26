@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:00:24 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/26 15:58:34 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/26 17:12:22 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ class ServerConfig {
         std::vector<RouteConfig> routes;
         
         ServerConfig();
+        ServerConfig(const ServerConfig& other);
 };
 
 #endif
