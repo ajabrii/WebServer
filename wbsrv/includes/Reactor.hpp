@@ -27,21 +27,22 @@ struct Event {
     bool isNewConnection;
 };
 
-class Reactor {
-private:
-    std::vector<pollfd> pollFDs;
-    std::map<int, HttpServer*> serverMap;
-    std::map<int, Connection> connectionMap;
-    std::vector<Event> readyEvents;
+class Reactor
+{
+    private:
+        std::vector<pollfd> pollFDs;
+        std::map<int, HttpServer*> serverMap;
+        std::map<int, Connection> connectionMap;
+        std::vector<Event> readyEvents;
 
-public:
-    void registerServer(HttpServer& server);
-    void addConnection(const Connection& conn);
-    void removeConnection(int fd);
-    void poll();
-    std::vector<Event> getReadyEvents();
-    Connection& getConnection(int fd);
-    HttpServer* getServer(int fd);
+    public:
+        void registerServer(HttpServer& server);
+        void addConnection(const Connection& conn);
+        void removeConnection(int fd);
+        void poll();
+        std::vector<Event> getReadyEvents();
+        Connection& getConnection(int fd);
+        HttpServer* getServer(int fd);
 };
 
 #endif

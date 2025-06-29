@@ -22,14 +22,15 @@ Connection::Connection(int fd, const sockaddr_in& addr)
     : client_fd(fd), client_addr(addr) {}
 
 Connection::~Connection() {
-    closeConnection();
+    // closeConnection();
 }
 
 int Connection::getFd() const {
     return client_fd;
 }
 
-std::string Connection::readData() const {
+std::string Connection::readData() const 
+{
     char buffer[4096];
     ssize_t bytesRead = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
     if (bytesRead < 0)

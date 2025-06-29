@@ -37,14 +37,14 @@ int main(int ac, char **av)
         }
 
         // Print servers to confirm
-        for (size_t i = 0; i < servers.size(); ++i) {
-            std::cout << "Server " << i + 1 << ":\n";
-            std::cout << "  Host: " << servers[i]->getConfig().host << "\n";
-            std::cout << "  Port: " << servers[i]->getConfig().port << "\n";
-            std::cout << "  Server Name: " << servers[i]->getConfig().serverName << "\n";
-            std::cout << "  Error Page: " << servers[i]->getConfig().errorPage << "\n";
-            std::cout << "  Client Max Body Size: " << servers[i]->getConfig().clientMaxBodySize << "\n";
-        }
+        // for (size_t i = 0; i < servers.size(); ++i) {
+        //     std::cout << "Server " << i + 1 << ":\n";
+        //     std::cout << "  Host: " << servers[i]->getConfig().host << "\n";
+        //     std::cout << "  Port: " << servers[i]->getConfig().port << "\n";
+        //     std::cout << "  Server Name: " << servers[i]->getConfig().serverName << "\n";
+        //     std::cout << "  Error Page: " << servers[i]->getConfig().errorPage << "\n";
+        //     std::cout << "  Client Max Body Size: " << servers[i]->getConfig().clientMaxBodySize << "\n";
+        // }
 
         Reactor reactor;
         for (size_t i = 0; i < servers.size(); ++i) {
@@ -61,18 +61,23 @@ int main(int ac, char **av)
                 if (event.isNewConnection) {
                     HttpServer* server = reactor.getServer(event.fd);
                     if (server) {
+                        std::cout << "New connection on server: " << server->getConfig().serverName << std::endl;
                         Connection conn = server->acceptConnection();
                         reactor.addConnection(conn);
                     }
                 }
                 else if (event.isReadable) {
+                    std::cout << "Readable event on fd: " << event.fd << std::endl;
+                    // Find the connection associated with this fd
                     Connection& conn = reactor.getConnection(event.fd);
                     std::string data = conn.readData();
 
                     if (!data.empty()) {
+                        std::cout << "Received data: " << data << std::endl;
                         HttpRequest req = HttpRequest::parse(data);
                         // For now, just use the first server to handle request
                         if (!servers.empty()) {
+                            std::cout << "Handling request with server: " << servers[0]->getConfig().serverName << std::endl;
                             HttpResponse res = servers[0]->handleRequest(req);
                             std::string responseStr = res.toString();
                             conn.writeData(responseStr);
@@ -80,6 +85,7 @@ int main(int ac, char **av)
                     }
                 }
                 else if (event.isWritable) {
+                    std::cout << "Writable event on fd: " << event.fd << std::endl;
                     reactor.removeConnection(event.fd);
                 }
             }

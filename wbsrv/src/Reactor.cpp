@@ -41,13 +41,13 @@ void Reactor::removeConnection(int fd) {
     connectionMap.erase(fd);
 }
 
-void Reactor::poll() {
-    readyEvents.clear();
+void Reactor::poll() 
+{
+    readyEvents.clear(); //
     int ret = ::poll(&pollFDs[0], pollFDs.size(), -1);
     if (ret < 0) {
         throw std::runtime_error("poll failed");
     }
-
     for (size_t i = 0; i < pollFDs.size(); ++i) {
         pollfd& pfd = pollFDs[i];
         if (pfd.revents & POLLIN || pfd.revents & POLLOUT) {
