@@ -22,14 +22,24 @@ void Reactor::registerServer(HttpServer& server) {
     serverMap[server.getFd()] = &server;
 }
 
-void Reactor::addConnection(const Connection& conn) {
+// void Reactor::addConnection(const Connection& conn) {
+//     pollfd pfd;
+//     pfd.fd = conn.getFd();
+//     pfd.events = POLLIN | POLLOUT;
+//     pfd.revents = 0;
+//     pollFDs.push_back(pfd);
+//     connectionMap[conn.getFd()] = conn;
+// }
+
+void Reactor::addConnection(Connection* conn) {
     pollfd pfd;
-    pfd.fd = conn.getFd();
+    pfd.fd = conn->getFd();
     pfd.events = POLLIN | POLLOUT;
     pfd.revents = 0;
     pollFDs.push_back(pfd);
-    connectionMap[conn.getFd()] = conn;
+    connectionMap[conn->getFd()] = conn;
 }
+
 
 void Reactor::removeConnection(int fd) {
     for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it) {
@@ -38,8 +48,13 @@ void Reactor::removeConnection(int fd) {
             break;
         }
     }
-    connectionMap.erase(fd);
+    std::map<int, Connection*>::iterator it = connectionMap.find(fd);
+    if (it != connectionMap.end()) {
+        delete it->second;  // free memory
+        connectionMap.erase(it);
+    }
 }
+
 
 void Reactor::poll() 
 {
@@ -65,11 +80,12 @@ std::vector<Event> Reactor::getReadyEvents() {
     return readyEvents;
 }
 
-Connection& Reactor::getConnection(int fd) {
-    std::map<int, Connection>::iterator it = connectionMap.find(fd);
+Connection& Reactor::getConnection(int fd) 
+{
+    std::map<int, Connection*>::iterator it = connectionMap.find(fd);
     if (it == connectionMap.end())
         throw std::runtime_error("Connection not found");
-    return it->second;
+    return (*it->second);
 }
 
 HttpServer* Reactor::getServer(int fd) {

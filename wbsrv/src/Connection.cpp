@@ -22,7 +22,7 @@ Connection::Connection(int fd, const sockaddr_in& addr)
     : client_fd(fd), client_addr(addr) {}
 
 Connection::~Connection() {
-    // closeConnection();
+    closeConnection();
 }
 
 int Connection::getFd() const {

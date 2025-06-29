@@ -48,6 +48,7 @@
         "typeinfo": "cpp",
         "cstring": "cpp",
         "ctime": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "variant": "cpp"
     }
 }

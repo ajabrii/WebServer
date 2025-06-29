@@ -62,7 +62,7 @@ int main(int ac, char **av)
                     HttpServer* server = reactor.getServer(event.fd);
                     if (server) {
                         std::cout << "New connection on server: " << server->getConfig().serverName << std::endl;
-                        Connection conn = server->acceptConnection();
+                        Connection* conn = new Connection(server->acceptConnection());
                         reactor.addConnection(conn);
                     }
                 }
