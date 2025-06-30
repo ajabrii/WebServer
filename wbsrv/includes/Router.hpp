@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 08:58:47 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 10:33:26 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 11:21:34 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,5 +18,5 @@
 class Router
 {
     public:
-         const RouteConfig* match(HttpRequest& request, ServerConfig serverConfig, int fd) const;
+         const RouteConfig* match(const HttpRequest& request, const ServerConfig& serverConfig) const;
 };
