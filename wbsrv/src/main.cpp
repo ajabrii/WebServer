@@ -6,13 +6,14 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 07:06:04 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 09:34:55 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/ConfigInterpreter.hpp"
 # include "../includes/HttpServer.hpp"
 # include "../includes/Reactor.hpp"
+# include "../includes/Router.hpp"
 
 
 int main(int ac, char **av)
@@ -61,13 +62,21 @@ int main(int ac, char **av)
                 else if (event.isReadable) {
                     Connection& conn = reactor.getConnection(event.fd);
                     std::string data = conn.readData();
-                    std::cout << "\033[1;32m" << data << "\033[0m" << std::endl;
+                    // std::cout << "\033[1;32m" << data << "\033[0m" << std::endl;
 
                     if (!data.empty()) {
                         HttpRequest req = HttpRequest::parse(data);
-
+                        std::cout << req.uri << std::endl;
+                        std::cout << req.method << std::endl;
+                        std::cout << req.version << std::endl;
+                        
+                        //  Router router;
+                        //  HttpServer* server = reactor.getServer(event.fd);
+                        //  const RouteConfig* route = router.match(req, server->getConfig());
+                        //  std::cout << "Matched route: " << (route ? route->path : "none") << std::endl;
                         if (!servers.empty()) {
                             HttpResponse res = servers[0]->handleRequest(req);
+                            // RequestDispatcher dispatcher;
                             std::string responseStr = res.toString();
                             conn.writeData(responseStr);
                             std::cout << "[<] Sent response of " << responseStr.size() << " bytes" << std::endl;

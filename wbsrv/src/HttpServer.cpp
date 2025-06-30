@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 06:42:14 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 09:26:33 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,11 +26,13 @@ HttpServer::HttpServer(const ServerConfig& cfg) : config(cfg)
     server_addr.sin_addr.s_addr = inet_addr(cfg.host.c_str());
 }
 
-HttpServer::~HttpServer() {
+HttpServer::~HttpServer()
+{
     close(listen_fd);
 }
 
-void HttpServer::setup() {
+void HttpServer::setup()
+{
     int opt = 1;
     if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
         throw std::runtime_error("setsockopt failed");
@@ -41,14 +43,16 @@ void HttpServer::setup() {
     if (listen(listen_fd, 128) < 0)
         throw std::runtime_error("listen failed");
 
-    std::cout << "[+][HttpServer] Listening on http://" << config.host << ":" << config.port << std::endl;
+    std::cout << "[*][HttpServer] Listening on http://" << config.host << ":" << config.port << std::endl;
 }
 
-int HttpServer::getFd() const {
+int HttpServer::getFd() const
+{
     return listen_fd;
 }
 
-Connection HttpServer::acceptConnection() const {
+Connection HttpServer::acceptConnection() const
+{
     sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);
     int client_fd = accept(listen_fd, (struct sockaddr*)&client_addr, &client_len);
@@ -58,7 +62,8 @@ Connection HttpServer::acceptConnection() const {
     return Connection(client_fd, client_addr);
 }
 
-HttpResponse HttpServer::handleRequest(const HttpRequest& request) {
+HttpResponse HttpServer::handleRequest(const HttpRequest& request)
+{
     (void)request;
     HttpResponse response;
     response.version = "HTTP/1.1";
