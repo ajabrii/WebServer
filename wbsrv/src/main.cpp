@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 16:15:35 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/06/30 15:48:16 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,10 +52,10 @@ int main(int ac, char **av)
                 Event event = readyEvents[i];
 
                 if (event.isNewConnection) {
-                    HttpServer* server = reactor.getServer(event.fd);
+                    HttpServer* server = reactor.getServerByListeningFd(event.fd);
                     if (server) {
                         Connection* conn = new Connection(server->acceptConnection());
-                        reactor.addConnection(conn);
+                        reactor.addConnection(conn, server);
                         std::cout << "[+] New client connected" << std::endl;
                     }
                 }
@@ -69,8 +69,8 @@ int main(int ac, char **av)
                         HttpRequest req = HttpRequest::parse(data);
                         
                          Router router;
-                        std::cout <<"serverMap size: " <<reactor.serverFd << std::endl;
-                         HttpServer* server = reactor.getServer(4);
+                        // std::cout <<"serverMap size: " <<reactor.serverFd << std::endl;
+                         HttpServer* server = reactor.getServerForClient(event.fd);
                         // if (!server) {
                         //     std::cerr << "No server found for fd: " << event.fd << std::endl;
                         //     continue;
