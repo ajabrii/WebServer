@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:13:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 09:13:31 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 13:54:10 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,14 @@
 // #include "GetHandler.hpp"
 // + PostHandler.hpp, DeleteHandler.hpp when implemented
 
-class RequestDispatcher {
-public:
-    HttpResponse dispatch(const HttpRequest& request, const RouteConfig& route) const;
+class RequestDispatcher
+{
+    private:
+        HttpResponse serveStaticFile(const std::string& filepath_uri) const;
+        HttpResponse  handleDirectoryListing(const std::string& path, const std::string& urlPath) const;
+        HttpResponse handleRedirect(const std::string& redirectUri) const;
+    public:
+        HttpResponse dispatch(const HttpRequest& request, const RouteConfig& route) const;
 };
 
 #endif

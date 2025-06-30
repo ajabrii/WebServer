@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 11:27:37 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 13:08:44 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,7 @@ int main(int ac, char **av)
                              // Dispatch request to the matched route
                              RequestDispatcher dispatcher;
                              response = dispatcher.dispatch(req, *route);
-                         } else {
+                         } else {  
                              // Handle 404 Not Found
                              response.statusCode = 404;
                              response.statusText = "Not Found";
