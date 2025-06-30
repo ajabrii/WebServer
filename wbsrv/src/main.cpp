@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 06:15:01 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 07:06:04 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,32 +29,25 @@ int main(int ac, char **av)
 
         std::vector<HttpServer*> servers;
 
+        // Create server for each config
         for (size_t i = 0; i < configs.size(); ++i) {
             HttpServer* server = new HttpServer(configs[i]);
             server->setup();
             servers.push_back(server);
         }
 
-        // Print servers to confirm
-        // for (size_t i = 0; i < servers.size(); ++i) {
-        //     std::cout << "Server " << i + 1 << ":\n";
-        //     std::cout << "  Host: " << servers[i]->getConfig().host << "\n";
-        //     std::cout << "  Port: " << servers[i]->getConfig().port << "\n";
-        //     std::cout << "  Server Name: " << servers[i]->getConfig().serverName << "\n";
-        //     std::cout << "  Error Page: " << servers[i]->getConfig().errorPage << "\n";
-        //     std::cout << "  Client Max Body Size: " << servers[i]->getConfig().clientMaxBodySize << "\n";
-        // }
-
         Reactor reactor;
         for (size_t i = 0; i < servers.size(); ++i) {
             reactor.registerServer(*servers[i]);
         }
 
-        while (true) {
-            reactor.poll();  // Wait for readable/writable fds
+        while (true)
+        {
+            reactor.poll();  //? Wait for events
             std::vector<Event> readyEvents = reactor.getReadyEvents();
 
-            for (size_t i = 0; i < readyEvents.size(); ++i) {
+            for (size_t i = 0; i < readyEvents.size(); ++i)
+            {
                 Event event = readyEvents[i];
 
                 if (event.isNewConnection) {
@@ -62,32 +55,33 @@ int main(int ac, char **av)
                     if (server) {
                         Connection* conn = new Connection(server->acceptConnection());
                         reactor.addConnection(conn);
+                        std::cout << "[+] New client connected" << std::endl;
                     }
                 }
                 else if (event.isReadable) {
-                    // std::cout << "Readable event on fd: " << event.fd << std::endl;
-                    // Find the connection associated with this fd
                     Connection& conn = reactor.getConnection(event.fd);
                     std::string data = conn.readData();
+                    std::cout << "\033[1;32m" << data << "\033[0m" << std::endl;
 
                     if (!data.empty()) {
-                        // std::cout << "Received data: " << data << std::endl;
                         HttpRequest req = HttpRequest::parse(data);
-                        // For now, just use the first server to handle request
+
                         if (!servers.empty()) {
                             HttpResponse res = servers[0]->handleRequest(req);
                             std::string responseStr = res.toString();
                             conn.writeData(responseStr);
+                            std::cout << "[<] Sent response of " << responseStr.size() << " bytes" << std::endl;
                         }
+
+                        // ✅ remove after responding
+                        reactor.removeConnection(event.fd);
+                        std::cout << "[-] Closed connection after response" << std::endl;
                     }
-                }
-                else if (event.isWritable) {
-                    reactor.removeConnection(event.fd);
                 }
             }
         }
 
-        // ✅ Cleanup before exit (unreachable here, but good practice)
+        // Cleanup before exit (unreachable here)
         for (size_t i = 0; i < servers.size(); ++i) {
             delete servers[i];
         }
@@ -99,6 +93,7 @@ int main(int ac, char **av)
 
     return 0;
 }
+
 
 
 

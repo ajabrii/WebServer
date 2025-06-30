@@ -6,12 +6,12 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/26 17:20:33 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 06:42:14 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/HttpServer.hpp"
-#include <stdexcept> 
+#include <stdexcept>
 
 
 HttpServer::HttpServer(const ServerConfig& cfg) : config(cfg)
@@ -41,7 +41,7 @@ void HttpServer::setup() {
     if (listen(listen_fd, 128) < 0)
         throw std::runtime_error("listen failed");
 
-    std::cout << "[HttpServer] Listening on " << config.host << ":" << config.port << std::endl;
+    std::cout << "[+][HttpServer] Listening on http://" << config.host << ":" << config.port << std::endl;
 }
 
 int HttpServer::getFd() const {
