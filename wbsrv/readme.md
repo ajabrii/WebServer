@@ -61,3 +61,65 @@ webserv/
 | **HttpResponse**                             | Holds status, headers, body to send back.                                                           |
 | **HttpResponseBuilder**                      | Formats final HTTP/1.1 string to send.                                                              |
 | **Logger**                                   | Logs access / errors (not yet added).                                                               |
+
+
++-------------------------------------------------------------+
+|                    ConfigInterpreter                        |
+|        | parses config.conf into configs + routes           |
++-------------------------------------------------------------+
+                |
+                v
++-------------------------------------------------------------+
+|                    ServerConfig + RouteConfig               |
+|       (hold host, port, routes, allowed methods, etc)       |
++-------------------------------------------------------------+
+                |
+                v
++-------------------------------------------------------------+
+|                        HttpServer                           |
+|  - owns listening socket (fd)                               |
+|  - uses config                                              |
+|  - accepts new connections                                  |
++-------------------------------------------------------------+
+                |
+                v
++-------------------------------------------------------------+
+|                          Reactor                            |
+|  - uses poll() to multiplex all sockets                     |
+|  - detects new connections & data ready to read             |
++-------------------------------------------------------------+
+                |
+                v
++-------------------------------------------------------------+
+|                        Connection                           |
+|  - wraps single client fd                                   |
+|  - reads raw data & sends response                          |
++-------------------------------------------------------------+
+                |
+                v
++-------------------------------------------------------------+
+|                          Router                             |
+|  - matches request URI & method against RouteConfig         |
++-------------------------------------------------------------+
+                |
+                v
++-------------------------------------------------------------+
+|                   RequestDispatcher                         |
+|  - calls correct handler based on method                    |
++--------------------+--------------+------------------------+
+                     |              |
+              +-------------+  +-------------+   +-------------+
+              |  GetHandler |  | PostHandler |   | DeleteHandler|
+              +-------------+  +-------------+   +-------------+
+                     |
+                     v
++-------------------------------------------------------------+
+|                    HttpResponseBuilder                      |
+|  - builds final HTTP/1.1 text response                      |
++-------------------------------------------------------------+
+                     |
+                     v
++-------------------------------------------------------------+
+|                        HttpResponse                         |
+|  - holds version, status, headers, body                     |
++-------------------------------------------------------------+
