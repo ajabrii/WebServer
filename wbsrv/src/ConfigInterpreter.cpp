@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/26 15:49:46 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 10:22:21 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,7 @@ void ConfigInterpreter::parseRouteBlock(ServerConfig& server, const std::vector<
                     route.allowedMethods.push_back(method);
             }
             else if (key == "root") route.root = value;
-            else if (key == "redirect") route.redirection = value;
+            else if (key == "redirect") route.redirect = value;
             else if (key == "directory_listing") route.autoindex = (value == "on");
             else if (key == "index") route.indexFile = value;
             else if (key == "cgi") route.cgiExtension = value;

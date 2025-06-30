@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Router.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:02:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 11:09:35 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/06/30 10:33:32 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,11 +28,11 @@ std::string clean_line(std::string line)
     return line;
 }
 
-const RouteConfig* Router::match(HttpRequest& request, ServerConfig& serverConfig) const
+const RouteConfig* Router::match(HttpRequest& request, ServerConfig serverConfig, int fd) const
 {
     std::cout << "Matching route..." << std::endl;
-    RouteConfig* match = nullptr;
-    RouteConfig* defaultRoute =  nullptr;
+    RouteConfig* match = 0;
+    RouteConfig* defaultRoute =  0;
     
     for (size_t j = 0; j < serverConfig.routes.size(); ++j) {
         const std::string& routePath = serverConfig.routes[j].path;
@@ -64,8 +64,8 @@ const RouteConfig* Router::match(HttpRequest& request, ServerConfig& serverConfi
         // }
         std::cout << "-----------match: " << match->path << std::endl;
 
-    std::string filePath = clean_line(match->root) + clean_line(request.path);
-    std::cout << "request path: " << request.path << std::endl;
+    std::string filePath = clean_line(match->root) + clean_line(request.uri);
+    std::cout << "request path: " << request.uri << std::endl;
     std::cout << "match root: " << match->root << std::endl;
     std::cout << "File path: " << filePath << std::endl;
     std::cout << "match->directory_listing: " << match->directory_listing << std::endl;
@@ -88,6 +88,6 @@ const RouteConfig* Router::match(HttpRequest& request, ServerConfig& serverConfi
             error_response += "<html><body><h1>404 Not Found</h1></body></html>";
             send(fd, error_response.c_str(), error_response.size(), 0);
         }
-    }
-    return 0;
+        return 0; 
 }
+

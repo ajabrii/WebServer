@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 09:34:55 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 11:10:40 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,12 +36,28 @@ int main(int ac, char **av)
             server->setup();
             servers.push_back(server);
         }
+        // print server configs
+        // for (size_t i = 0; i < servers.size(); ++i) {
+        //     std::cout << "Server " << i + 1 << ":\n";
+        //     std::cout << "  Host: " << servers[i]->getConfig().host << std::endl;
+        //     std::cout << "  Port: " << servers[i]->getConfig().port << std::endl;
+        //     std::cout << "  Server Name: " << servers[i]->getConfig().serverName << std::endl;
+        //     std::cout << "  Error Page: " << servers[i]->getConfig().errorPage << std::endl;
+        //     std::cout << "  Client Max Body Size: " << servers[i]->getConfig().clientMaxBodySize << std::endl;
+        // }
 
         Reactor reactor;
         for (size_t i = 0; i < servers.size(); ++i) {
             reactor.registerServer(*servers[i]);
         }
 
+        //print the serverMap
+        // for (std::map<int, HttpServer*>::iterator it = reactor.getServerMap().begin(); it != reactor.getServerMap().end(); ++it) {
+        //     std::cout << "Server fd: " << it->first << ", Server Name: " << it->second->getConfig().serverName << std::endl;
+        // }
+        // exit(0);
+        std::map<int, HttpServer*> serverMap = reactor.getServerMap();
+        // std::cout <<"serverMap size: " << serverMap.size() << std::endl;
         while (true)
         {
             reactor.poll();  //? Wait for events
@@ -60,6 +76,7 @@ int main(int ac, char **av)
                     }
                 }
                 else if (event.isReadable) {
+                    
                     Connection& conn = reactor.getConnection(event.fd);
                     std::string data = conn.readData();
                     // std::cout << "\033[1;32m" << data << "\033[0m" << std::endl;
@@ -70,9 +87,17 @@ int main(int ac, char **av)
                         std::cout << req.method << std::endl;
                         std::cout << req.version << std::endl;
                         
-                        //  Router router;
-                        //  HttpServer* server = reactor.getServer(event.fd);
-                        //  const RouteConfig* route = router.match(req, server->getConfig());
+                         Router router;
+                        std::cout <<"serverMap size: " <<reactor.serverFd << std::endl;
+                         HttpServer* server = reactor.getServer(reactor.serverFd);
+                        if (!server) {
+                            std::cerr << "No server found for fd: " << event.fd << std::endl;
+                            continue;
+                        }
+                         std::cout << server->getConfig().serverName << std::endl;
+                        
+                         const RouteConfig* route = router.match(req, server->getConfig(), event.fd);
+                         (void)route; // Avoid unused variable warning
                         //  std::cout << "Matched route: " << (route ? route->path : "none") << std::endl;
                         if (!servers.empty()) {
                             HttpResponse res = servers[0]->handleRequest(req);

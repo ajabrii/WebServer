@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/26 17:38:42 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 11:02:35 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ void Reactor::registerServer(HttpServer& server) {
     pfd.events = POLLIN;
     pfd.revents = 0;
     pollFDs.push_back(pfd);
+    serverFd = server.getFd(); // Store the server's file descriptor
     serverMap[server.getFd()] = &server;
 }
 
