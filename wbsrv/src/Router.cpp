@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:02:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 10:33:32 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 11:13:56 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ const RouteConfig* Router::match(HttpRequest& request, ServerConfig serverConfig
         std::cout << "-----------match: " << match->path << std::endl;
 
     std::string filePath = clean_line(match->root) + clean_line(request.uri);
+    filePath = filePath.substr(0, filePath.length() - 1); // Remove trailing slash if exists
     std::cout << "request path: " << request.uri << std::endl;
     std::cout << "match root: " << match->root << std::endl;
     std::cout << "File path: " << filePath << std::endl;
