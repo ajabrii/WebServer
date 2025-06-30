@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 14:03:12 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 16:15:35 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ int main(int ac, char **av)
                         
                          Router router;
                         std::cout <<"serverMap size: " <<reactor.serverFd << std::endl;
-                         HttpServer* server = reactor.getServer(reactor.serverFd);
+                         HttpServer* server = reactor.getServer(4);
                         // if (!server) {
                         //     std::cerr << "No server found for fd: " << event.fd << std::endl;
                         //     continue;
@@ -78,6 +78,8 @@ int main(int ac, char **av)
                          std::cout << server->getConfig().serverName << std::endl;
                         
                          const RouteConfig* route = router.match(req, server->getConfig());
+                         std::cout << "route ------------->>>> " << route->path << "\n";
+                         std::cout << "paaath -------------->>>" << route->root << "\n";
                          HttpResponse response;
                          if (route) {
                             //* check for cgi

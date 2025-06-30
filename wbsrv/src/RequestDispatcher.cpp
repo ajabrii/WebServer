@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestDispatcher.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:14:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 14:14:13 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 16:12:52 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 #include <dirent.h>
 #include <sstream>
 # include <fstream>
-
+std::string clean_line(std::string line);
 
 
 
@@ -50,10 +50,16 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
         return res;
     }
 
+    
     // 3. Compose file path: route.root + request.uri
-    std::string filePath = route.root + req.uri;
-
+    // std::string filePath = route.path + req.uri;
+    // std::cout << "file path   ::" << route.root << "-----" << req.uri << "\n";
     // 4. Directory listing if enabled
+    std::string filePath = clean_line(route.root) + clean_line(req.uri);
+    // std::cout << "request path: " << req.uri << std::endl;
+    // std::cout << "match root: " << route.root << std::endl;
+    // std::cout << "File path: " << filePath << std::endl;
+    // std::cout << "match->directory_listing: " << match->directory_listing << std::endl
     if (route.autoindex) {
         // std::cout << "--2------------------>[*] Redirecting to: " << route.redirect << std::endl;
         return handleDirectoryListing(filePath, req.uri);
@@ -74,10 +80,12 @@ HttpResponse RequestDispatcher::handleRedirect(const std::string& redirectUrl) c
 
 HttpResponse RequestDispatcher::serveStaticFile(std::string& filePath) const 
 {
-    filePath = filePath.substr(0, filePath.length() - 1); // Remove trailing slash if exists
+    // filePath = filePath.substr(0, filePath.length() - 1); // Remove trailing slash if exists
+    // filePath = "./index.html"; // Remove trailing slash if exists
+
     std::cout << "---3----------------->[*] Serving static file: `" << filePath << "'"<<std::endl;
-    filePath = "index.html";
-    std::ifstream file(filePath.c_str() - 1);
+    // filePath = "index.html";
+    std::ifstream file(filePath.c_str());
     HttpResponse res;
     if (file) {
         std::stringstream buffer;
