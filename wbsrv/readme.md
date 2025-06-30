@@ -45,3 +45,19 @@ webserv/
 ├── www/
 │   └── index.html                  # Static site content
 └── README.md
+
+
+| Layer / Class                                | Role (in your design)                                                                               |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **ConfigInterpreter**                        | Reads & parses the config file (e.g. config.conf). Stores server blocks & route configs in memory.  |
+| **ServerConfig & RouteConfig**               | Data structures holding parsed config: host, port, routes, allowed methods, etc.                    |
+| **HttpServer**                               | Represents a single server (listening socket). Knows its config. Accepts new connections.           |
+| **Reactor**                                  | Manages all active fds (poll). Detects new connections & client events. Calls accept or read/write. |
+| **Connection**                               | Represents a single client TCP connection. Owns client fd. Reads data, writes response.             |
+| **Router**                                   | Given request & server config → finds matching RouteConfig (by path & method).                      |
+| **RequestDispatcher**                        | Uses Router result & request method → dispatches to right handler (GET, POST, DELETE).              |
+| **GetHandler / PostHandler / DeleteHandler** | Implement logic: serve file, delete file, handle upload, etc.                                       |
+| **HttpRequest**                              | Parses raw HTTP request: method, uri, headers, body.                                                |
+| **HttpResponse**                             | Holds status, headers, body to send back.                                                           |
+| **HttpResponseBuilder**                      | Formats final HTTP/1.1 string to send.                                                              |
+| **Logger**                                   | Logs access / errors (not yet added).                                                               |

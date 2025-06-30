@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/26 17:48:05 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 06:15:01 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,13 +21,12 @@ int main(int ac, char **av)
         std::cerr << "error: need config file !!\n";
         return 1;
     }
-
-    try {
+    try
+    {
         ConfigInterpreter parser;
         parser.parse(av[1]);
         std::vector<ServerConfig> configs = parser.getServerConfigs();
 
-        // ✅ Use pointers to avoid copy issues
         std::vector<HttpServer*> servers;
 
         for (size_t i = 0; i < configs.size(); ++i) {
@@ -61,23 +60,21 @@ int main(int ac, char **av)
                 if (event.isNewConnection) {
                     HttpServer* server = reactor.getServer(event.fd);
                     if (server) {
-                        std::cout << "New connection on server: " << server->getConfig().serverName << std::endl;
                         Connection* conn = new Connection(server->acceptConnection());
                         reactor.addConnection(conn);
                     }
                 }
                 else if (event.isReadable) {
-                    std::cout << "Readable event on fd: " << event.fd << std::endl;
+                    // std::cout << "Readable event on fd: " << event.fd << std::endl;
                     // Find the connection associated with this fd
                     Connection& conn = reactor.getConnection(event.fd);
                     std::string data = conn.readData();
 
                     if (!data.empty()) {
-                        std::cout << "Received data: " << data << std::endl;
+                        // std::cout << "Received data: " << data << std::endl;
                         HttpRequest req = HttpRequest::parse(data);
                         // For now, just use the first server to handle request
                         if (!servers.empty()) {
-                            std::cout << "Handling request with server: " << servers[0]->getConfig().serverName << std::endl;
                             HttpResponse res = servers[0]->handleRequest(req);
                             std::string responseStr = res.toString();
                             conn.writeData(responseStr);
@@ -85,7 +82,6 @@ int main(int ac, char **av)
                     }
                 }
                 else if (event.isWritable) {
-                    std::cout << "Writable event on fd: " << event.fd << std::endl;
                     reactor.removeConnection(event.fd);
                 }
             }
@@ -120,20 +116,20 @@ int main(int ac, char **av)
 //         ConfigInterpreter parser;
 //         parser.parse(av[1]);
 //         std::vector<ServerConfig> configs = parser.getServerConfigs();
-        
+
 //         std::vector<HttpServer> servers;
 //         for (size_t i = 0; i < configs.size(); ++i) {
 //             HttpServer server(configs[i]);
 //             server.setup();
 //             servers.push_back(server);
 //         }
-        
+
 //         Reactor reactors;
 //         for (size_t i = 0;i < servers.size(); i++)
 //         {
 //             reactors.registerServer(servers[i]);
 //         }
-        
+
 //         while (true)
 //         {
 //             reactors.poll();  // Wait for readable/writable fds
@@ -154,16 +150,16 @@ int main(int ac, char **av)
 //                 else if (event.isReadable) {
 //                     Connection& conn = reactors.getConnection(event.fd);
 //                     std::string data = conn.readData(); // Read raw HTTP request
-                    
+
 //                     // For now, we'll assume request is complete if we have data
 //                     if (!data.empty()) {
 //                         // Parse the raw data into HttpRequest
 //                         HttpRequest req = HttpRequest::parse(data);
-                        
+
 //                         // Use the first server for all connections (simple case)
 //                         if (!servers.empty()) {
 //                             HttpResponse res = servers[0].handleRequest(req);
-                            
+
 //                             // Convert response to string and write it
 //                             std::string responseStr = res.toString();
 //                             conn.writeData(responseStr);
@@ -183,5 +179,5 @@ int main(int ac, char **av)
 //     {
 //         std::cerr << e.what() << '\n';
 //     }
-    
+
 // }
