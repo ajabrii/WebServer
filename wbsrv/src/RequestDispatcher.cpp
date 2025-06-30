@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:14:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 13:57:44 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 14:14:13 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,12 @@
 
 
 
-HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConfig& route) const {
+HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConfig& route) const
+{
+    
     // 1. Redirects have highest priority
     if (!route.redirect.empty()) {
+        std::cout << "--------------------->[*] Redirecting to: " << route.redirect << std::endl;
         return handleRedirect(route.redirect);
     }
 
@@ -37,10 +40,13 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
         }
     }
     if (!allowed) {
+        
         HttpResponse res;
         res.statusCode = 405;
         res.statusText = "Method Not Allowed";
         res.body = "HTTP method not allowed for this route.";
+        std::cout << "--2------------------>[*] Redirecting to: " << route.redirect << std::endl;
+
         return res;
     }
 
@@ -49,6 +55,7 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
 
     // 4. Directory listing if enabled
     if (route.autoindex) {
+        // std::cout << "--2------------------>[*] Redirecting to: " << route.redirect << std::endl;
         return handleDirectoryListing(filePath, req.uri);
     }
 
@@ -65,9 +72,12 @@ HttpResponse RequestDispatcher::handleRedirect(const std::string& redirectUrl) c
     return res;
 }
 
-HttpResponse RequestDispatcher::serveStaticFile(const std::string& filePath) const 
+HttpResponse RequestDispatcher::serveStaticFile(std::string& filePath) const 
 {
-    std::ifstream file(filePath.c_str());
+    filePath = filePath.substr(0, filePath.length() - 1); // Remove trailing slash if exists
+    std::cout << "---3----------------->[*] Serving static file: `" << filePath << "'"<<std::endl;
+    filePath = "index.html";
+    std::ifstream file(filePath.c_str() - 1);
     HttpResponse res;
     if (file) {
         std::stringstream buffer;

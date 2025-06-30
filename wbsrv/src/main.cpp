@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 13:08:44 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/06/30 14:03:12 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,9 +67,6 @@ int main(int ac, char **av)
 
                     if (!data.empty()) {
                         HttpRequest req = HttpRequest::parse(data);
-                        std::cout << req.uri << std::endl;
-                        std::cout << req.method << std::endl;
-                        std::cout << req.version << std::endl;
                         
                          Router router;
                         std::cout <<"serverMap size: " <<reactor.serverFd << std::endl;
@@ -81,15 +78,17 @@ int main(int ac, char **av)
                          std::cout << server->getConfig().serverName << std::endl;
                         
                          const RouteConfig* route = router.match(req, server->getConfig());
-                         (void)route; // Avoid unused variable warning
                          HttpResponse response;
                          if (route) {
                             //* check for cgi
                              // Dispatch request to the matched route
                              RequestDispatcher dispatcher;
                              response = dispatcher.dispatch(req, *route);
+                             std::cout << "[<] Response status: " << response.statusCode << " " << response.statusText << std::endl;
+                                std::cout << "[<] Response body: " << response.body << std::endl;
                          } else {  
                              // Handle 404 Not Found
+                                std::cout << "No matching route found for request" << std::endl;
                              response.statusCode = 404;
                              response.statusText = "Not Found";
                              response.body = "The requested resource was not found.";
