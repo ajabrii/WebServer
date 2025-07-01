@@ -1,51 +1,58 @@
+# webserv
+
 webserv/
 ├── Makefile
 ├── config/
-│   └── default.conf                # Sample configuration file
+│ └── default.conf # Sample configuration file
 ├── includes/
-│   ├── HttpServer.hpp
-│   ├── Reactor.hpp
-│   ├── Connection.hpp
-│   ├── RequestDispatcher.hpp
-│   ├── Router.hpp
-│   ├── Controller.hpp
-│   ├── IHttpMethodHandler.hpp
-│   ├── GetHandler.hpp
-│   ├── PostHandler.hpp
-│   ├── DeleteHandler.hpp
-│   ├── ConfigInterpreter.hpp
-│   ├── ServerConfig.hpp
-│   ├── RouteConfig.hpp
-│   ├── HttpRequest.hpp
-│   ├── HttpResponse.hpp
-│   ├── HttpResponseBuilder.hpp
-│   ├── Logger.hpp
-│   └── utils.hpp
+│ ├── HttpServer.hpp
+│ ├── Reactor.hpp
+│ ├── Connection.hpp
+│ ├── RequestDispatcher.hpp
+│ ├── Router.hpp
+│ ├── Controller.hpp
+│ ├── IHttpMethodHandler.hpp
+│ ├── GetHandler.hpp
+│ ├── PostHandler.hpp
+│ ├── DeleteHandler.hpp
+│ ├── ConfigInterpreter.hpp
+│ ├── ServerConfig.hpp
+│ ├── RouteConfig.hpp
+│ ├── HttpRequest.hpp
+│ ├── HttpResponse.hpp
+│ ├── HttpResponseBuilder.hpp
+│ ├── Logger.hpp
+│ └── utils.hpp
 ├── srcs/
-│   ├── main.cpp
-│   ├── HttpServer.cpp
-│   ├── Reactor.cpp
-│   ├── Connection.cpp
-│   ├── RequestDispatcher.cpp
-│   ├── Router.cpp
-│   ├── Controller.cpp
-│   ├── GetHandler.cpp
-│   ├── PostHandler.cpp
-│   ├── DeleteHandler.cpp
-│   ├── ConfigInterpreter.cpp
-│   ├── ServerConfig.cpp
-│   ├── RouteConfig.cpp
-│   ├── HttpRequest.cpp
-│   ├── HttpResponse.cpp
-│   ├── HttpResponseBuilder.cpp
-│   ├── Logger.cpp
-│   └── utils.cpp
+│ ├── main.cpp
+│ ├── HttpServer.cpp
+│ ├── Reactor.cpp
+│ ├── Connection.cpp
+│ ├── RequestDispatcher.cpp
+│ ├── Router.cpp
+│ ├── Controller.cpp
+│ ├── GetHandler.cpp
+│ ├── PostHandler.cpp
+│ ├── DeleteHandler.cpp
+│ ├── ConfigInterpreter.cpp
+│ ├── ServerConfig.cpp
+│ ├── RouteConfig.cpp
+│ ├── HttpRequest.cpp
+│ ├── HttpResponse.cpp
+│ ├── HttpResponseBuilder.cpp
+│ ├── Logger.cpp
+│ └── utils.cpp
 ├── cgi-bin/
-│   └── test_cgi.py                 # Test CGI scripts
+│ └── test_cgi.py # Test CGI scripts
 ├── www/
-│   └── index.html                  # Static site content
+│ └── index.html # Static site content
 └── README.md
 
+pgsql
+Copy
+Edit
+
+## Layers & Classes
 
 | Layer / Class                                | Role (in your design)                                                                               |
 | -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -62,64 +69,65 @@ webserv/
 | **HttpResponseBuilder**                      | Formats final HTTP/1.1 string to send.                                                              |
 | **Logger**                                   | Logs access / errors (not yet added).                                                               |
 
+## Architecture Overview
 
 +-------------------------------------------------------------+
-|                    ConfigInterpreter                        |
-|        | parses config.conf into configs + routes           |
+| ConfigInterpreter |
+| | parses config.conf into configs + routes |
 +-------------------------------------------------------------+
-                |
-                v
+|
+v
 +-------------------------------------------------------------+
-|                    ServerConfig + RouteConfig               |
-|       (hold host, port, routes, allowed methods, etc)       |
+| ServerConfig + RouteConfig |
+| (hold host, port, routes, allowed methods, etc) |
 +-------------------------------------------------------------+
-                |
-                v
+|
+v
 +-------------------------------------------------------------+
-|                        HttpServer                           |
-|  - owns listening socket (fd)                               |
-|  - uses config                                              |
-|  - accepts new connections                                  |
+| HttpServer |
+| - owns listening socket (fd) |
+| - uses config |
+| - accepts new connections |
 +-------------------------------------------------------------+
-                |
-                v
+|
+v
 +-------------------------------------------------------------+
-|                          Reactor                            |
-|  - uses poll() to multiplex all sockets                     |
-|  - detects new connections & data ready to read             |
+| Reactor |
+| - uses poll() to multiplex all sockets |
+| - detects new connections & data ready to read |
 +-------------------------------------------------------------+
-                |
-                v
+|
+v
 +-------------------------------------------------------------+
-|                        Connection                           |
-|  - wraps single client fd                                   |
-|  - reads raw data & sends response                          |
+| Connection |
+| - wraps single client fd |
+| - reads raw data & sends response |
 +-------------------------------------------------------------+
-                |
-                v
+|
+v
 +-------------------------------------------------------------+
-|                          Router                             |
-|  - matches request URI & method against RouteConfig         |
+| Router |
+| - matches request URI & method against RouteConfig |
 +-------------------------------------------------------------+
-                |
-                v
+|
+v
 +-------------------------------------------------------------+
-|                   RequestDispatcher                         |
-|  - calls correct handler based on method                    |
+| RequestDispatcher |
+| - calls correct handler based on method |
 +--------------------+--------------+------------------------+
-                     |              |
-              +-------------+  +-------------+   +-------------+
-              |  GetHandler |  | PostHandler |   | DeleteHandler|
-              +-------------+  +-------------+   +-------------+
-                     |
-                     v
+| |
++-------------+ +-------------+ +-------------+
+| GetHandler | | PostHandler | | DeleteHandler|
++-------------+ +-------------+ +-------------+
+|
+v
 +-------------------------------------------------------------+
-|                    HttpResponseBuilder                      |
-|  - builds final HTTP/1.1 text response                      |
+| HttpResponseBuilder |
+| - builds final HTTP/1.1 text response |
 +-------------------------------------------------------------+
-                     |
-                     v
+|
+v
 +-------------------------------------------------------------+
-|                        HttpResponse                         |
-|  - holds version, status, headers, body                     |
+| HttpResponse |
+| - holds version, status, headers, body |
 +-------------------------------------------------------------+
