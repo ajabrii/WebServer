@@ -1,10 +1,9 @@
 CXX = c++
-CPPFLAGS = -Wall -Wextra -Werror #-std=c++98
+CPPFLAGS = -Wall -Wextra -Werror  -fsanitize=address -g3 #-std=c++98
 NAME = Webserv
-SRC =   main.cpp Webserver.cpp config_parser.cpp Server/Server.cpp Socket/Socket.cpp Server_block.cpp Client/Client.cpp
-SRC += HTTP/Request.cpp
+SRC =   src/*.cpp
 OBJ = $(SRC:.cpp=.o)
-HEADER = Webserver.hpp
+HEADER = includes/*.hpp
 
 all: $(NAME)
 
