@@ -6,7 +6,7 @@
 /*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:14:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 16:12:52 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/01 17:01:01 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,10 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
         return res;
     }
 
-    
+    /*
+    if method = get
+        retturn get.handle();
+    */
     // 3. Compose file path: route.root + request.uri
     // std::string filePath = route.path + req.uri;
     // std::cout << "file path   ::" << route.root << "-----" << req.uri << "\n";

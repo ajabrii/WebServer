@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/26 17:27:36 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/01 17:08:10 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,8 @@
 
 HttpRequest::HttpRequest() : method(""), uri(""), version(""), body("") {}
 
-HttpRequest HttpRequest::parse(const std::string& raw) {
+HttpRequest HttpRequest::parse(const std::string& raw)
+{
     HttpRequest req;
     std::istringstream stream(raw);
     std::string line;
