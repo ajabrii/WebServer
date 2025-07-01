@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:29:35 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/01 18:30:44 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/01 18:35:27 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ DeleteHandler::DeleteHandler(){ }
 
 DeleteHandler::~DeleteHandler() {}
 
-HttpResponse &DeleteHandler::handle(const HttpRequest &req, RouteConfig *routeData) const
+HttpResponse &DeleteHandler::handle(const HttpRequest &req, const RouteConfig& route) const
 {
     // TODO
     //*-> DELETE method logic implimented here;
