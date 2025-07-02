@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:11:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/01 18:43:09 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/02 11:40:22 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,8 @@
 
 class IHttpMethodHandler
 {
+    
     public:
-    virtual ~IHttpMethodHandler(){};
-    virtual HttpResponse &handle(const HttpRequest& req, const RouteConfig& route) const = 0;
+        virtual ~IHttpMethodHandler(){};
+        virtual HttpResponse handle(const HttpRequest& req, const RouteConfig& route) const = 0;
 };

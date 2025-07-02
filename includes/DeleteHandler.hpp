@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:19:20 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/01 18:35:21 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/02 11:35:25 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,5 +19,5 @@ class DeleteHandler : public IHttpMethodHandler
     public:
         DeleteHandler();
         ~DeleteHandler();
-        virtual HttpResponse &handle(const HttpRequest &req, const RouteConfig& route) const;
+        virtual HttpResponse handle(const HttpRequest &req, const RouteConfig& route) const;
 };

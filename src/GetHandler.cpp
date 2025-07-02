@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/01 18:44:37 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/02 11:47:26 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ GetHandler::GetHandler(){ }
 
 GetHandler::~GetHandler() {}
 
-HttpResponse &GetHandler::handle(const HttpRequest &req, const RouteConfig& route) const
+HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route) const
 {
     // TODO
     //*-> GET method logic implimented here;
@@ -73,3 +73,68 @@ HttpResponse &GetHandler::handle(const HttpRequest &req, const RouteConfig& rout
     // 5. Default: try serving static file
     return serveStaticFile(filePath);
 }
+
+
+
+HttpResponse GetHandler::handleRedirect(const std::string& redirectUrl) const {
+    HttpResponse res;
+    res.statusCode = 301;
+    res.statusText = "Moved Permanently";
+    res.headers["Location"] = redirectUrl;
+    res.body = "<html><body><h1>301 Moved Permanently</h1></body></html>";
+    return res;
+}
+
+HttpResponse GetHandler::serveStaticFile(std::string& filePath) const 
+{
+    // filePath = filePath.substr(0, filePath.length() - 1); // Remove trailing slash if exists
+    // filePath = "./index.html"; // Remove trailing slash if exists
+
+    std::cout << "---3----------------->[*] Serving static file: `" << filePath << "'"<<std::endl;
+    // filePath = "index.html";
+    std::ifstream file(filePath.c_str());
+    HttpResponse res;
+    if (file) {
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        res.statusCode = 200;
+        res.statusText = "OK";
+        res.headers["Content-Type"] = "text/html";  // optional: detect mime type
+        res.body = buffer.str();
+    } else {
+        res.statusCode = 404;
+        res.statusText = "Not Found";
+        res.body = "<html><body><h1>404 Not Found</h1></body></html>";
+    }
+    return res;
+}
+
+HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, const std::string& urlPath) const {
+    DIR* dir = opendir(dirPath.c_str());
+    HttpResponse res;
+    if (!dir) {
+        res.statusCode = 403;
+        res.statusText = "Forbidden";
+        res.body = "<html><body><h1>403 Forbidden</h1></body></html>";
+        return res;
+    }
+
+    std::ostringstream html;
+    html << "<html><head><title>Index of " << urlPath << "</title></head><body>";
+    html << "<h1>Index of " << urlPath << "</h1><ul>";
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL) {
+        std::string name = entry->d_name;
+        if (name == ".") continue;
+        html << "<li><a href=\"" << urlPath << "/" << name << "\">" << name << "</a></li>";
+    }
+    html << "</ul></body></html>";
+    closedir(dir);
+
+    res.statusCode = 200;
+    res.statusText = "OK";
+    res.body = html.str();
+    return res;
+}
+
