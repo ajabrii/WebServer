@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/01 15:47:53 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/02 12:07:16 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ int main(int ac, char **av)
                     if (server) {
                         Connection* conn = new Connection(server->acceptConnection());
                         reactor.addConnection(conn, server);
-                        std::cout << "[+] New client connected" << std::endl;
+                        std::cout << "\033[1;32m[+]\033[0m "<<" New client connected" << std::endl;
                     }
                 }
                 else if (event.isReadable) {
@@ -112,7 +112,7 @@ int main(int ac, char **av)
 
                         // ✅ remove after responding
                         reactor.removeConnection(event.fd);
-                        std::cout << "[-] Closed connection after response" << std::endl;
+                        std::cout << "\033[1;31m[-]\033[0m "<<"Closed connection after response" << std::endl;
                     }
                 }
             }
