@@ -6,7 +6,7 @@
 /*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:14:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/01 17:01:01 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/03 18:36:30 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,8 +63,8 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
     // std::cout << "match root: " << route.root << std::endl;
     // std::cout << "File path: " << filePath << std::endl;
     // std::cout << "match->directory_listing: " << match->directory_listing << std::endl
-    if (route.autoindex) {
-        // std::cout << "--2------------------>[*] Redirecting to: " << route.redirect << std::endl;
+    if (route.directory_listing) {
+        std::cout << "--2------------------>[*] Redirecting to: " << route.redirect << std::endl;
         return handleDirectoryListing(filePath, req.uri);
     }
 
