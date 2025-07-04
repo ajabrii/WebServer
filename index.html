@@ -1,4 +1,33 @@
+
+
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Webserv Test</title>
+</head>
+<body>
+    <h1>Webserv Test Page</h1>
+
+    <h2>Test GET request</h2>
+    <form action="/" method="get">
+        <label for="getData">Enter something:</label>
+        <input type="text" name="getData" id="getData" />
+        <button type="submit">Send GET</button>
+    </form>
+
+    <h2>Test POST request</h2>
+    <form action="/upload" method="post">
+        <label for="postData">Enter something:</label>
+        <input type="text" name="postData" id="postData" />
+        <button type="submit">Send POST</button>
+    </form>
+</body>
+</html>
+
+
+
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -110,4 +139,4 @@
     }
   </script>
 </body>
-</html>
+</html> -->

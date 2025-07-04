@@ -6,10 +6,10 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:36:12 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/26 15:36:40 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/04 08:22:19 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/RouteConfig.hpp"
 
-RouteConfig::RouteConfig() {}
+RouteConfig::RouteConfig() : uploadDir("uploads") {}

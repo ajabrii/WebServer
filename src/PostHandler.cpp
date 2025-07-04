@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/02 13:17:17 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/04 08:21:56 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
     resp.version = req.version;
 
     // Check if upload directory is configured
+    // route.uploadDir = "uploads"; // Example upload directory, replace with actual config retrieval
     if (route.uploadDir.empty()) {
         resp.statusCode = 500;
         resp.statusText = "Internal Server Error";
