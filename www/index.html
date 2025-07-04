@@ -1,11 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>Webserv Test</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webserv Test</title>
+<style>
+    body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px;
+        margin: 0;
+    }
+
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    }
+
+    h2 {
+        margin-top: 30px;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+        color: #ffe082;
+    }
+
+    form, .delete-section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(4px);
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 400px;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+    }
+
+    label {
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    input[type="text"], input[type="file"] {
+        padding: 8px;
+        border: none;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        font-size: 1rem;
+    }
+
+    button {
+        padding: 10px;
+        border: none;
+        border-radius: 4px;
+        background-color: #ffe082;
+        color: #333;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #ffca28;
+    }
+
+    .delete-section input {
+        margin-bottom: 10px;
+    }
+</style>
 </head>
 <body>
-    <h1>Webserv Test Page</h1>
+    <h1>🚀 Webserv Test Page</h1>
 
     <h2>Test GET request</h2>
     <form action="/" method="get">
@@ -29,144 +99,30 @@
     </form>
 
     <h2>Test DELETE request</h2>
-    <label for="deletePath">Enter file path to delete (e.g., /uploads/upload_12345):</label>
-    <input type="text" id="deletePath" placeholder="/uploads/filename.ext" />
-    <button onclick="deleteFile()">Send DELETE</button>
+    <div class="delete-section">
+        <label for="deletePath">File path to delete (e.g., /uploads/filename.ext):</label>
+        <input type="text" id="deletePath" placeholder="/uploads/filename.ext" />
+        <button onclick="deleteFile()">Send DELETE</button>
+    </div>
 
-    <script>
-        function deleteFile() {
-            const path = document.getElementById('deletePath').value;
-            if (!path) {
-                alert('Please enter a file path to delete.');
-                return;
-            }
-            fetch(path, { method: 'DELETE' })
-                .then(response => response.text())
-                .then(text => {
-                    alert('Response:\n' + text);
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('Failed to send DELETE request.');
-                });
+<script>
+    function deleteFile() {
+        const path = document.getElementById('deletePath').value;
+        if (!path) {
+            alert('Please enter a file path to delete.');
+            return;
         }
-    </script>
+        fetch(path, { method: 'DELETE' })
+            .then(response => response.text())
+            .then(text => {
+                alert('Response:\n' + text);
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to send DELETE request.');
+            });
+    }
+</script>
 </body>
 </html>
 
-
-
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Webserv Test</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px;
-    }
-    h1 {
-      color: #333;
-    }
-    form, .buttons {
-      margin: 20px 0;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      width: 300px;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 8px;
-      margin-top: 8px;
-      margin-bottom: 16px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      padding: 10px 16px;
-      margin: 5px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      color: white;
-    }
-    .post-btn { background: #28a745; }
-    .get-btn { background: #007bff; }
-    .delete-btn { background: #dc3545; }
-    pre {
-      background: #222;
-      color: #0f0;
-      padding: 15px;
-      border-radius: 4px;
-      width: 300px;
-      overflow: auto;
-    }
-  </style>
-</head>
-<body>
-  <h1>Webserv Test</h1>
-
-  <form id="postForm">
-    <label for="postData">POST Data:</label>
-    <input type="text" id="postData" name="postData" placeholder="Enter data to post" required>
-    <button type="submit" class="post-btn">Send POST</button>
-  </form>
-
-  <div class="buttons">
-    <button class="get-btn" onclick="sendGet()">Send GET</button>
-    <button class="delete-btn" onclick="sendDelete()">Send DELETE</button>
-  </div>
-
-  <pre id="response">Response will appear here...</pre>
-
-  <script>
-    const responseBox = document.getElementById('response');
-    const apiUrl = "http://localhost:8080/test"; // Change this to match your webserv route
-
-    document.getElementById('postForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const data = document.getElementById('postData').value;
-      try {
-        const res = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ data })
-        });
-        const text = await res.text();
-        responseBox.textContent = `POST response:\n${text}`;
-      } catch (err) {
-        responseBox.textContent = `Error: ${err}`;
-      }
-    });
-
-    async function sendGet() {
-      try {
-        const res = await fetch(apiUrl);
-        const text = await res.text();
-        responseBox.textContent = `GET response:\n${text}`;
-      } catch (err) {
-        responseBox.textContent = `Error: ${err}`;
-      }
-    }
-
-    async function sendDelete() {
-      try {
-        const res = await fetch(apiUrl, { method: 'DELETE' });
-        const text = await res.text();
-        responseBox.textContent = `DELETE response:\n${text}`;
-      } catch (err) {
-        responseBox.textContent = `Error: ${err}`;
-      }
-    }
-  </script>
-</body>
-</html> -->
