@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,14 +14,46 @@
         <button type="submit">Send GET</button>
     </form>
 
-    <h2>Test POST request</h2>
+    <h2>Test POST request with text</h2>
     <form action="/upload" method="post">
         <label for="postData">Enter something:</label>
         <input type="text" name="postData" id="postData" />
         <button type="submit">Send POST</button>
     </form>
+
+    <h2>Test POST request with image file</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="imageFile">Choose an image:</label>
+        <input type="file" name="imageFile" id="imageFile" accept="image/*" />
+        <button type="submit">Upload Image</button>
+    </form>
+
+    <h2>Test DELETE request</h2>
+    <label for="deletePath">Enter file path to delete (e.g., /uploads/upload_12345):</label>
+    <input type="text" id="deletePath" placeholder="/uploads/filename.ext" />
+    <button onclick="deleteFile()">Send DELETE</button>
+
+    <script>
+        function deleteFile() {
+            const path = document.getElementById('deletePath').value;
+            if (!path) {
+                alert('Please enter a file path to delete.');
+                return;
+            }
+            fetch(path, { method: 'DELETE' })
+                .then(response => response.text())
+                .then(text => {
+                    alert('Response:\n' + text);
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Failed to send DELETE request.');
+                });
+        }
+    </script>
 </body>
 </html>
+
 
 
 

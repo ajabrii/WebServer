@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/02 11:47:26 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/04 15:45:31 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,26 +36,6 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
         return handleRedirect(route.redirect);
     }
 
-    // 2. Check if method is allowed
-    bool allowed = false;
-    for (size_t i = 0; i < route.allowedMethods.size(); ++i) {
-        if (req.method == route.allowedMethods[i]) {
-            allowed = true;
-            break;
-        }
-    }
-    if (!allowed) {
-
-        HttpResponse res;
-        res.statusCode = 405;
-        res.statusText = "Method Not Allowed";
-        res.body = "HTTP method not allowed for this route.";
-        std::cout << "--2------------------>[*] Redirecting to: " << route.redirect << std::endl;
-
-        return res;
-    }
-
-
     // 3. Compose file path: route.root + request.uri
     // std::string filePath = route.path + req.uri;
     // std::cout << "file path   ::" << route.root << "-----" << req.uri << "\n";
@@ -65,7 +45,7 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
     // std::cout << "match root: " << route.root << std::endl;
     // std::cout << "File path: " << filePath << std::endl;
     // std::cout << "match->directory_listing: " << match->directory_listing << std::endl
-    if (route.autoindex) {
+    if (route.directory_listing) {
         // std::cout << "--2------------------>[*] Redirecting to: " << route.redirect << std::endl;
         return handleDirectoryListing(filePath, req.uri);
     }

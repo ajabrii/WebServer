@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/04 08:21:56 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/04 15:45:49 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # include "../includes/PostHandler.hpp"
 #include <fstream>
 #include <ctime>
+#include <sstream>
 
 PostHandler::PostHandler(){ }
 
@@ -57,3 +58,5 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
 
     return resp;
 }
+
+
