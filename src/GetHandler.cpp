@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/04 15:45:31 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/04 16:10:37 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,12 +38,14 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
 
     // 3. Compose file path: route.root + request.uri
     // std::string filePath = route.path + req.uri;
-    // std::cout << "file path   ::" << route.root << "-----" << req.uri << "\n";
+    // std::cout << "========================================================================uri" << req.uri << "\n";
     // 4. Directory listing if enabled
-    std::string filePath = clean_line(route.root) + clean_line(req.uri);
-    // std::cout << "request path: " << req.uri << std::endl;
-    // std::cout << "match root: " << route.root << std::endl;
-    // std::cout << "File path: " << filePath << std::endl;
+    // std::string filePath = clean_line(route.root) + clean_line(req.uri);
+    std::string filePath = clean_line(route.root);
+
+    // std::cout << "========================================================================request path: " << route.path << std::endl;
+    // std::cout << "========================================================================match root: " << route.root << std::endl;
+    // std::cout << "==============================================>File path: " << filePath << std::endl;
     // std::cout << "match->directory_listing: " << match->directory_listing << std::endl
     if (route.directory_listing) {
         // std::cout << "--2------------------>[*] Redirecting to: " << route.redirect << std::endl;

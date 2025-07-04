@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/02 12:07:16 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/04 16:00:11 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,8 +83,8 @@ int main(int ac, char **av)
                          std::cout << server->getConfig().serverName[1] << std::endl;
                         
                          const RouteConfig* route = router.match(req, server->getConfig());
-                         std::cout << "route ------------->>>> " << route->path << "\n";
-                         std::cout << "paaath -------------->>>" << route->root << "\n";
+                        //  std::cout << "route ------------->>>> " << route->path << "\n";
+                        //  std::cout << "paaath -------------->>>" << route->root << "\n";
                          HttpResponse response;
                          if (route) {
                             //* check for cgi
