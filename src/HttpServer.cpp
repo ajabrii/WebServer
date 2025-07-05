@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 10:29:06 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/02 12:10:43 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ void HttpServer::setup()
     if (listen(listen_fd, 128) < 0)
         throw std::runtime_error("listen failed");
 
-    std::cout << "[*][HttpServer] Listening on http://" << config.host << ":" << config.port << std::endl;
+    std::cout << "\033[1;33m[*]\033[0m "<<"[HttpServer] Listening on [\033[1;36m"<<"http://" << config.host << ":" << config.port <<"\033[0m]"<< std::endl;
 }
 
 int HttpServer::getFd() const

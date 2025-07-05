@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webserv Test</title>
+<style>
+    body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px;
+        margin: 0;
+    }
+
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    }
+
+    h2 {
+        margin-top: 30px;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+        color: #ffe082;
+    }
+
+    form, .delete-section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(4px);
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 400px;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+    }
+
+    label {
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    input[type="text"], input[type="file"] {
+        padding: 8px;
+        border: none;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        font-size: 1rem;
+    }
+
+    button {
+        padding: 10px;
+        border: none;
+        border-radius: 4px;
+        background-color: #ffe082;
+        color: #333;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #ffca28;
+    }
+
+    .delete-section input {
+        margin-bottom: 10px;
+    }
+</style>
+</head>
+<body>
+    <h1>🚀 Webserv Test Page</h1>
+
+    <h2>Test GET request</h2>
+    <form action="/" method="get">
+        <label for="getData">Enter something:</label>
+        <input type="text" name="getData" id="getData" />
+        <button type="submit">Send GET</button>
+    </form>
+
+    <h2>Test POST request with text</h2>
+    <form action="/upload" method="post">
+        <label for="postData">Enter something:</label>
+        <input type="text" name="postData" id="postData" />
+        <button type="submit">Send POST</button>
+    </form>
+
+    <h2>Test POST request with image file</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="imageFile">Choose an image:</label>
+        <input type="file" name="imageFile" id="imageFile" accept="image/*" />
+        <button type="submit">Upload Image</button>
+    </form>
+
+    <h2>Test DELETE request</h2>
+    <div class="delete-section">
+        <label for="deletePath">File path to delete (e.g., /uploads/filename.ext):</label>
+        <input type="text" id="deletePath" placeholder="/uploads/filename.ext" />
+        <button onclick="deleteFile()">Send DELETE</button>
+    </div>
+
+<script>
+    function deleteFile() {
+        const path = document.getElementById('deletePath').value;
+        if (!path) {
+            alert('Please enter a file path to delete.');
+            return;
+        }
+        fetch(path, { method: 'DELETE' })
+            .then(response => response.text())
+            .then(text => {
+                alert('Response:\n' + text);
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to send DELETE request.');
+            });
+    }
+</script>
+</body>
+</html>
+

@@ -6,7 +6,7 @@
 /*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 20:24:20 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/05 21:00:55 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ int main(int ac, char **av, char **envp)
                     if (server) {
                         Connection* conn = new Connection(server->acceptConnection());
                         reactor.addConnection(conn, server);
-                        std::cout << "[+] New client connected" << std::endl;
+                        std::cout << "\033[1;32m[+]\033[0m "<<" New client connected" << std::endl;
                     }
                 }
                 else if (event.isReadable) {
@@ -85,8 +85,8 @@ int main(int ac, char **av, char **envp)
                          std::cout << server->getConfig().serverName[1] << std::endl;
                         
                          const RouteConfig* route = router.match(req, server->getConfig());
-                         std::cout << "route ------------->>>> " << route->path << "\n";
-                         std::cout << "paaath -------------->>>" << route->root << "\n";
+                        //  std::cout << "route ------------->>>> " << route->path << "\n";
+                        //  std::cout << "paaath -------------->>>" << route->root << "\n";
                          HttpResponse response;
                          if (route) {
                             //* check for cgi
@@ -121,7 +121,7 @@ int main(int ac, char **av, char **envp)
 
                         // ✅ remove after responding
                         reactor.removeConnection(event.fd);
-                        std::cout << "[-] Closed connection after response" << std::endl;
+                        std::cout << "\033[1;31m[-]\033[0m "<<"Closed connection after response" << std::endl;
                     }
                 }
             }

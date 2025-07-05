@@ -1,3 +1,6 @@
+# webserv
+
+```
 webserv/
 ├── Makefile
 ├── config/
@@ -45,7 +48,9 @@ webserv/
 ├── www/
 │   └── index.html                  # Static site content
 └── README.md
+```
 
+## Layers & Classes
 
 | Layer / Class                                | Role (in your design)                                                                               |
 | -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -62,7 +67,9 @@ webserv/
 | **HttpResponseBuilder**                      | Formats final HTTP/1.1 string to send.                                                              |
 | **Logger**                                   | Logs access / errors (not yet added).                                                               |
 
+## Architecture Overview
 
+```
 +-------------------------------------------------------------+
 |                    ConfigInterpreter                        |
 |        | parses config.conf into configs + routes           |
@@ -123,3 +130,4 @@ webserv/
 |                        HttpResponse                         |
 |  - holds version, status, headers, body                     |
 +-------------------------------------------------------------+
+```
