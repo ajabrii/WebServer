@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/04 10:56:16 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/05 20:24:20 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,8 @@ int main(int ac, char **av, char **envp)
                 else if (event.isReadable) {
                     
                     Connection& conn = reactor.getConnection(event.fd);
-                    std::string data = conn.readData();
+                    
+                    std::string data = conn.readData(); // we have ti loop here
                     // std::cout << "\033[1;32m" << data << "\033[0m" << std::endl;
 
                     if (!data.empty()) {

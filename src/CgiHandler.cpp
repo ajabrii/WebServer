@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/05 17:19:00 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/05 20:32:13 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,7 +131,7 @@ char **CgiHandler::set_env(void)
 
     for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it)
     {
-        std::coout << "Key: " << it->first << ", Value: " << it->second << std::endl;
+        std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
     }
     
 

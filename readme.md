@@ -73,7 +73,7 @@ webserv/
 |                    ServerConfig + RouteConfig               |
 |       (hold host, port, routes, allowed methods, etc)       |
 +-------------------------------------------------------------+
-                |9999
+                |
                 v
 +-------------------------------------------------------------+
 |                        HttpServer                           |
