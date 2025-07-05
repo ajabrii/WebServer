@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/01 15:47:53 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/04 10:56:16 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,10 @@
 # include "../includes/Reactor.hpp"
 # include "../includes/Router.hpp"
 # include "../includes/RequestDispatcher.hpp"
+# include "../includes/CgiHandler.hpp"
 
 
-int main(int ac, char **av)
+int main(int ac, char **av, char **envp)
 {
     if (ac != 2) {
         std::cerr << "error: need config file !!\n";
@@ -29,8 +30,8 @@ int main(int ac, char **av)
         parser.getConfigData(av[1]);
         parser.parse();
         parser.checkValues();
-        std::cout << "everything is good " << std::endl;
-        // exit(0);
+        // parser.getPathForCGI(envp);
+        std::cout << parser.getPathForCGI(envp) <<" everything is good " << std::endl;
         std::vector<ServerConfig> configs = parser.getServerConfigs();
 
         std::vector<HttpServer*> servers;
@@ -88,11 +89,18 @@ int main(int ac, char **av)
                          HttpResponse response;
                          if (route) {
                             //* check for cgi
-                             // Dispatch request to the matched route
-                             RequestDispatcher dispatcher;
-                             response = dispatcher.dispatch(req, *route);
-                             std::cout << "[<] Response status: " << response.statusCode << " " << response.statusText << std::endl;
-                                std::cout << "[<] Response body: " << response.body << std::endl;
+                            CgiHandler cgi(*server ,req, *route , event.fd, parser.getPathForCGI(envp));
+                            if (cgi.IsCgi())
+                               response =  cgi.execCgi();
+                            // std::cout << response.body << std::endl;
+                            //  Dispatch request to the matched route
+                            else
+                            {
+                                RequestDispatcher dispatcher;
+                                response = dispatcher.dispatch(req, *route);
+                                std::cout << "[<] Response status: " << response.statusCode << " " << response.statusText << std::endl;
+                                   std::cout << "[<] Response body: " << response.body << std::endl;
+                            }
                          } else {  
                              // Handle 404 Not Found
                                 std::cout << "No matching route found for request" << std::endl;

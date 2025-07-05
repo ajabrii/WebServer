@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 11:06:22 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/05 14:29:08 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,14 +19,16 @@
 
 class HttpRequest {
 public:
-    std::string method;
-    std::string uri;
-    std::string version;
-    std::map<std::string, std::string> headers;
-    std::string body;
+    std::string method; // 
+    std::string uri; // ?query ---> 
+    // query --> ? --> script-path --> Path-info /path --> /
+    std::string version; // http
+    std::map<std::string, std::string> headers; // 
+    std::string body; // POST 
 
     HttpRequest();
     static HttpRequest parse(const std::string& raw);
+    std::string GetHeader(std::string target) const;
 };
 
 #endif
