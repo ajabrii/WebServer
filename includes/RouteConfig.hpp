@@ -6,7 +6,7 @@
 /*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 14:59:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/03 18:36:21 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/05 21:02:45 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ class RouteConfig {
         std::map<std::string, std::string> cgi;
         // std::string interpath;
         bool directory_listing;
+        std::string uploadDir;
         
         RouteConfig();
 };

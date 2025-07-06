@@ -6,7 +6,7 @@
 /*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 17:14:04 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/05 20:33:17 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,8 +96,6 @@ HttpRequest HttpRequest::parse(const std::string& raw)
         std::getline(stream, all_body, '\0');
         req.body = decodeChunked(all_body);
     }
-
-    else 
         // no body content?
     return req;
 }
@@ -152,4 +150,20 @@ void HttpRequest::throwHttpError(int statusCode, const std::string& message) {
     throw std::runtime_error(
         "HTTP error " + std::to_string(statusCode) + ": " + message
     );
+}
+
+std::string HttpRequest::GetHeader(std::string target) const
+{
+    std::string value;
+        
+    for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+        std::string current_key = it->first;
+        std::transform(current_key.begin(), current_key.end(), current_key.begin(), ::tolower);
+        if (current_key == target) 
+        {
+            value = it->second;
+            break;
+        }
+    }
+    return (value);
 }

@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:13:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 14:11:00 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/02 11:40:43 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,10 @@
 
 class RequestDispatcher
 {
-    private:
-        HttpResponse serveStaticFile(std::string& filepath) const;
-        HttpResponse  handleDirectoryListing(const std::string& path, const std::string& urlPath) const;
-        HttpResponse handleRedirect(const std::string& redirectUri) const;
+    // private:
+    //     HttpResponse serveStaticFile(std::string& filepath) const;
+    //     HttpResponse  handleDirectoryListing(const std::string& path, const std::string& urlPath) const;
+    //     HttpResponse handleRedirect(const std::string& redirectUri) const;
     public:
         HttpResponse dispatch(const HttpRequest& request, const RouteConfig& route) const;
 };

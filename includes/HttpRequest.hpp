@@ -6,7 +6,7 @@
 /*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 16:06:04 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/05 20:31:37 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 
 #include <string>
 #include <map>
+#include <algorithm>
 
 class HttpRequest {
 public:
@@ -33,6 +34,7 @@ public:
     static HttpRequest parse(const std::string& raw);
     static void throwHttpError(int statusCode, const std::string& message);
     static std::string decodeChunked(const std::string& chunkedBody);
+    std::string GetHeader(std::string target) const;
 };
 
 #endif
