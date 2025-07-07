@@ -68,7 +68,6 @@ int main(int ac, char **av, char **envp) {
                         Router router;
                         const RouteConfig* route = router.match(req, server->getConfig());
                         HttpResponse response;
-
                         if (route) {
                             CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
                             if (cgi.IsCgi()) {
@@ -79,7 +78,7 @@ int main(int ac, char **av, char **envp) {
                             }
                             std::cout << "[<] Response: " << response.statusCode << " " << response.statusText << std::endl;
                         } else {
-                             response.statusCode = 404;
+                            response.statusCode = 404;
                             response.statusText = "Not Found";
                             response.body = Error::loadErrorPage(404, server->getConfig());
                             response.headers["Content-Length"] = std::to_string(response.body.size());
