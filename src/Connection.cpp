@@ -6,12 +6,13 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 14:19:30 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/07 15:02:32 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 # include "../includes/HttpServer.hpp"
+# include "errno.h"
 
 // Implementation
 Connection::Connection() : client_fd(-1), headersDone(false){
@@ -110,7 +111,7 @@ std::string Connection::readData()
 void Connection::writeData(const std::string& response) const {
     ssize_t bytesSent = send(client_fd, response.c_str(), response.size(), 0);
     if (bytesSent < 0)
-        throw std::runtime_error("Failed to write to client"); // Check stress test
+        throw std::runtime_error("Failed to write to client");
 }
 
 void Connection::closeConnection() {
