@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:03:57 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 20:17:31 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/07 09:12:08 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,6 +68,7 @@ class ConfigInterpreter {
         bool Isspaces(const std::string& line);
         bool IsComment(const std::string& line);
         void printConfig() const;
+        std::string toLower(std::string str);
 };
 
 #endif
