@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/07 19:02:02 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/07 20:32:53 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ char **CgiHandler::set_env(void)
     host = _req.GetHeader("host");
 
     env_map["REQUEST_METHOD"] = _req.method;
+    env_map["PATH_INFO"] = _data.PathInfo;
     env_map["SCRIPT_NAME"] = _data.script_path;
     env_map["SCRIPT_FILENAME"] = "." + _data.script_path; // need to be changed so server must change dir at the time of run execve
     env_map["QUERY_STRING"] = _data.query;
@@ -156,15 +157,13 @@ CgiData CgiHandler::check_cgi(void) // cgi-bin/file.extns/path/path?var=value
     CgiData data;
     size_t exten_pose;
     std::string founded_extns;
-    bool is_query = true;
+    bool is_query = false;
     bool is_pathInfo = false;
     size_t query_pose;
 
     query_pose =  _req.uri.find('?');
-    if (query_pose == std::string::npos)
-    {
-        is_query = false;
-    }
+    if (query_pose != std::string::npos)
+        is_query = true;
     for (std::map<std::string, std::string>::const_iterator it = this->_route.cgi.begin(); it != this->_route.cgi.end(); ++it) // 
     {
         exten_pose = _req.uri.find(it->first);
@@ -209,70 +208,310 @@ bool CgiHandler::IsCgi(void)
     return (_data.hasCgi);
 }
 
+// HttpResponse CgiHandler::execCgi(void)
+// {
+//     HttpResponse f;//
+//     std::string cmd;
+//     std::string fp;
+//     std::string str;
+//     pid_t pid;
+//     char **env;
+//     env = set_env();
+//     if (_data.CgiInterp.find("/") != std::string::npos)
+//         cmd = _data.CgiInterp.substr(_data.CgiInterp.find_last_of("/") + 1);
+//     else
+//         cmd = _data.CgiInterp;
+//     std::cout << "CMD: " << cmd << std::endl;
+//     fp  = full_path(_env_paths, _data.CgiInterp); // TO DO HANDLE ERROR
+//     std::cout << "FULL PATH: " << fp << std::endl;
+//     // if (fp.empty())
+//     //     return;
+//     str = _data.script_path.substr(1);
+//     char *argv[] = { (char *)cmd.c_str(), (char *)str.c_str() ,NULL };
+//     int pfd[2];
+//     if (pipe(pfd))
+//         exit(1);
+//     pid = fork();
+//     if (!pid)
+//     {
+//         dup2(pfd[1], 1);
+//         close(pfd[1]);
+//         close(pfd[0]);
+    
+//         execve(fp.c_str(), argv, env);
+//         perror("execve failed");
+//         _exit(1);
+//     }
+//     // listen to the output and store it to pipe
+//     else if (pid < 0)
+//     {
+//         std::cerr << "Fork failed" << std::endl;
+//         close(pfd[0]);
+//         close(pfd[1]);
+//         // return;
+//     }
+//     close(pfd[1]);
+    
+//     std::string cgi_output_str;
+//     char buffer[4096];
+//     ssize_t bytes_read;
+//     while ((bytes_read = read(pfd[0], buffer, 4096 - 1)) > 0) 
+//     {
+//         buffer[bytes_read] = '\0'; // Null-terminate the chunk
+//         cgi_output_str.append(buffer); // Append to the output string
+//     }
+//     if (bytes_read == -1)
+//     {
+//         perror("read from pipe_stdout failed");
+//     }
+//     close(pfd[0]);
+//     std::cout << "--------------------> " << cgi_output_str << std::endl;
+//     f.version = "HTTP/1.1";
+//     // f.headers["Content-Type"] = "text/html";
+//     f.statusCode = 200;
+//     f.body = cgi_output_str;
+//     wait(NULL);
+//     return f;   
+// }
+
+std::string GetKey(std::map<std::string, std::string> map ,std::string target)
+{
+    std::string value;
+        
+    for (std::map<std::string, std::string>::const_iterator it = map.begin(); it != map.end(); ++it) 
+    {
+        std::cerr << "KEY: " << it->first << " , Value: " << it->second << std::endl;
+        std::string current_key = it->first;
+        std::transform(current_key.begin(), current_key.end(), current_key.begin(), ::tolower);
+        if (current_key == target) 
+        {
+            value = it->second;
+            break;
+        }
+    }
+    return (value);
+}
+
+
 HttpResponse CgiHandler::execCgi(void)
 {
-    HttpResponse f;//
+    HttpResponse f;
     std::string cmd;
-    std::string fp;
-    std::string str;
+    std::string fp; // Full path to interpreter
+    std::string str; // Script path to pass as argv[1]
     pid_t pid;
     char **env;
-    env = set_env();
+
+    env = set_env(); // Environment variables prepared
+
+    // Determine command to pass to execve
     if (_data.CgiInterp.find("/") != std::string::npos)
-        cmd = _data.CgiInterp.substr(_data.CgiInterp.find_last_of("/") + 1);
+        cmd = _data.CgiInterp.substr(_data.CgiInterp.find_last_of("/") + 1); // e.g., "php-cgi" from "/usr/bin/php-cgi"
     else
-        cmd = _data.CgiInterp;
-    std::cout << "CMD: " << cmd << std::endl;
-    fp  = full_path(_env_paths, _data.CgiInterp); // TO DO HANDLE ERROR
+        cmd = _data.CgiInterp; // e.g., "python3"
 
-    std::cout << "FULL PATH: " << fp << std::endl;
-    // if (fp.empty())
-    //     return;
-    str = _data.script_path.substr(1);
-    char *argv[] = { (char *)cmd.c_str(), (char *)str.c_str() ,NULL };
+    fp  = full_path(_env_paths, _data.CgiInterp); // Get absolute path to interpreter
+    // IMPORTANT: Handle fp.empty() case - it means interpreter not found
+    if (fp.empty())
+    {
+        // Handle error: Interpreter not found (e.g., 500 Internal Server Error)
+        // Free env memory
+        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+        delete[] env;
+        f.statusCode = 500;
+        f.statusText = "Internal Server Error 1";
+        f.body = "CGI Interpreter not found.";
+        return f;
+    }
+    
+    // Prepare argv: argv[0] is the interpreter, argv[1] is the script path
+    str = _data.script_path.substr(1); // Removes leading '/' to make it relative for `chdir` or directly usable
+    // For argv[0], it's common to use the interpreter's full path or just its name. `cmd.c_str()` is usually fine.
+    // char *argv[] = { (char *)fp.c_str(), (char *)str.c_str(), NULL }; // Argv[0] should be the full path if possible
 
-    int pfd[2];
-    if (pipe(pfd))
-        exit(1);
+    int pfd[2]; // Pipe for CGI output
+    int pfd_in[2]; // Pipe for CGI input (for POST requests)
+
+    if (pipe(pfd) == -1) // Pipe for stdout from CGI
+    {
+        perror("pipe stdout failed");
+        // Clean up env
+        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+        delete[] env;
+        f.statusCode = 500;
+        f.statusText = "Internal Server Error 2";
+        f.body = "Server pipe creation failed.";
+        return f;
+    }
+
+    if (_req.method == POST && pipe(pfd_in) == -1) // Pipe for stdin to CGI (only for POST)
+    {
+        perror("pipe stdin failed");
+        close(pfd[0]);
+        close(pfd[1]);
+        // Clean up env
+        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+        delete[] env;
+        f.statusCode = 500;
+        f.statusText = "Internal Server Error 3";
+        f.body = "Server pipe creation failed.";
+        return f;
+    }
+
     pid = fork();
-    if (!pid)
+    if (pid == -1) // Fork failed
     {
-        dup2(pfd[1], 1);
-        close(pfd[1]);
-        close(pfd[0]);
-    
-        execve(fp.c_str(), argv, env);
-        perror("execve failed");
-        _exit(1);
+        perror("fork failed");
+        close(pfd[0]); close(pfd[1]);
+        if (_req.method == POST) { close(pfd_in[0]); close(pfd_in[1]); }
+        // Clean up env
+        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+        delete[] env;
+        f.statusCode = 500;
+        f.statusText = "Internal Server Error 4";
+        f.body = "Server fork failed.";
+        return f;
     }
-    // listen to the output and store it to pipe
-    else if (pid < 0)
+    else if (pid == 0) // Child process (CGI)
     {
-        std::cerr << "Fork failed" << std::endl;
-        close(pfd[0]);
-        close(pfd[1]);
-        // return;
+        // Redirect stdout to parent
+        dup2(pfd[1], STDOUT_FILENO);
+        close(pfd[0]); // Close read end in child
+        close(pfd[1]); // Close write end after duping
+
+        // Redirect stdin from parent for POST requests
+        if (_req.method == POST)
+        {
+            dup2(pfd_in[0], STDIN_FILENO);
+            close(pfd_in[0]); // Close read end in child
+            close(pfd_in[1]); // Close write end in child
+        }
+        
+        // **CRITICAL: chdir to the script's directory**
+        // Assuming _data.script_path is like "/cgi-bin/script.php"
+        // You need to figure out the actual physical directory.
+        std::cerr << _data.script_path << std::endl;
+        std::string script_dir_path = "." + _data.script_path; // Or parse _data.script_path
+        size_t last_slash = script_dir_path.rfind('/');
+        if (last_slash != std::string::npos) {
+            script_dir_path = script_dir_path.substr(0, last_slash);
+        } else {
+            script_dir_path = "."; // Default to current directory if no slash
+        }
+        std::cerr << "script_dir_path: "<< script_dir_path << std::endl;
+
+        if (chdir(script_dir_path.c_str()) == -1) {
+            perror("chdir failed");
+            _exit(1); // Exit child process on chdir failure
+        }
+        
+        // Execute the CGI script
+        // argv[0] should be the interpreter's full path, argv[1] is the script path relative to CWD
+        // If _data.script_path is "/cgi-bin/test.php" and script_dir_path is "/var/www/html/cgi-bin",
+        // then argv[1] should be "test.php"
+        char *final_argv[3];
+        final_argv[0] = (char *)fp.c_str(); // The interpreter's full path
+        final_argv[1] = (char *)_data.script_path.substr(last_slash).c_str(); // Just the filename of the script
+        final_argv[2] = NULL;
+
+        for (size_t i = 0; i < 3; i++)
+        {
+            std::cerr << "-------->FINAL ARGV[" << i << "]" << " " <<  final_argv[i] << std::endl;
+        }
+        
+        
+        execve(final_argv[0], final_argv, env);
+        perror("execve failed"); // Only reached if execve fails
+        _exit(1); // Child must exit on execve failure
     }
-    close(pfd[1]);
-    
-    std::string cgi_output_str;
-    char buffer[4096];
-    ssize_t bytes_read;
-    while ((bytes_read = read(pfd[0], buffer, 4096 - 1)) > 0) 
+    else // Parent process
     {
-        buffer[bytes_read] = '\0'; // Null-terminate the chunk
-        cgi_output_str.append(buffer); // Append to the output string
+        close(pfd[1]); // Close write end of output pipe in parent
+        if (_req.method == POST)
+        {
+            close(pfd_in[0]); // Close read end of input pipe in parent
+            // Write request body to CGI's stdin
+            ssize_t bytes_written = write(pfd_in[1], _req.body.c_str(), _req.body.size());
+            if (bytes_written == -1) {
+                perror("write to pipe_stdin failed");
+                // Handle error
+            }
+            close(pfd_in[1]); // Close write end after writing (sends EOF to CGI)
+        }
+        
+        std::string cgi_output_str;
+        char buffer[4096];
+        ssize_t bytes_read;
+        while ((bytes_read = read(pfd[0], buffer, 4096 - 1)) > 0) 
+        {
+            buffer[bytes_read] = '\0';
+            cgi_output_str.append(buffer);
+        }
+        if (bytes_read == -1)
+        {
+            perror("read from pipe_stdout failed");
+            // Handle error, maybe return 500
+        }
+        close(pfd[0]); // Close read end of output pipe
+
+        int status;
+        waitpid(pid, &status, 0); // Wait for the child to finish
+
+        // Free environment variables memory
+        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+        delete[] env;
+
+        // Process CGI output
+        // Split headers and body
+        size_t header_end_pos = cgi_output_str.find("\r\n\r\n");
+        if (header_end_pos == std::string::npos) {
+            // No valid HTTP headers from CGI, or malformed
+            f.statusCode = 500;
+            f.statusText = "Internal Server Error 5";
+            f.body = "CGI output malformed: No header end.";
+            return f;
+        }
+
+        std::string cgi_headers = cgi_output_str.substr(0, header_end_pos);
+        std::string cgi_body = cgi_output_str.substr(header_end_pos + 4); // +4 for \r\n\r\n
+
+        // Parse CGI headers and add to HttpResponse
+        std::istringstream iss(cgi_headers);
+        std::string line;
+        while (std::getline(iss, line) && !line.empty()) {
+            size_t colon_pos = line.find(':');
+            if (colon_pos != std::string::npos) {
+                std::string name = line.substr(0, colon_pos);
+                std::string value = line.substr(colon_pos + 1);
+                // Trim whitespace
+                value.erase(0, value.find_first_not_of(" \t"));
+                value.erase(value.find_last_not_of(" \t\r\n") + 1);
+                
+                f.headers[name] = value;
+            }
+        }
+        
+        f.version = "HTTP/1.1";
+        f.statusCode = 200; // Assuming CGI success unless `Status` header says otherwise
+        if (f.headers.count("Status")) { // Check for CGI 'Status' header
+            std::string status_str = f.headers["Status"];
+            size_t space_pos = status_str.find(' ');
+            if (space_pos != std::string::npos) {
+                f.statusCode = std::atoi(status_str.substr(0, space_pos).c_str());
+                f.statusText = status_str.substr(space_pos + 1);
+            }
+            f.headers.erase("Status"); // Remove CGI-specific status header
+        } else {
+            f.statusText = "OK"; // Default to OK if CGI doesn't provide Status
+        }
+        
+        // Handle Content-Length from CGI
+        if (!f.headers.count("Content-Length")) {
+             // If CGI didn't provide Content-Length, your server should calculate it
+            f.headers["Content-Length"] = std::to_string(cgi_body.length());
+        }
+
+        f.body = cgi_body;
+        return f;   
     }
-    if (bytes_read == -1)
-    {
-        perror("read from pipe_stdout failed");
-    }
-    close(pfd[0]);
-    std::cout << "--------------------> " << cgi_output_str << std::endl;
-    f.version = "HTTP/1.1";
-    // f.headers["Content-Type"] = "text/html";
-    f.statusCode = 200;
-    f.body = cgi_output_str;
-    wait(NULL);
-    return f;   
 }
