@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/05 20:32:13 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/07 09:55:07 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ CgiHandler::CgiHandler(const HttpServer &server, const HttpRequest& req , const 
     _route = route;
     _req = req;
     _env_paths = env_paths;
-    _serverSocket = server.getFd();
+    // _serverSocket = server.getFd(); // it should be a vector later on
     _clientSocket = clientSocket;
     _data = check_cgi();
     _data.DebugPrint();
@@ -104,7 +104,7 @@ char **CgiHandler::set_env(void)
     env_map["SCRIPT_NAME"] = _data.script_path;
     env_map["SCRIPT_FILENAME"] = "." + _data.script_path; // Assuming server root is current dir
     env_map["QUERY_STRING"] = _data.query;
-    env_map["SERVER_PORT"] = std::to_string(_serverData.port); // Get from server config
+    env_map["SERVER_PORT"] = std::to_string(_serverData.port[0]); // ! port[0]
     env_map["REMOTE_ADDR"] = std::to_string(_clientSocket); // Get client IP address
     
     env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
