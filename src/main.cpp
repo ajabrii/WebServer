@@ -6,7 +6,7 @@
 /*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/06 16:46:38 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/07 10:01:43 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,10 +65,10 @@ int main(int ac, char **av, char **envp)
                     }
                 }
                 else if (event.isReadable) {
-                    
+
                     Connection& conn = reactor.getConnection(event.fd);
-                    
-                    std::string data = conn.readData(); // we have ti loop here
+
+                    std::string data = conn.readData(); // we have to loop here
                     // std::cout << "\033[1;32m" << data << "\033[0m" << std::endl;
 
                     if (!data.empty()) {
