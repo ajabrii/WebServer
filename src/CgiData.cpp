@@ -12,13 +12,6 @@ void CgiData::DebugPrint(void)
     << "hasCgi: " << this->hasCgi  << std::endl
     << "PathInfo: " << this->PathInfo  << std::endl
     << "query: " << this->query  << std::endl
-    << "script_path: " << this->script_path;
-    // if (hasCgi)
-    // {
-    //     for (size_t i = 0; i < N_exts; i++)
-    //     {
-    //         std::cerr << "EX{" << i << "}" << " :" << exts[i] << std::endl; 
-    //     }
-    // }
-    std::cerr << std::endl;
+    << "script_path: " << this->script_path << std::endl
+    << "Cgi interp: " << this->CgiInterp << std::endl;
 }

@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/07 01:34:50 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/07 10:47:21 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,56 +60,31 @@ char **convert_env(std::map<std::string, std::string> env)
 }
 
 
-
-// char **set_env(const HttpRequest &req,CgiData& data)
-// {
-
-//     std::string query;
-
-//     // query = req.path.find("?");
-//     std::cout << query << "\n";
-//     std::map<std::string, std::string> env;
-//     if (req.method == GET)
-//     {
-//         env["REQUEST_METHOD"] = GET;
-//         env["QUERY_STRING"] = data.query; // for GET
-//         env["CONTENT_LENGTH"] = "0"; // GET and POST
-//     }
-//     else if (req.method == POST)
-//     {
-//         env["REQUEST_METHOD"] = POST;
-//         env["CONTENT_LENGTH"] = req.body.length();
-//         // env["CONTENT_TYPE"] = "application/x-www-form-urlencoded";
-//     }
-//     env["SCRIPT_NAME"] = data.script_path;
-//     env["SCRIPT_FILENAME"] = "." + data.script_path;
-//     env["GATEWAY_INTERFACE"] = "CGI/1.1";
-//     env["SERVER_PROTOCOL"] = "HTTP/1.1";
-//     env["SERVER_NAME"] = "localhost";
-//     env["REDIRECT_STATUS"] = "200";
-//     // env["SERVER_PORT"] = "8080"; // port of server
-//     // env["REMOTE_ADDR"] = "127.0.0.1"; // addrss of remote
-//     env["HTTP_USER_AGENT"] = "curl/7.68.0";
-//     return (convert_env(env));
-// }
-
-// In CgiHandler.cpp
-
 char **CgiHandler::set_env(void)
 {
     std::map<std::string, std::string> env_map; // Use env_map for clarity
+    std::string host;
+    
+    for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it) 
+    {
+        std::string header_name = it->first;
+        std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::toupper); // Convert to uppercase
+        std::replace(header_name.begin(), header_name.end(), '-', '_'); // Replace hyphens with underscores
+        env_map[header_name] = it->second;
+    }
+    host = _req.GetHeader("host");
 
     env_map["REQUEST_METHOD"] = _req.method;
     env_map["SCRIPT_NAME"] = _data.script_path;
     env_map["SCRIPT_FILENAME"] = "." + _data.script_path; // Assuming server root is current dir
     env_map["QUERY_STRING"] = _data.query;
-    env_map["SERVER_PORT"] = std::to_string(_serverData.port); // Get from server config
-    env_map["REMOTE_ADDR"] = std::to_string(_clientSocket); // Get client IP address
+    env_map["SERVER_PORT"] = host.substr(host.find(":") + 1); // Get from server config
+    // env_map["REMOTE_ADDR"] = std::to_string(_clientSocket); // Get client IP address
     
     env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
     env_map["SERVER_PROTOCOL"] = "HTTP/1.1";
-    env_map["SERVER_NAME"] = ""; // Get from server config // TO DO
-    std::cout << "Holaaaaaaaaaaaaa " << _req.GetHeader("host") << std::endl; // REMOVE
+    env_map["SERVER_NAME"] = host.substr(0, host.find(":")); // Get from server config // TO DO
+    // std::cout << "SERVER NAME: " << host.substr(0, host.find(":")) << ", PORT: " << host.substr(host.find(":") + 1) << std::endl; // REMOVE
     env_map["REDIRECT_STATUS"] = "200"; // Common for web servers using CGI
     
     if (_req.method == GET) 
@@ -119,7 +94,7 @@ char **CgiHandler::set_env(void)
     else if (_req.method == POST) 
     {
         std::ostringstream oss_cl;
-        oss_cl << _req.body.length();
+        oss_cl << _req.body.size();
         env_map["CONTENT_LENGTH"] = oss_cl.str();
         env_map["CONTENT_TYPE"] = _req.GetHeader("Content-Type");;
     }
@@ -128,20 +103,16 @@ char **CgiHandler::set_env(void)
         ;
     }
 
-    for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it)
-    {
-        std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
-    }
+    // for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it)
+    // {
+    //     std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
+    // }
+    // for (std::map<std::string, std::string>::const_iterator it = env_map.begin(); it != env_map.end(); ++it)
+    // {
+    //     std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
+    // }
     
 
-    // // --- Convert ALL client HTTP headers to HTTP_UPPERCASE_VAR ---
-    // for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it) 
-    // {
-    //     std::string header_name = it->first;
-    //     std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::toupper); // Convert to uppercase
-    //     std::replace(header_name.begin(), header_name.end(), '-', '_'); // Replace hyphens with underscores
-    //     env_map["HTTP_" + header_name] = it->second;
-    // }
 
     return (convert_env(env_map));
 }
@@ -185,39 +156,37 @@ CgiData CgiHandler::check_cgi(void)
     size_t pos;
     std::string founded_extns;
     bool is_query = false;
-    // size_t exts_size;
 
-    // exts_size = this->_route.cgi.size();
-    // if (exts_size == 0)
-    //     return data;
-    
-    std::cerr << "YOOO " << "\n";
-    
-    for (std::map<std::string, std::string>::const_iterator it = this->_route.cgi.begin(); it != this->_route.cgi.end(); ++it)
+    for (std::map<std::string, std::string>::const_iterator it = this->_route.cgi.begin(); it != this->_route.cgi.end(); ++it) // 
     {
-        std::cerr << "Cgi extns: " << it->first << " ,Cgi inter: " << it->second << std::endl;
+        // std::cerr << "Cgi extns: " << it->first << " ,Cgi inter: " << it->second << std::endl;
         pos = _req.uri.find(it->first);
         if (pos == std::string::npos)
             continue;
-        founded_extns = _req.uri.substr(pos);
-        std::cout << "-------------------------founded_extns---------------> `" << founded_extns << "'\n";  
-        std::cout << "------------------------ ORGGG ---------------> `" << _req.uri << "'\n";
+        founded_extns = _req.uri.substr(pos, it->first.size() + 1);
+        // std::cout << "------------------------- Fisrt founded_extns---------------> `" << founded_extns << "'\n";  
+        if (founded_extns[it->first.size()] != '?' && founded_extns[it->first.size()] != '\0')
+            continue;
+        else if (founded_extns[it->first.size()] == '?')
+            founded_extns = founded_extns.substr(0, founded_extns.size() - 1);
+        // std::cout << "------------------------- Sec founded_extns---------------> `" << founded_extns << "'\n";  
+        // std::cout << "------------------------ ORGGG ---------------> `" << _req.uri << "'\n";
         // std::cout << "------------------founded_extns.substr(0, it->first.size())----------------------> `" << founded_extns.substr(0, it->first.size()) << "'\n";
         // std::cout << "-----------------------founded_extns.c_str()[it->first.size()]-----------------> `" << founded_extns.c_str()[it->first.size()] << "'\n";
 
         if (founded_extns == it->first || (is_query = (founded_extns.substr(0, it->first.size()) == it->first && founded_extns.c_str()[it->first.size()] == '?')))
         {
-            std::cout << "-------------------------is_query---------------> `" << is_query << "'\n";  
+            // std::cout << "-------------------------is_query---------------> `" << is_query << "'\n";  
             if (is_query)
             {
-                std::cout << "||||||||||||||| --------> "<< _req.uri << std::endl;
+                // std::cout << "||||||||||||||| --------> "<< _req.uri << std::endl;
                 data.query = founded_extns.substr(it->first.size() + 1); //
                 data.script_path = _req.uri.substr(0, _req.uri.find('?'));
             }
             else
                data.script_path = _req.uri;
             data.hasCgi = true;
-            data.extn_path =  ;
+            data.CgiInterp = it->second;
             data.cgi_extn = founded_extns.substr(0, it->first.size());
         }
     }
@@ -237,30 +206,19 @@ HttpResponse CgiHandler::execCgi(void)
     std::string str;
     pid_t pid;
     char **env;
-
-    // data = check_cgi();
-    // if (!data.hasCgi)
-    //     ;
-        // NO Cgi;
     env = set_env();
-    
-    // cmd = route.cgiExtension;
-    // std::cout << "----------------CMD----------------->: " << cmd << std::endl;
-    if (_data.cgi_extn == ".py")
-        cmd = "python3"; // inter // Config
-    else if (_data.cgi_extn == ".php")
-        cmd = "php-cgi";
-    else if (_data.cgi_extn == ".sh")
-        cmd = "bash";
+    if (_data.CgiInterp.find("/") != std::string::npos)
+        cmd = _data.CgiInterp.substr(_data.CgiInterp.find_last_of("/") + 1);
+    else
+        cmd = _data.CgiInterp;
+    std::cout << "CMD: " << cmd << std::endl;
+    fp  = full_path(_env_paths, _data.CgiInterp); // TO DO HANDLE ERROR
 
-    fp  = full_path(_env_paths, cmd); // TO DO HANDLE ERROR
-
-    std::cout << "FULL PATH" << fp << std::endl;
+    std::cout << "FULL PATH: " << fp << std::endl;
     // if (fp.empty())
     //     return;
     str = _data.script_path.substr(1);
     char *argv[] = { (char *)cmd.c_str(), (char *)str.c_str() ,NULL };
-    // std::cout << "7777777777777777777777777->>> " << (char *)cmd.c_str() << "    " <<(char *)str.c_str() << std::endl;
 
     int pfd[2];
     if (pipe(pfd))
