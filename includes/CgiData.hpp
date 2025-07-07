@@ -8,6 +8,7 @@ class CgiData
         std::string query;
         std::string script_path;
         std::string cgi_extn;
+        std::string extn_path;
         std::string PathInfo; 
         bool hasCgi;
 

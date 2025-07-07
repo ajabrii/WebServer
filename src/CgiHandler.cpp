@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/07 01:07:34 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/07 01:34:50 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,6 +217,7 @@ CgiData CgiHandler::check_cgi(void)
             else
                data.script_path = _req.uri;
             data.hasCgi = true;
+            data.extn_path =  ;
             data.cgi_extn = founded_extns.substr(0, it->first.size());
         }
     }
