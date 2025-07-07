@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 11:53:08 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/07 14:19:19 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ private:
     sockaddr_in client_addr;
     std::string buffer;
     bool headersDone;
-    // HttpRequest req;
 
 public:
     Connection();
@@ -31,10 +30,10 @@ public:
     ~Connection();
 
     int getFd() const;
-    std::string getIP() const;
     std::string readData(); // i remove const here to work with buffer in readData() function
     void writeData(const std::string& response) const;
     void closeConnection();
+    // std::string getIP() const;
 };
 
 #endif

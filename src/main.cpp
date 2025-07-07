@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 11:43:26 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/07 14:29:23 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,8 @@ int main(int ac, char **av, char **envp)
                             //* check for cgi
                             CgiHandler cgi(*server ,req, *route , conn, parser.getPathForCGI(envp));
                             if (cgi.IsCgi())
-                               response =  cgi.execCgi();
+                                ;
+                            //    response =  cgi.execCgi();
                             // std::cout << response.body << std::endl;
                             //  Dispatch request to the matched route
                             else
@@ -111,6 +112,7 @@ int main(int ac, char **av, char **envp)
                              response.body = "The requested resource was not found.";
                          }
                          std::string responseStr = response.toString();
+                         std::cerr << "---->" << responseStr << std::endl;
                         conn.writeData(responseStr);
                         // if (!servers.empty()) {
                         //     HttpResponse res = servers[0]->handleRequest(req);
