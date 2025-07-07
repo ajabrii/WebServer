@@ -46,6 +46,7 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "typeinfo": "cpp",
+<<<<<<< HEAD
         "cstring": "cpp",
         "ctime": "cpp",
         "map": "cpp",
@@ -58,5 +59,9 @@
         "span": "cpp",
         "text_encoding": "cpp",
         "cinttypes": "cpp"
+=======
+        "variant": "cpp",
+        "set": "cpp"
+>>>>>>> youness
     }
 }

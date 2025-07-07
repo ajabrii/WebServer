@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 15:02:32 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/07 15:16:21 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,13 +29,7 @@ Connection::~Connection() {
 int Connection::getFd() const {
     return client_fd;
 }
-// std::string Connection::getIP() const
-// {
-//     sockaddr *add;
 
-//     add = (struct sockaddr*)&(this->client_addr);
-//     return (add->sa_data);
-// }
 // void handleClient(ClientConnection &client) {
 //     char temp[1024];
 //     ssize_t n = recv(fd, temp, sizeof(temp), 0);

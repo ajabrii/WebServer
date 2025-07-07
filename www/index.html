@@ -1,128 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Webserv Test</title>
-<style>
-    body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: #fff;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 40px;
-        margin: 0;
-    }
-
-    h1 {
-        font-size: 2rem;
-        margin-bottom: 20px;
-        text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
-    }
-
-    h2 {
-        margin-top: 30px;
-        margin-bottom: 10px;
-        font-size: 1.2rem;
-        color: #ffe082;
-    }
-
-    form, .delete-section {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(4px);
-        padding: 20px;
-        border-radius: 8px;
-        width: 90%;
-        max-width: 400px;
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 20px;
-    }
-
-    label {
-        margin-bottom: 8px;
-        font-size: 0.9rem;
-    }
-
-    input[type="text"], input[type="file"] {
-        padding: 8px;
-        border: none;
-        border-radius: 4px;
-        margin-bottom: 10px;
-        font-size: 1rem;
-    }
-
-    button {
-        padding: 10px;
-        border: none;
-        border-radius: 4px;
-        background-color: #ffe082;
-        color: #333;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background-color 0.3s ease;
-    }
-
-    button:hover {
-        background-color: #ffca28;
-    }
-
-    .delete-section input {
-        margin-bottom: 10px;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webserv Advanced Test Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>🚀 Webserv Test Page</h1>
+<body class="bg-gray-100 text-gray-800">
 
-    <h2>Test GET request</h2>
-    <form action="/" method="get">
-        <label for="getData">Enter something:</label>
-        <input type="text" name="getData" id="getData" />
-        <button type="submit">Send GET</button>
-    </form>
+    <div class="container mx-auto max-w-4xl p-4 sm:p-8">
 
-    <h2>Test POST request with text</h2>
-    <form action="/upload" method="post">
-        <label for="postData">Enter something:</label>
-        <input type="text" name="postData" id="postData" />
-        <button type="submit">Send POST</button>
-    </form>
+        <header class="text-center mb-10">
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-900">Webserv Advanced Test Suite 🚀</h1>
+            <p class="mt-2 text-lg text-gray-600">A comprehensive page to test your server's features.</p>
+        </header>
 
-    <h2>Test POST request with image file</h2>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <label for="imageFile">Choose an image:</label>
-        <input type="file" name="imageFile" id="imageFile" accept="image/*" />
-        <button type="submit">Upload Image</button>
-    </form>
+        <section class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-bold border-b pb-2 mb-4">GET Method</h2>
+            <ul class="list-disc list-inside space-y-2 mb-4">
+                <li><a href="/non_existent_page.html" class="text-blue-600 hover:underline">Test a non-existent file (404 Not Found)</a></li>
+                <li><a href="/uploads/" class="text-blue-600 hover:underline">Test Directory Listing (for /uploads/)</a></li>
+            </ul>
+            <p class="font-semibold">Image serving test:</p>
+            <img src="https://placekitten.com/g/500/200" alt="Test Kitten" class="mt-2 rounded-lg shadow-md">
+        </section>
 
-    <h2>Test DELETE request</h2>
-    <div class="delete-section">
-        <label for="deletePath">File path to delete (e.g., /uploads/filename.ext):</label>
-        <input type="text" id="deletePath" placeholder="/uploads/filename.ext" />
-        <button onclick="deleteFile()">Send DELETE</button>
+        <section class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-bold border-b pb-2 mb-4">CGI Script Testing</h2>
+            
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold mb-2">CGI with GET</h3>
+                <p class="mb-3">These links execute different CGI scripts to display server environment variables.</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <a href="/cgi-bin/1.py" class="bg-green-500 text-white text-center font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">Python Info</a>
+                    <a href="/cgi-bin/1.php" class="bg-indigo-500 text-white text-center font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">PHP Info</a>
+                    <a href="/cgi-bin/1.sh" class="bg-gray-700 text-white text-center font-bold py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors">Shell Info</a>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-semibold mb-2">CGI with POST</h3>
+                <p class="mb-3">Submit this form to send data to the selected CGI script.</p>
+                <form id="cgiPostForm" action="/cgi-bin/1.py" method="post">
+                    <div class="mb-4">
+                        <label for="cgi-script" class="block font-medium mb-1">Target Script:</label>
+                        <select id="cgi-script" name="cgi-script" class="w-full p-2 border border-gray-300 rounded-lg">
+                            <option value="/cgi-bin/1.py">Python (1.py)</option>
+                            <option value="/cgi-bin/1.php">PHP (1.php)</option>
+                            <option value="/cgi-bin/1.sh">Shell (1.sh)</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="name" class="block font-medium mb-1">Your Name:</label>
+                        <input type="text" id="name" name="name" required class="w-full p-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Submit POST Request</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-bold border-b pb-2 mb-4">File Upload (POST)</h2>
+            <p class="mb-3">Select a file to upload. Your server should be configured to save it in the <code>/uploads/</code> directory.</p>
+            <form action="/uploads/" method="post" enctype="multipart/form-data">
+                <input type="file" name="fileToUpload" id="fileToUpload" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <button type="submit" class="mt-4 w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">Upload File</button>
+            </form>
+        </section>
+
+        <section class="bg-white p-6 rounded-xl shadow-lg">
+            <h2 class="text-2xl font-bold border-b pb-2 mb-4">DELETE Method</h2>
+            <p class="mb-3">Enter the path of a resource to delete (e.g., <code>/uploads/my_test_file.txt</code>) and click the button.</p>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <input type="text" id="deleteResource" placeholder="/uploads/file.txt" class="flex-grow p-2 border border-gray-300 rounded-lg">
+                <button id="deleteButton" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">Delete Resource</button>
+            </div>
+        </section>
     </div>
 
-<script>
-    function deleteFile() {
-        const path = document.getElementById('deletePath').value;
-        if (!path) {
-            alert('Please enter a file path to delete.');
-            return;
-        }
-        fetch(path, { method: 'DELETE' })
-            .then(response => response.text())
-            .then(text => {
-                alert('Response:\n' + text);
+    <script>
+        // Change form action based on CGI script selection
+        document.getElementById('cgi-script').addEventListener('change', (e) => {
+            document.getElementById('cgiPostForm').action = e.target.value;
+        });
+
+        // Handle DELETE request
+        document.getElementById('deleteButton').addEventListener('click', () => {
+            const resource = document.getElementById('deleteResource').value;
+            if (!resource) {
+                alert('Please enter the path of the resource to delete.');
+                return;
+            }
+            fetch(resource, {
+                method: 'DELETE'
             })
-            .catch(err => {
-                console.error(err);
-                alert('Failed to send DELETE request.');
+            .then(response => response.text())
+            .then(data => {
+                alert(`DELETE request sent to ${resource}\n\nServer response:\n${data || '(No content)'}`);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`An error occurred while sending DELETE to ${resource}. Check the console.`);
             });
-    }
-</script>
+        });
+    </script>
 </body>
 </html>
-

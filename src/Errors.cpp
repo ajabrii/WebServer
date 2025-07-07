@@ -1,0 +1,39 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Errors.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/07 11:31:49 by ajabri            #+#    #+#             */
+/*   Updated: 2025/07/07 11:34:36 by ajabri           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../includes/Errors.hpp"
+#include <fstream>
+#include <sstream>
+#include <map>
+#include <iostream>
+
+std::string Error::loadErrorPage(int statusCode, const ServerConfig& config) {
+    // Look for configured error page
+    std::map<int, std::string>::const_iterator it = config.error_pages.find(statusCode);
+    if (it != config.error_pages.end()) {
+        const std::string& filePath = it->second;
+        std::ifstream file(filePath.c_str());
+        if (file) {
+            std::stringstream buffer;
+            buffer << file.rdbuf();
+            return buffer.str();
+        }
+    }
+    // fallback: default minimal HTML
+    return "<html><body><h1>" + std::to_string(statusCode) + " Error</h1></body></html>";
+}
+
+
+void Error::logs(const std::string& message)
+{
+        std::cerr << "\033[1;31m[Error]\033[0m " << message << std::endl;
+}

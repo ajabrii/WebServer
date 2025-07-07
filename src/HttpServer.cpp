@@ -3,65 +3,72 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/02 12:10:43 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/07 15:16:35 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/HttpServer.hpp"
 #include <stdexcept>
 
+HttpServer::HttpServer(const ServerConfig& cfg) : config(cfg) {}
 
-HttpServer::HttpServer(const ServerConfig& cfg) : config(cfg)
-{
-    listen_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (listen_fd < 0)
-        throw std::runtime_error("Failed to create socket");
-
-    std::memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(cfg.port);
-    server_addr.sin_addr.s_addr = inet_addr(cfg.host.c_str());
-}
-
-HttpServer::~HttpServer()
-{
-    close(listen_fd);
+HttpServer::~HttpServer() {
+    for (size_t i = 0; i < listen_fds.size(); ++i) {
+        close(listen_fds[i]);
+    }
 }
 
 void HttpServer::setup()
 {
-    int opt = 1;
-    if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-        throw std::runtime_error("setsockopt failed");
+    for (size_t i = 0; i < config.port.size(); ++i) {
+        int fd = socket(AF_INET, SOCK_STREAM, 0);
+        if (fd < 0)
+            throw std::runtime_error("Failed to create socket");
 
-    if (bind(listen_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
-        throw std::runtime_error("bind failed");
+        int opt = 1;
+        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+            throw std::runtime_error("setsockopt failed");
 
-    if (listen(listen_fd, 128) < 0)
-        throw std::runtime_error("listen failed");
+        sockaddr_in addr;
+        std::memset(&addr, 0, sizeof(addr));
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(config.port[i]);
+        addr.sin_addr.s_addr = inet_addr(config.host.c_str()); // this function is not int the in subject !!!
 
-    std::cout << "\033[1;33m[*]\033[0m "<<"[HttpServer] Listening on [\033[1;36m"<<"http://" << config.host << ":" << config.port <<"\033[0m]"<< std::endl;
+        if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
+            throw std::runtime_error("bind failed on port " + std::to_string(config.port[i]));
+
+        if (listen(fd, 128) < 0)
+            throw std::runtime_error("listen failed");
+
+        listen_fds.push_back(fd);
+
+        std::cout << "\033[1;33m[*]\033[0m "
+                  << "[HttpServer] Listening on [\033[1;36mhttp://"
+                  << config.host << ":" << config.port[i] << "\033[0m]" << std::endl;
+    }
 }
 
-int HttpServer::getFd() const
+// Return all listen fds so Reactor can register them
+const std::vector<int>& HttpServer::getFds() const
 {
-    return listen_fd;
+    return listen_fds;
 }
 
-Connection HttpServer::acceptConnection() const
+// Accept a connection from a specific listen_fd
+Connection HttpServer::acceptConnection(int listen_fd) const
 {
     sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);
     int client_fd = accept(listen_fd, (struct sockaddr*)&client_addr, &client_len);
     if (client_fd < 0)
         throw std::runtime_error("accept failed");
-
     return Connection(client_fd, client_addr);
 }
-
+//i think this function is not important, i'll remove it later on
 HttpResponse HttpServer::handleRequest(const HttpRequest& request)
 {
     (void)request;
@@ -71,11 +78,10 @@ HttpResponse HttpServer::handleRequest(const HttpRequest& request)
     response.statusText = "OK";
     response.headers["Content-Type"] = "text/plain";
     response.body = "Hello from HttpServer!";
-    // response.headers["Content-Length"] = std::to_string(response.body.size());
     return response;
 }
 
-const ServerConfig& HttpServer::getConfig() const {
+const ServerConfig& HttpServer::getConfig() const
+{
     return config;
 }
-

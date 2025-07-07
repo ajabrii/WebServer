@@ -6,24 +6,24 @@ webserv/
 ├── config/
 │   └── default.conf                # Sample configuration file
 ├── includes/
-│   ├── HttpServer.hpp
-│   ├── Reactor.hpp
-│   ├── Connection.hpp
-│   ├── RequestDispatcher.hpp
-│   ├── Router.hpp
-│   ├── Controller.hpp
-│   ├── IHttpMethodHandler.hpp
-│   ├── GetHandler.hpp
-│   ├── PostHandler.hpp
-│   ├── DeleteHandler.hpp
-│   ├── ConfigInterpreter.hpp
-│   ├── ServerConfig.hpp
-│   ├── RouteConfig.hpp
-│   ├── HttpRequest.hpp
-│   ├── HttpResponse.hpp
+│   ├── HttpServer.hpp (done)
+│   ├── Reactor.hpp (done)
+│   ├── Connection.hpp (done)
+│   ├── RequestDispatcher.hpp (done)
+│   ├── Router.hpp (done)
+│   ├── Controller.hpp (no need)
+│   ├── IHttpMethodHandler.hpp (done)
+│   ├── GetHandler.hpp (done)
+│   ├── PostHandler.hpp (done)
+│   ├── DeleteHandler.hpp (done)
+│   ├── ConfigInterpreter.hpp (done)
+│   ├── ServerConfig.hpp (done)
+│   ├── RouteConfig.hpp (done)
+│   ├── HttpRequest.hpp (done)
+│   ├── HttpResponse.hpp (done)
 │   ├── HttpResponseBuilder.hpp
-│   ├── Logger.hpp
-│   └── utils.hpp
+│   ├── Logger.hpp (not now)
+│   └── utils.hpp (no need)
 ├── srcs/
 │   ├── main.cpp
 │   ├── HttpServer.cpp
