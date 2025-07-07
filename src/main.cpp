@@ -4,10 +4,12 @@
 #include "../includes/Router.hpp"
 #include "../includes/RequestDispatcher.hpp"
 #include "../includes/CgiHandler.hpp"
+#include "../includes/Errors.hpp"
 
 int main(int ac, char **av, char **envp) {
     if (ac != 2) {
-        std::cerr << "Error: need config file!" << std::endl;
+        // std::cerr <<  << std::endl;
+        Error::logs("Usage: " + std::string(av[0]) + " <config_file>");
         return 1;
     }
 
@@ -77,9 +79,10 @@ int main(int ac, char **av, char **envp) {
                             }
                             std::cout << "[<] Response: " << response.statusCode << " " << response.statusText << std::endl;
                         } else {
-                            response.statusCode = 404;
+                             response.statusCode = 404;
                             response.statusText = "Not Found";
-                            response.body = "The requested resource was not found.";
+                            response.body = Error::loadErrorPage(404, server->getConfig());
+                            response.headers["Content-Length"] = std::to_string(response.body.size());
                         }
 
                         conn.writeData(response.toString());
