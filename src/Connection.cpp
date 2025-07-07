@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 20:23:33 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/07 11:56:40 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,13 @@ Connection::~Connection() {
 int Connection::getFd() const {
     return client_fd;
 }
+std::string Connection::getIP() const
+{
+    sockaddr *add;
 
+    add = (struct sockaddr*)&(this->client_addr);
+    return (add->sa_data);
+}
 // void handleClient(ClientConnection &client) {
 //     char temp[1024];
 //     ssize_t n = recv(fd, temp, sizeof(temp), 0);
@@ -104,7 +110,7 @@ std::string Connection::readData()
 void Connection::writeData(const std::string& response) const {
     ssize_t bytesSent = send(client_fd, response.c_str(), response.size(), 0);
     if (bytesSent < 0)
-        throw std::runtime_error("Failed to write to client");
+        throw std::runtime_error("Failed to write to client"); // Check stress test
 }
 
 void Connection::closeConnection() {

@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 00:53:10 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/07 11:43:26 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ int main(int ac, char **av, char **envp)
                     Connection& conn = reactor.getConnection(event.fd);
                     
                     std::string data = conn.readData(); // we have ti loop here
-                    // std::cout << "\033[1;32m" << data << "\033[0m" << std::endl;
+                    std::cout << "\033[1;32m" << data << "\033[0m" << std::endl;
 
                     if (!data.empty()) {
                         HttpRequest req = HttpRequest::parse(data);
@@ -91,7 +91,7 @@ int main(int ac, char **av, char **envp)
                          if (route) 
                          {
                             //* check for cgi
-                            CgiHandler cgi(*server ,req, *route , event.fd, parser.getPathForCGI(envp));
+                            CgiHandler cgi(*server ,req, *route , conn, parser.getPathForCGI(envp));
                             if (cgi.IsCgi())
                                response =  cgi.execCgi();
                             // std::cout << response.body << std::endl;
