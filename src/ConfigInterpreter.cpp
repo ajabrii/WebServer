@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 15:16:09 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/07 19:17:04 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -286,8 +286,8 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
         std::string path;
         line >> ext;
         line >> path;
-        if (ext != ".py" && ext != ".php")
-            throw std::runtime_error("unsupported extension ");
+        // if (ext != ".py" && ext != ".php")
+        //     throw std::runtime_error("unsupported extension ");
         route.cgi[ext] = path;
     }
     else

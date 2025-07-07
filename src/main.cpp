@@ -69,6 +69,7 @@ int main(int ac, char **av, char **envp) {
                         const RouteConfig* route = router.match(req, server->getConfig());
                         HttpResponse response;
                         if (route) {
+                            std::cout << "event fd_----------------> " << event.fd << "\n";
                             CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
                             if (cgi.IsCgi()) {
                                 response = cgi.execCgi();

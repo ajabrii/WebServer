@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/07 15:15:47 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/07 19:02:02 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,14 +21,14 @@ CgiHandler::CgiHandler() {}
 
 CgiHandler::~CgiHandler() {}
 
-CgiHandler::CgiHandler(const HttpServer &server, const HttpRequest& req , const RouteConfig& route , const Connection& conn, std::string env_paths)
+CgiHandler::CgiHandler(const HttpServer &server, const HttpRequest& req , const RouteConfig& route ,int clientSocket, std::string env_paths)
 {
     _serverData = server.getConfig();
     _route = route;
     _req = req;
     _env_paths = env_paths;
-    _serverSocket = server.getFd();
-    _conn = conn;
+    // _serverSocket = server.getFd();
+    _clientSocket = clientSocket;
     _data = check_cgi();
     _data.DebugPrint();
 }

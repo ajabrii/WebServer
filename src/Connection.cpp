@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 15:16:21 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/07 19:01:24 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ Connection::~Connection() {
 int Connection::getFd() const {
     return client_fd;
 }
+
+
 
 // void handleClient(ClientConnection &client) {
 //     char temp[1024];
