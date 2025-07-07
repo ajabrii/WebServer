@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:39:15 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 21:00:55 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/07 00:53:10 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,8 @@ int main(int ac, char **av, char **envp)
                         //  std::cout << "route ------------->>>> " << route->path << "\n";
                         //  std::cout << "paaath -------------->>>" << route->root << "\n";
                          HttpResponse response;
-                         if (route) {
+                         if (route) 
+                         {
                             //* check for cgi
                             CgiHandler cgi(*server ,req, *route , event.fd, parser.getPathForCGI(envp));
                             if (cgi.IsCgi())
