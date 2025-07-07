@@ -6,7 +6,7 @@
 /*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 14:59:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 16:02:02 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/05 21:02:45 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 class RouteConfig {
     public:
@@ -22,11 +23,12 @@ class RouteConfig {
         std::string root;
         std::vector<std::string> allowedMethods;
         std::string redirect;
-        bool autoindex;
+        // bool autoindex;
         std::string indexFile;
-        std::string cgiExtension;
-        std::string uploadDir;
+        std::map<std::string, std::string> cgi;
+        // std::string interpath;
         bool directory_listing;
+        std::string uploadDir;
         
         RouteConfig();
 };

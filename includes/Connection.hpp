@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/26 16:21:02 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/05 20:17:46 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,9 @@ class Connection {
 private:
     int client_fd;
     sockaddr_in client_addr;
+    std::string buffer;
+    bool headersDone;
+    // HttpRequest req;
 
 public:
     Connection();
@@ -28,7 +31,7 @@ public:
     ~Connection();
 
     int getFd() const;
-    std::string readData() const;
+    std::string readData(); // i remove const here to work with buffer in readData() function
     void writeData(const std::string& response) const;
     void closeConnection();
 };

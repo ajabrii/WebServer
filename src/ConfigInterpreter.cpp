@@ -6,7 +6,7 @@
 /*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/01 15:43:19 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/05 20:23:14 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -256,6 +256,24 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
         else
             route.directory_listing = false;
     }
+    else if (key == "cgi")
+    {
+        std::stringstream line(value);
+
+        std::stringstream countStream(value);
+        int inputCount = 0;
+        std::string tempInput;
+        while (countStream >> tempInput) ++inputCount;
+        if (inputCount != 2)
+            throw std::runtime_error("invalid CGI input");
+        std::string ext;
+        std::string path;
+        line >> ext;
+        line >> path;
+        if (ext != ".py" && ext != ".php")
+            throw std::runtime_error("unsupported extension ");
+        route.cgi[ext] = path;
+    }
     else
         throw std::runtime_error("Unknown route option: " + key);
 }
@@ -302,7 +320,7 @@ void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string&
         while (ss >> name){
             for (size_t i = 0; i < server.serverName.size(); i++)
                 if (server.serverName[i] == name)
-                    throw std::runtime_error("name alleady taken");
+                    throw std::runtime_error("name allready taken");
             server.serverName.push_back(name);
         }
     }
@@ -365,8 +383,10 @@ void ConfigInterpreter::checkValues() const
         {
             if (serverConfigs[i].routes[j].path.empty())
                 throw std::runtime_error("Route path is not set.");
+            if (serverConfigs[i].routes[j].root.empty())
+                throw std::runtime_error("root is not set for route " + serverConfigs[i].routes[j].path);
             if (serverConfigs[i].routes[j].allowedMethods.empty())
-                throw std::runtime_error("No methods specified for route: " + serverConfigs[i].routes[j].path);
+                throw std::runtime_error("No methods specified for route " + serverConfigs[i].routes[j].path);
         }
     }
 }
