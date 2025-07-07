@@ -101,3 +101,6 @@
 //     else
 //         throw std::runtime_error("Unknown server option: " + key);
 // }
+
+
+3. //TODO: I'll read the entire code base fix and clean the code so it can be ready to be submitted 

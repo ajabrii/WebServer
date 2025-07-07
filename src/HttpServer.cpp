@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 09:52:59 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/07 12:25:26 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ void HttpServer::setup()
         std::memset(&addr, 0, sizeof(addr));
         addr.sin_family = AF_INET;
         addr.sin_port = htons(config.port[i]);
-        addr.sin_addr.s_addr = inet_addr(config.host.c_str());
+        addr.sin_addr.s_addr = inet_addr(config.host.c_str()); // this function is not int the in subject !!!
 
         if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
             throw std::runtime_error("bind failed on port " + std::to_string(config.port[i]));
