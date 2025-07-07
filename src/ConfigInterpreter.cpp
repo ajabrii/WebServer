@@ -6,7 +6,7 @@
 /*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 20:23:14 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/06 19:03:08 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,14 @@ std::string ConfigInterpreter::clean_line(std::string line)
     return line;
 }
 
+std::string ConfigInterpreter::toLower(std::string str){
+    std::string result = str;
+    for (size_t i = 0; i < result.size(); ++i) {
+        result[i] = std::tolower(static_cast<unsigned char>(result[i]));
+    }
+    return result;
+}
+
 bool ConfigInterpreter::Isspaces(const std::string& line)
 {
     for (size_t i = 0; i < line.length(); i++)
@@ -133,7 +141,7 @@ void ConfigInterpreter::parse()
         if (IsComment(line))
             continue;
 
-        if (line == "server")
+        if (toLower(line) == "server")
         {
             if (i + 1 < ConfigData.size() && ConfigData[i + 1] == "{")
             {
@@ -234,7 +242,8 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
 
     std::string key = clean_line(line.substr(0, equal));
     std::string value = clean_line(line.substr(equal + 1));
-
+    
+    key = toLower(key); // bach n9bel kolchi 
     if (key == "methods")
     {
         std::stringstream ss(value);
@@ -251,7 +260,7 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
         route.root = value;
     else if (key == "directory_listing")
     {
-        if (value == "on")
+        if (key == "on")
             route.directory_listing = true;
         else
             route.directory_listing = false;
@@ -299,6 +308,7 @@ void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string&
     std::string key = trim(line.substr(0, equal));
     std::string value = trim(line.substr(equal + 1));
 
+    key = toLower(key);
     if (key == "host") {
         if (!server.host.empty()) //? handle duplicate host
             throw std::runtime_error("Duplicate 'host' entry in server block.");
@@ -307,11 +317,24 @@ void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string&
     else if (key == "port")
     {
         // std::cout << "value :::::: " << value << "\n"; 
-        if (server.port != 0) //? handle duplicate port
-            throw std::runtime_error("Duplicate 'port' entry in server block.");
-        if (value.size() > 4)
-            throw std::runtime_error("invalid port ::" + value);
         server.port = std::atoi(value.c_str());
+        // std::stringstream ss(value);
+        // std::string portStr;
+        // while (ss >> portStr) {
+        //     if (portStr.size() > 5)
+        //         throw std::runtime_error("invalid port: " + portStr);
+        //     int portNum = std::atoi(portStr.c_str());
+        //     if (portNum <= 0 || portNum > 65535)
+        //         throw std::runtime_error("invalid port number: " + portStr);
+        //     // Check for duplicates
+        //     for (size_t i = 0; i < server.port.size(); ++i) {
+        //         if (server.port[i] == portNum)
+        //             throw std::runtime_error("Duplicate 'port' entry in server block: " + portStr);
+        //     }
+        //     server.port.push_back(portNum);
+        // }
+        // if (server.port.empty())
+        //     throw std::runtime_error("No port specified in server block.");
     }
     else if (key == "server_name")
     {
@@ -375,9 +398,9 @@ void ConfigInterpreter::checkValues() const
     {
         if (serverConfigs[i].host.empty())
             throw std::runtime_error("Host is not set for a server block.");
-        if (serverConfigs[i].port == 0)
-            throw std::runtime_error("Port is not set for a server block.");
-        if (serverConfigs[i].clientMaxBodySize <= 0) //? handle max body size
+        // if (serverConfigs[i].port.size() == 0)
+        //     throw std::runtime_error("Port is not set for a server block.");
+        if (serverConfigs[i].clientMaxBodySize <= 0)
             throw std::runtime_error("Client max body size is not set correct for a server block.");
         for (size_t j = 0; j < serverConfigs[i].routes.size(); j++)
         {
@@ -388,5 +411,11 @@ void ConfigInterpreter::checkValues() const
             if (serverConfigs[i].routes[j].allowedMethods.empty())
                 throw std::runtime_error("No methods specified for route " + serverConfigs[i].routes[j].path);
         }
+        // Check for duplicate host in other servers
+        // for (size_t k = i + 1; k < serverConfigs.size(); k++)
+        // {
+        //     if (serverConfigs[i].host == serverConfigs[k].host)
+        //         throw std::runtime_error("Duplicate host found in two server blocks: " + serverConfigs[i].host);
+        // }
     }
 }

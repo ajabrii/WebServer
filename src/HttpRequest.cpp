@@ -6,7 +6,7 @@
 /*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 20:33:17 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/06 19:58:26 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ HttpRequest HttpRequest::parse(const std::string& raw)
         throwHttpError(400, "Invalid HTTP request: empty request line");
     }
     else if (req.version != "HTTP/1.1")
-        throwHttpError(505, "http Version Not Supported"); // 505 http Version Not Supported
+        throwHttpError(505, "http Version Not Supported"); // 505 http Version Not Supported //!don't forget leaks !!!
 
     // Parse headers
     while (std::getline(stream, line)) {
@@ -68,23 +68,28 @@ HttpRequest HttpRequest::parse(const std::string& raw)
     }
 
     if (!req.headers["Content-Length"].empty() && !req.headers["Transfer-Encoding"].empty())
-         throwHttpError(400, "bad request"); // Both are set → HTTP spec forbids this
-
+    throwHttpError(400, "bad request"); // Both are set → HTTP spec forbids this
+    
     else if (!req.headers["Content-Length"].empty()){
         std::string all_body;
-        
+
         std::string cl = req.headers["Content-Length"];
         if (!cl.empty()) {
-            req.contentLength = std::stoi(cl);
+            std::stringstream ss(cl);
+            ss >> req.contentLength;
+            if (ss.fail()) {
+                throwHttpError(400, "Invalid Content-Length");
+            }
         } else {
             req.contentLength = 0;
         }
+        std::cout << "size is ::" << req.contentLength << std::endl;
         std::getline(stream, all_body, '\0');
         if (all_body.size() < req.contentLength)
-            throwHttpError(400, "bad request, incomplete body"); // incomplete body
+        throwHttpError(400, "bad request, incomplete body"); // incomplete body
         else {
             req.bodyReceived = all_body.size();
-
+            
             if (req.bodyReceived >= req.contentLength) {
                 req.body = all_body.substr(0, req.contentLength);
                 all_body.erase(0, req.contentLength);
@@ -92,11 +97,14 @@ HttpRequest HttpRequest::parse(const std::string& raw)
         }
     }
     else if (!req.headers["Transfer-Encoding"].empty()) {
+        std::cout << "heeeeeeeeeeeeeeeeeere" << std::endl;
         std::string all_body;
         std::getline(stream, all_body, '\0');
         req.body = decodeChunked(all_body);
     }
+    else {
         // no body content?
+    }
     return req;
 }
 
@@ -147,9 +155,10 @@ std::string HttpRequest::decodeChunked(const std::string& chunkedBody) {
 
 
 void HttpRequest::throwHttpError(int statusCode, const std::string& message) {
-    throw std::runtime_error(
-        "HTTP error " + std::to_string(statusCode) + ": " + message
-    );
+    std::ostringstream oss;
+    oss << statusCode;
+    throw std::runtime_error("HTTP error " + oss.str() + ": " + message);
+
 }
 
 std::string HttpRequest::GetHeader(std::string target) const
