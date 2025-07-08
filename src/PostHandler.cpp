@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/08 20:07:19 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/08 20:10:19 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,7 +155,6 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
             writeKeyValuesToFile(filepath, fields);
             resp.version = "HTTP/1.1";
             // set the response content type to html
-            // resp.headers["Content-Type"] = "text/html; charset=UTF-8";
             resp.body = "Form data saved to: " + filepath;
         }
         else if (ct.find("application/json") != std::string::npos) {
