@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 20:17:46 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/08 19:38:29 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ public:
     std::string readData(); // i remove const here to work with buffer in readData() function
     void writeData(const std::string& response) const;
     void closeConnection();
+    std::string& getBuffer() { return buffer; } //! impliment this in .cpp file
+    void clearBuffer() { buffer.clear(); }
 };
 
 #endif

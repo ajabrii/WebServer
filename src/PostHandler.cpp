@@ -6,57 +6,175 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/04 15:45:49 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/08 20:07:19 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
-# include "../includes/PostHandler.hpp"
+// PostHandler.cpp
+#include "../includes/PostHandler.hpp"
 #include <fstream>
-#include <ctime>
 #include <sstream>
+#include <ctime>
+#include <map>
+#include <vector>
+#include <algorithm>
+#include <iostream>
 
-PostHandler::PostHandler(){ }
+// ----- helpers -----
+struct Part {
+    std::string name;
+    std::string filename;
+    std::string content;
+};
 
-PostHandler::~PostHandler() {}
+std::string extractBoundary(const std::string& ct) {
+    size_t pos = ct.find("boundary=");
+    if (pos != std::string::npos)
+        return ct.substr(pos + 9); // skip 'boundary='
+    return "";
+}
 
-HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& route) const
-{
+void writeFile(const std::string& path, const std::string& content) {
+    std::ofstream out(path.c_str(), std::ios::binary);
+    if (!out) throw std::runtime_error("Failed to write file: " + path);
+    out << content;
+}
+
+void writeKeyValuesToFile(const std::string& path, const std::map<std::string,std::string>& fields) {
+    std::ofstream out(path.c_str());
+    if (!out) throw std::runtime_error("Failed to write file: " + path);
+    for (std::map<std::string,std::string>::const_iterator it=fields.begin(); it!=fields.end(); ++it)
+        out << it->first << "=" << it->second << "\n";
+}
+
+std::vector<Part> parseMultipart(const std::string& body, const std::string& boundary) {
+    std::vector<Part> parts;
+    std::string sep = "--" + boundary;
+    size_t pos = 0;
+
+    while ((pos = body.find(sep, pos)) != std::string::npos) {
+        pos += sep.size();
+        if (body.substr(pos,2) == "--") break; // end
+        if (body.substr(pos,2) == "\r\n") pos += 2;
+        size_t headerEnd = body.find("\r\n\r\n", pos);
+        if (headerEnd == std::string::npos) break;
+        std::string header = body.substr(pos, headerEnd - pos);
+        pos = headerEnd + 4;
+
+        size_t nextSep = body.find(sep, pos);
+        if (nextSep == std::string::npos) break;
+
+        std::string content = body.substr(pos, nextSep - pos);
+        if (!content.empty() && content[content.size()-2]=='\r' && content[content.size()-1]=='\n')
+            content = content.substr(0, content.size()-2); // strip trailing \r\n
+
+        Part part;
+        size_t fnPos = header.find("filename=\"");
+        if (fnPos != std::string::npos) {
+            size_t fnEnd = header.find("\"", fnPos+10);
+            part.filename = header.substr(fnPos+10, fnEnd - (fnPos+10));
+        }
+        size_t namePos = header.find("name=\"");
+        if (namePos != std::string::npos) {
+            size_t nameEnd = header.find("\"", namePos+6);
+            part.name = header.substr(namePos+6, nameEnd - (namePos+6));
+        }
+        part.content = content;
+        parts.push_back(part);
+        pos = nextSep;
+    }
+    return parts;
+}
+
+std::map<std::string,std::string> parseFormUrlEncoded(const std::string& body) {
+    std::map<std::string,std::string> fields;
+    std::istringstream ss(body);
+    std::string pair;
+    while (std::getline(ss, pair, '&')) {
+        size_t eq = pair.find('=');
+        if (eq != std::string::npos) {
+            std::string key = pair.substr(0, eq);
+            std::string value = pair.substr(eq+1);
+            fields[key] = value;
+        }
+    }
+    return fields;
+}
+
+// Helper to build error response
+HttpResponse makeErrorResponse(int code, const std::string& text) {
     HttpResponse resp;
-    resp.version = req.version;
-
-    // Check if upload directory is configured
-    // route.uploadDir = "uploads"; // Example upload directory, replace with actual config retrieval
-    if (route.uploadDir.empty()) {
-        resp.statusCode = 500;
-        resp.statusText = "Internal Server Error";
-        resp.body = "Upload directory is not configured.";
-        resp.headers["Content-Length"] = std::to_string(resp.body.size());
-        return resp;
-    }
-
-    // Build file path (use timestamp or counter to avoid conflicts)
-    std::string filePath = route.uploadDir + "/upload_" + std::to_string(std::time(0));
-
-    std::ofstream file(filePath.c_str(), std::ios::binary);
-    if (!file) {
-        resp.statusCode = 500;
-        resp.statusText = "Internal Server Error";
-        resp.body = "Failed to open file for writing.";
-        resp.headers["Content-Length"] = std::to_string(resp.body.size());
-        return resp;
-    }
-
-    // Write request body to file
-    file << req.body;
-    file.close();
-
-    resp.statusCode = 201; // Created
-    resp.statusText = "Created";
-    resp.body = "File uploaded successfully as " + filePath;
+    resp.statusCode = code;
+    resp.statusText = text;
+    resp.body = text;
     resp.headers["Content-Length"] = std::to_string(resp.body.size());
-
     return resp;
 }
 
+// ----- PostHandler methods -----
+PostHandler::PostHandler() { }
 
+PostHandler::~PostHandler() { }
+
+HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& route) const {
+    HttpResponse resp;
+    resp.version = req.version;
+
+    std::string ct = req.GetHeader("content-type");
+    std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower);
+
+    if (route.uploadDir.empty()) {
+        return makeErrorResponse(500, "Upload directory not configured.");
+    }
+
+    try {
+        if (ct.find("multipart/form-data") != std::string::npos) {
+            std::string boundary = extractBoundary(ct);
+            if (boundary.empty())
+                return makeErrorResponse(400, "Missing boundary in multipart data.");
+
+            std::vector<Part> parts = parseMultipart(req.body, boundary);
+            bool saved = false;
+            for (size_t i=0; i<parts.size(); ++i) {
+                if (!parts[i].filename.empty()) {
+                    std::string filepath = route.uploadDir + "/" + parts[i].filename;
+                    writeFile(filepath, parts[i].content);
+                    // resp.headers["Content-Type"] = "text/html; charset=UTF-8";
+                    resp.body = "File uploaded: " + filepath;
+                    saved = true;
+                    break;
+                }
+            }
+            if (!saved)
+                return makeErrorResponse(400, "No file found in multipart data.");
+        }
+        else if (ct.find("application/x-www-form-urlencoded") != std::string::npos) {
+            std::map<std::string,std::string> fields = parseFormUrlEncoded(req.body);
+            std::string filepath = route.uploadDir + "/form_" + std::to_string(std::time(0)) + ".txt";
+            writeKeyValuesToFile(filepath, fields);
+            resp.version = "HTTP/1.1";
+            // set the response content type to html
+            // resp.headers["Content-Type"] = "text/html; charset=UTF-8";
+            resp.body = "Form data saved to: " + filepath;
+        }
+        else if (ct.find("application/json") != std::string::npos) {
+            std::string filepath = route.uploadDir + "/json_" + std::to_string(std::time(0)) + ".json";
+            writeFile(filepath, req.body);
+            // resp.headers["Content-Type"] = "text/html; charset=UTF-8";
+            resp.body = "JSON saved to: " + filepath;
+        }
+        else {
+            return makeErrorResponse(415, "Unsupported Media Type: " + ct);
+        }
+    }
+    catch (const std::exception& e) {
+        return makeErrorResponse(500, e.what());
+    }
+
+    resp.statusCode = 201;
+    resp.statusText = "Created";
+    resp.headers["Content-Type"] = "text/html; charset=UTF-8";
+    resp.headers["Content-Length"] = std::to_string(resp.body.size());
+    return resp;
+}
