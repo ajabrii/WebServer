@@ -6,11 +6,13 @@
 /*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 14:33:34 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/08 16:07:49 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/ConfigInterpreter.hpp"
+#include <algorithm> 
+
 
 
 ConfigInterpreter::ConfigInterpreter() : serverFlag(false), routeFlag(false){}
@@ -200,6 +202,11 @@ void ConfigInterpreter::parse()
             }
             else
             {
+                // std::cout << "line ::::::::::::::::::: " << line << "\n";
+                // std::cout << "serverFlag is set\n";
+                // std::cout << "current_server.host is :: " << current_server << "\n";
+                // if (current_server)
+                // exit(0);
                 parseServerLine(current_server, line);
             }
         }
@@ -265,6 +272,12 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
         else
             route.directory_listing = false;
     }
+    else if (key == "upload_path") {
+        if (!route.uploadPath.empty()) {
+            throw std::runtime_error("Duplicate 'upload_path' entry in route block.");
+        }
+        route.uploadPath = value;
+    }
     else if (key == "cgi")
     {
         std::stringstream line(value);
@@ -310,58 +323,58 @@ void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string&
 
     key = toLower(key);
     if (key == "host") {
-        if (!server.host.empty()) //? handle duplicate host
+        if (!server.host.empty())
             throw std::runtime_error("Duplicate 'host' entry in server block.");
         server.host = value;
     }
     else if (key == "port")
     {
-        // std::cout << "value :::::: " << value << "\n"; 
-        server.port = std::atoi(value.c_str());
-        // std::stringstream ss(value);
-        // std::string portStr;
-        // while (ss >> portStr) {
-        //     if (portStr.size() > 5)
-        //         throw std::runtime_error("invalid port: " + portStr);
-        //     int portNum = std::atoi(portStr.c_str());
-        //     if (portNum <= 0 || portNum > 65535)
-        //         throw std::runtime_error("invalid port number: " + portStr);
-        //     // Check for duplicates
-        //     for (size_t i = 0; i < server.port.size(); ++i) {
-        //         if (server.port[i] == portNum)
-        //             throw std::runtime_error("Duplicate 'port' entry in server block: " + portStr);
-        //     }
-        //     server.port.push_back(portNum);
-        // }
-        // if (server.port.empty())
-        //     throw std::runtime_error("No port specified in server block.");
+        std::stringstream ss(value);
+        std::string portStr;
+        while (ss >> portStr) {
+            if (portStr.size() > 5)
+                throw std::runtime_error("Invalid port length: " + portStr);
+            if (!isNum(portStr))
+                throw std::runtime_error("Port is not numeric: " + portStr);
+            int portNum = std::atoi(portStr.c_str());
+            if (portNum <= 0 || portNum > 65535)
+                throw std::runtime_error("Invalid port number: " + portStr);
+            // check duplicates
+            if (std::find(server.port.begin(), server.port.end(), portNum) != server.port.end())
+                throw std::runtime_error("Duplicate port in server block: " + portStr);
+            server.port.push_back(portNum);
+        }
+        if (server.port.empty())
+            throw std::runtime_error("No valid ports specified in server block.");
     }
     else if (key == "server_name")
     {
         std::stringstream ss(value);
         std::string name;
         while (ss >> name){
-            for (size_t i = 0; i < server.serverName.size(); i++)
-                if (server.serverName[i] == name)
-                    throw std::runtime_error("name allready taken");
+            if (std::find(server.serverName.begin(), server.serverName.end(), name) != server.serverName.end())
+                throw std::runtime_error("Server name already taken: " + name);
             server.serverName.push_back(name);
         }
     }
-    else if (key == "client_max_body_size") //? i have to handle if number is negative
+    else if (key == "client_max_body_size")
     {
-        if (value.empty()) //? handle empty value
-            throw std::runtime_error("Invalid client_max_body_size value: " + value);
-        else if (atoi(value.c_str()) <= 0)
-            throw std::runtime_error("negative client_max_body_size value: " + value);
-        if (!value.empty() && value[value.size() - 1] == 'M') {
-            value.erase(value.size() - 1); //* remove 'M'
-            server.clientMaxBodySize = std::atoi(value.c_str()) * 1024 * 1024; //? if size in megabyts
+        if (value.empty())
+            throw std::runtime_error("client_max_body_size cannot be empty");
+        int size = 0;
+        if (value.back() == 'M') {
+            std::string num = value.substr(0, value.size()-1);
+            if (!isNum(num))
+                throw std::runtime_error("Invalid client_max_body_size number: " + num);
+            size = std::atoi(num.c_str()) * 1024 * 1024;
+        } else {
+            if (!isNum(value))
+                throw std::runtime_error("Invalid client_max_body_size number: " + value);
+            size = std::atoi(value.c_str());
         }
-        else
-            server.clientMaxBodySize = std::atoi(value.c_str()); //? if i set default in byts
-        if (server.clientMaxBodySize > 10485760)
-            throw std::runtime_error("invalid size. please enter less than 10M body size"); //? not sure
-        // std::cout << "size is :: " << server.clientMaxBodySize << "\n";
+        if (size <= 0 || size > 10485760)
+            throw std::runtime_error("client_max_body_size must be >0 and ≤10M.");
+        server.clientMaxBodySize = size;
     }
     else if (key.find("error_page") == 0)
     {
@@ -370,16 +383,12 @@ void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string&
         ss >> temp; // skip "error_page"
         std::vector<int> codes;
         std::string token;
-        // Collect all codes (integers) until the last token (path)
         while (ss >> token)
         {
-            // If token is all digits, treat as code
-            bool isNumber = isNum(token);
-            if (isNumber)
+            if (isNum(token))
                 codes.push_back(std::atoi(token.c_str()));
             else
             {
-                // token is the path, assign to all codes
                 for (size_t i = 0; i < codes.size(); ++i)
                     server.error_pages[codes[i]] = token;
                 break;
@@ -418,4 +427,22 @@ void ConfigInterpreter::checkValues() const
         //         throw std::runtime_error("Duplicate host found in two server blocks: " + serverConfigs[i].host);
         // }
     }
+}
+
+
+std::string ConfigInterpreter::getPathForCGI(char **envp) const
+{
+    std::string str;
+    
+    if (!envp || !*envp)
+        return "";
+    for (size_t i = 0; envp[i] != NULL; i++)
+    {
+        str = envp[i];
+        if (str.find("PATH=") != std::string::npos && !(str.find("_PATH") != std::string::npos))
+        {
+            return envp[i];
+        }
+    }
+    return "";
 }

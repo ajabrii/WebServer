@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:03:57 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/06 16:11:58 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/07 10:07:41 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,22 +39,7 @@ class ConfigInterpreter {
         void parse();
         const std::vector<ServerConfig>& getServerConfigs() const;
         void checkValues() const;
-        std::string getPathForCGI(char **envp)
-        {
-            std::string str;
-            
-            if (!envp || !*envp)
-                return "";
-            for (size_t i = 0; envp[i] != NULL; i++)
-            {
-                str = envp[i];
-                if (str.find("PATH=") != std::string::npos && !(str.find("_PATH") != std::string::npos))
-                {
-                    return envp[i];
-                }
-            }
-            return "";
-        };
+        std::string getPathForCGI(char **envp) const;
     
     private:
         // void parseServerBlock(const std::vector<std::string>& lines, size_t& i);

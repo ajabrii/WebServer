@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:35:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/01 15:43:07 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/07 09:26:53 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 ServerConfig::ServerConfig(){
 
     host = "";
-    port = 0;
+    // port[0] = 0;
     clientMaxBodySize = 1024 * 1024; // Default to 1MB
     // server_names.clear();
     // error_pages.clear();

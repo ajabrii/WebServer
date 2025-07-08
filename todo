@@ -1,0 +1,106 @@
+1- fix the serversocket in cgi 
+// CgiHandler::CgiHandler(const HttpServer &server, const HttpRequest& req , const RouteConfig& route ,int clientSocket, std::string env_paths)
+// {
+//     _serverData = server.getConfig();
+//     _route = route;
+//     _req = req;
+//     _env_paths = env_paths;
+//     // _serverSocket = server.getFd(); // it should be a vector later on
+//     _clientSocket = clientSocket;
+//     _data = check_cgi();
+//     _data.DebugPrint();
+// }
+
+
+2 what i add in the parsing so i can work with muliple ports 
+// void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string& line)
+// {
+//     size_t equal = line.find('=');
+//     if (equal == std::string::npos && line.find("error_page") != 0)
+//         throw std::runtime_error("Invalid server line: " + line);
+
+//     std::string key = trim(line.substr(0, equal));
+//     std::string value = trim(line.substr(equal + 1));
+
+//     key = toLower(key);
+//     if (key == "host") {
+//         if (!server.host.empty())
+//             throw std::runtime_error("Duplicate 'host' entry in server block.");
+//         server.host = value;
+//     }
+//     else if (key == "port")
+//     {
+//         std::stringstream ss(value);
+//         std::string portStr;
+//         while (ss >> portStr) {
+//             if (portStr.size() > 5)
+//                 throw std::runtime_error("Invalid port length: " + portStr);
+//             if (!isNum(portStr))
+//                 throw std::runtime_error("Port is not numeric: " + portStr);
+//             int portNum = std::atoi(portStr.c_str());
+//             if (portNum <= 0 || portNum > 65535)
+//                 throw std::runtime_error("Invalid port number: " + portStr);
+//             // check duplicates
+//             if (std::find(server.port.begin(), server.port.end(), portNum) != server.port.end())
+//                 throw std::runtime_error("Duplicate port in server block: " + portStr);
+//             server.port.push_back(portNum);
+//         }
+//         if (server.port.empty())
+//             throw std::runtime_error("No valid ports specified in server block.");
+//     }
+//     else if (key == "server_name")
+//     {
+//         std::stringstream ss(value);
+//         std::string name;
+//         while (ss >> name){
+//             if (std::find(server.serverName.begin(), server.serverName.end(), name) != server.serverName.end())
+//                 throw std::runtime_error("Server name already taken: " + name);
+//             server.serverName.push_back(name);
+//         }
+//     }
+//     else if (key == "client_max_body_size")
+//     {
+//         if (value.empty())
+//             throw std::runtime_error("client_max_body_size cannot be empty");
+//         int size = 0;
+//         if (value.back() == 'M') {
+//             std::string num = value.substr(0, value.size()-1);
+//             if (!isNum(num))
+//                 throw std::runtime_error("Invalid client_max_body_size number: " + num);
+//             size = std::atoi(num.c_str()) * 1024 * 1024;
+//         } else {
+//             if (!isNum(value))
+//                 throw std::runtime_error("Invalid client_max_body_size number: " + value);
+//             size = std::atoi(value.c_str());
+//         }
+//         if (size <= 0 || size > 10485760)
+//             throw std::runtime_error("client_max_body_size must be >0 and ≤10M.");
+//         server.clientMaxBodySize = size;
+//     }
+//     else if (key.find("error_page") == 0)
+//     {
+//         std::stringstream ss(line);
+//         std::string temp;
+//         ss >> temp; // skip "error_page"
+//         std::vector<int> codes;
+//         std::string token;
+//         while (ss >> token)
+//         {
+//             if (isNum(token))
+//                 codes.push_back(std::atoi(token.c_str()));
+//             else
+//             {
+//                 for (size_t i = 0; i < codes.size(); ++i)
+//                     server.error_pages[codes[i]] = token;
+//                 break;
+//             }
+//         }
+//         if (codes.empty())
+//             throw std::runtime_error("No error codes specified for error_page directive.");
+//     }
+//     else
+//         throw std::runtime_error("Unknown server option: " + key);
+// }
+
+
+3. //TODO: I'll read the entire code base fix and clean the code so it can be ready to be submitted 
