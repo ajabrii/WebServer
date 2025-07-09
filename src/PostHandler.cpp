@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/09 10:32:27 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/09 13:31:21 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,7 +175,10 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
             resp.body = "JSON saved to: " + filepath;
         }
         else {
-            return makeErrorResponse(415, "Unsupported Media Type: " + ct);
+            std::string filepath = route.uploadDir + "/data_" + std::to_string(std::time(0)) + ".txt";
+            writeFile(filepath, req.body);
+            resp.body = "Data saved to: " + filepath;
+            // return makeErrorResponse(415, "Unsupported Media Type: " + ct);
         }
     }
     catch (const std::exception& e) {

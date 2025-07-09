@@ -3,49 +3,79 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Webserv POST Tester 🚀</title>
+  <title>🚀 Webserv Test Suite | Cosmic Edition</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gradient-to-b from-black via-purple-900 to-black text-gray-200 min-h-screen">
+
   <div class="container mx-auto max-w-3xl p-6">
-    <header class="mb-8 text-center">
-      <h1 class="text-4xl font-bold text-gray-900">Webserv POST Method Test Suite 🛠️</h1>
-      <p class="mt-2 text-gray-600">Test POST requests with different content types</p>
+    <header class="mb-10 text-center">
+      <h1 class="text-4xl sm:text-5xl font-bold text-pink-400">🌌 Webserv Test Suite</h1>
+      <p class="mt-2 text-purple-300">Test your HTTP server in style 🚀</p>
     </header>
 
-    <!-- Form: application/x-www-form-urlencoded -->
-    <section class="bg-white p-6 mb-6 rounded-xl shadow-md">
-      <h2 class="text-2xl font-semibold mb-4 text-blue-700">Test Form URL Encoded</h2>
-      <form action="/uploads/" method="post" class="space-y-4">
+    <!-- application/x-www-form-urlencoded -->
+    <section class="bg-gradient-to-r from-purple-800/50 to-pink-900/50 backdrop-blur p-6 mb-6 rounded-xl shadow-md hover:shadow-pink-700 transition">
+      <h2 class="text-2xl font-bold mb-4 text-pink-300">📝 Form URL Encoded</h2>
+      <form action="/uploads" method="post" class="space-y-4">
         <div>
           <label class="block font-medium mb-1">Name:</label>
-          <input name="name" type="text" class="w-full p-2 border border-gray-300 rounded-md">
+          <input name="name" type="text" class="w-full p-2 rounded-md bg-black/40 border border-pink-500 text-pink-100 focus:outline-none focus:border-pink-300">
         </div>
         <div>
           <label class="block font-medium mb-1">Email:</label>
-          <input name="email" type="email" class="w-full p-2 border border-gray-300 rounded-md">
+          <input name="email" type="email" class="w-full p-2 rounded-md bg-black/40 border border-pink-500 text-pink-100 focus:outline-none focus:border-pink-300">
         </div>
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md font-semibold hover:bg-blue-700">Send POST</button>
+        <button type="submit" class="w-full bg-pink-600 text-white py-2 rounded-md font-semibold hover:bg-pink-500 transition">Send POST</button>
       </form>
     </section>
 
-    <!-- Form: application/json -->
-    <section class="bg-white p-6 mb-6 rounded-xl shadow-md">
-      <h2 class="text-2xl font-semibold mb-4 text-green-700">Test JSON POST</h2>
-      <p class="text-sm text-gray-500 mb-2">This sends raw JSON to <code>/uploads</code> using fetch.</p>
-      <textarea id="jsonInput" rows="4" class="w-full p-2 border border-gray-300 rounded-md" placeholder='{"key":"value"}'></textarea>
-      <button onclick="sendJson()" class="mt-2 w-full bg-green-600 text-white py-2 rounded-md font-semibold hover:bg-green-700">Send JSON</button>
+    <!-- application/json -->
+    <section class="bg-gradient-to-r from-purple-800/50 to-indigo-900/50 backdrop-blur p-6 mb-6 rounded-xl shadow-md hover:shadow-indigo-700 transition">
+      <h2 class="text-2xl font-bold mb-4 text-indigo-300">🔧 JSON POST</h2>
+      <p class="text-sm text-gray-400 mb-2">Send raw JSON to <code>/uploads</code> using fetch</p>
+      <textarea id="jsonInput" rows="4" class="w-full p-2 rounded-md bg-black/40 border border-indigo-500 text-indigo-100 focus:outline-none focus:border-indigo-300" placeholder='{"key":"value"}'></textarea>
+      <button onclick="sendJson()" class="mt-2 w-full bg-indigo-600 text-white py-2 rounded-md font-semibold hover:bg-indigo-500 transition">Send JSON</button>
     </section>
 
-    <!-- Form: multipart/form-data -->
-    <section class="bg-white p-6 rounded-xl shadow-md">
-      <h2 class="text-2xl font-semibold mb-4 text-purple-700">Test File Uploads (Multipart)</h2>
-      <form action="/uploads" method="post" enctype="multipart/form-data" class="space-y-4">
-        <div>
-          <input type="file" name="fileToUpload" required class="block w-full text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+    <!-- text/plain -->
+    <section class="bg-gradient-to-r from-purple-800/50 to-blue-900/50 backdrop-blur p-6 mb-6 rounded-xl shadow-md hover:shadow-blue-700 transition">
+      <h2 class="text-2xl font-bold mb-4 text-blue-300">🗒️ Plain Text POST</h2>
+      <p class="text-sm text-gray-400 mb-2">Send text/plain to <code>/uploads</code></p>
+      <textarea id="textInput" rows="3" class="w-full p-2 rounded-md bg-black/40 border border-blue-500 text-blue-100 focus:outline-none focus:border-blue-300" placeholder='Some plain text...'></textarea>
+      <button onclick="sendText()" class="mt-2 w-full bg-blue-600 text-white py-2 rounded-md font-semibold hover:bg-blue-500 transition">Send Text</button>
+    </section>
+
+    <!-- multipart/form-data with progress -->
+    <section class="bg-gradient-to-r from-pink-800/50 to-purple-900/50 backdrop-blur p-6 mb-6 rounded-xl shadow-md hover:shadow-pink-700 transition">
+      <h2 class="text-2xl font-bold mb-4 text-pink-300">📁 File Upload (Multipart)</h2>
+      <form id="uploadForm" class="space-y-4">
+        <input type="file" name="fileToUpload" id="fileToUpload" required class="block w-full text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-pink-600 file:text-white hover:file:bg-pink-700 transition">
+        <div class="w-full bg-pink-900 rounded-full h-3 overflow-hidden">
+          <div id="progressBar" class="bg-pink-400 h-3 rounded-full w-0 transition-all"></div>
         </div>
-        <button type="submit" class="w-full bg-purple-600 text-white py-2 rounded-md font-semibold hover:bg-purple-700">Upload File</button>
+        <button type="submit" class="w-full bg-pink-700 text-white font-bold py-2 rounded hover:bg-pink-600 transition">Upload File</button>
       </form>
+    </section>
+
+    <!-- DELETE method -->
+    <section class="bg-gradient-to-r from-purple-800/50 to-red-900/50 backdrop-blur p-6 mb-6 rounded-xl shadow-md hover:shadow-red-700 transition">
+      <h2 class="text-2xl font-bold mb-4 text-red-300">🗑️ DELETE Resource</h2>
+      <p class="text-sm text-gray-400 mb-2">Enter path to delete (e.g., <code>/uploads/file.txt</code>)</p>
+      <div class="flex space-x-2">
+        <input type="text" id="deletePath" class="flex-1 p-2 rounded-md bg-black/40 border border-red-500 text-red-100 focus:outline-none focus:border-red-300" placeholder="/uploads/file.txt">
+        <button onclick="sendDelete()" class="bg-red-600 text-white px-4 rounded-md font-semibold hover:bg-red-500 transition">Delete</button>
+      </div>
+    </section>
+
+    <!-- CGI test -->
+    <section class="bg-gradient-to-r from-purple-800/50 to-yellow-900/50 backdrop-blur p-6 rounded-xl shadow-md hover:shadow-yellow-700 transition">
+      <h2 class="text-2xl font-bold mb-4 text-yellow-300">⚙️ CGI Scripts</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <a href="/cgi-bin/1.py" class="bg-yellow-500 text-black text-center font-bold py-2 rounded-md hover:bg-yellow-400 transition">Python CGI</a>
+        <a href="/cgi-bin/1.php" class="bg-green-500 text-black text-center font-bold py-2 rounded-md hover:bg-green-400 transition">PHP CGI</a>
+        <a href="/cgi-bin/1.sh" class="bg-gray-300 text-black text-center font-bold py-2 rounded-md hover:bg-gray-200 transition">Shell CGI</a>
+      </div>
     </section>
   </div>
 
@@ -53,18 +83,82 @@
     async function sendJson() {
       const json = document.getElementById('jsonInput').value;
       try {
-        const response = await fetch('/upload', {
+        const resp = await fetch('/uploads', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {'Content-Type': 'application/json'},
           body: json
         });
-        const text = await response.text();
-        alert('Response:\n' + text);
+        alert(await resp.text());
       } catch (e) {
         console.error(e);
         alert('Failed to send JSON');
       }
     }
+
+    async function sendText() {
+      const text = document.getElementById('textInput').value;
+      try {
+        const resp = await fetch('/uploads', {
+          method: 'POST',
+          headers: {'Content-Type': 'text/plain'},
+          body: text
+        });
+        alert(await resp.text());
+      } catch (e) {
+        console.error(e);
+        alert('Failed to send text');
+      }
+    }
+
+    async function sendDelete() {
+      const path = document.getElementById('deletePath').value;
+      if (!path) return alert('Please enter a path!');
+      try {
+        const resp = await fetch(path, { method: 'DELETE' });
+        alert('Delete response: ' + await resp.text());
+      } catch (e) {
+        console.error(e);
+        alert('Failed to send DELETE');
+      }
+    }
+
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('fileToUpload');
+      const file = fileInput.files[0];
+      if (!file) return alert('Please choose a file!');
+
+      const formData = new FormData();
+      formData.append('fileToUpload', file);
+
+      const xhr = new XMLHttpRequest();
+      const progressBar = document.getElementById('progressBar');
+      xhr.open('POST', '/uploads', true);
+
+      xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          progressBar.style.width = percent + '%';
+        }
+      };
+
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          alert('Upload complete!\n' + xhr.responseText);
+          progressBar.style.width = '0%';
+        } else {
+          alert('Upload failed: ' + xhr.statusText);
+          progressBar.style.width = '0%';
+        }
+      };
+
+      xhr.onerror = function() {
+        alert('An error occurred during upload.');
+        progressBar.style.width = '0%';
+      };
+
+      xhr.send(formData);
+    });
   </script>
 </body>
 </html>

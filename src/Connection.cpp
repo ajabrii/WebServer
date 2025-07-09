@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 20:23:33 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/09 13:23:30 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,18 @@ Connection::~Connection() {
 int Connection::getFd() const {
     return client_fd;
 }
+
+std::string& Connection::getBuffer() {
+    return buffer;
+}
+
+void Connection::clearBuffer()
+{
+    buffer.clear();
+    // headersDone = false;
+}
+
+
 
 // void handleClient(ClientConnection &client) {
 //     char temp[1024];
