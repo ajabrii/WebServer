@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestDispatcher.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:14:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 21:01:20 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/09 10:22:20 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,23 +47,21 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
     }
     if (req.method == "GET")
     {
-        // Getha
         return GetHandler().handle(req, route);
     }
     else if (req.method == "POST")
     {
-        // PostHandler postHandler;
         return PostHandler().handle(req, route);
     }
     else if (req.method == "DELETE")
     {
-        // DeleteHandler deleteHandler;
         return DeleteHandler().handle(req, route);
     }
     else
     {
         HttpResponse res;
         res.statusCode = 501; // Not Implemented
+        res.headers["Content-Type"] = "text/html; charset=UTF-8";
         res.statusText = "Not Implemented";
         res.body = "HTTP method not implemented.";
         return res;

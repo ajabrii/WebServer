@@ -1,14 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   HttpRequest.cpp                                    :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/09 08:30:15 by ajabri           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 
 #include "../includes/HttpServer.hpp"
@@ -68,11 +57,9 @@ HttpRequest HttpRequest::parse(const std::string& raw)
     }
 
     if (!req.headers["Content-Length"].empty() && !req.headers["Transfer-Encoding"].empty())
-    throwHttpError(400, "bad request"); // Both are set → HTTP spec forbids this
+            throwHttpError(400, "bad request"); // Both are set → HTTP spec forbids this
     
     else if (!req.headers["Content-Length"].empty()){
-        std::string all_body;
-
         std::string cl = req.headers["Content-Length"];
         if (!cl.empty()) {
             std::stringstream ss(cl);
@@ -83,24 +70,41 @@ HttpRequest HttpRequest::parse(const std::string& raw)
         } else {
             req.contentLength = 0;
         }
+        
+        // Find the end of headers in the raw data
+        size_t headerEnd = raw.find("\r\n\r\n");
+        if (headerEnd == std::string::npos) {
+            throwHttpError(400, "Malformed request: headers not found");
+        }
+        
+        // Extract body from raw data (everything after headers)
+        std::string all_body = raw.substr(headerEnd + 4);
+        
         std::cout << "size is ::" << req.contentLength << std::endl;
-        std::cout << "all_body is ::" << all_body << std::endl;
-        std::getline(stream, all_body, '\0');
-        if (all_body.size() < req.contentLength)
-        throwHttpError(400, "bad request, incomplete body"); // incomplete body
+        std::cout << "all_body size is ::" << all_body.size() << std::endl;
+        std::cout << "::::::::::::::::::::::::::::::::::::::::::::::::::ANA:HNA:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<  std::endl;
+        
+        if (all_body.size() < req.contentLength) {
+            std::cout << "------------------------------> incomplete body detected, have: " << all_body.size() << " need: " << req.contentLength << std::endl;
+            throwHttpError(400, "incomplete body");
+        }
         else {
+            // Body is complete
             req.bodyReceived = all_body.size();
-            
-            if (req.bodyReceived >= req.contentLength) {
-                req.body = all_body.substr(0, req.contentLength);
-                all_body.erase(0, req.contentLength);
-            }
+            req.body = all_body.substr(0, req.contentLength);
+            std::cout << "------------------------------> Body successfully parsed, size: " << req.body.size() << std::endl;
         }
     }
     else if (!req.headers["Transfer-Encoding"].empty()) {
-        std::cout << "heeeeeeeeeeeeeeeeeere" << std::endl;
-        std::string all_body;
-        std::getline(stream, all_body, '\0');
+        std::cout << "Processing chunked transfer encoding" << std::endl;
+        // Find the end of headers in the raw data
+        size_t headerEnd = raw.find("\r\n\r\n");
+        if (headerEnd == std::string::npos) {
+            throwHttpError(400, "Malformed request: headers not found");
+        }
+        
+        // Extract body from raw data (everything after headers)
+        std::string all_body = raw.substr(headerEnd + 4);
         req.body = decodeChunked(all_body);
     }
     else {

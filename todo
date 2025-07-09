@@ -107,3 +107,6 @@
 4 //Posthandler.cpp/hpp code | main.cpp
 
 5 // Todo : -> 1.fix post problem 2.test methods and fix the problems | 3.read the entire code base clean it understand deeply all used function 4. fix the make file
+
+// problem is parse body (upload file) and parse form data
+//when client upload something that hase binary data it will not work so i fixed 

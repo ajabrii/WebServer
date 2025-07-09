@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/08 20:10:19 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/09 10:32:27 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,23 +47,30 @@ void writeKeyValuesToFile(const std::string& path, const std::map<std::string,st
     for (std::map<std::string,std::string>::const_iterator it=fields.begin(); it!=fields.end(); ++it)
         out << it->first << "=" << it->second << "\n";
 }
-
-std::vector<Part> parseMultipart(const std::string& body, const std::string& boundary) {
+//improve later on
+std::vector<Part> parseMultipart(const std::string& body, const std::string& boundary)
+{
     std::vector<Part> parts;
-    std::string sep = "--" + boundary;
+    std::string sep = "--" + boundary; 
+    std::cout << "line 123 :sep: " << sep << std::endl; // remove this later
     size_t pos = 0;
 
-    while ((pos = body.find(sep, pos)) != std::string::npos) {
+    while ((pos = body.find(sep, pos)) != std::string::npos)
+    {
         pos += sep.size();
-        if (body.substr(pos,2) == "--") break; // end
-        if (body.substr(pos,2) == "\r\n") pos += 2;
+        if (body.substr(pos,2) == "--")
+            break; // end
+        if (body.substr(pos,2) == "\r\n")
+            pos += 2;
         size_t headerEnd = body.find("\r\n\r\n", pos);
-        if (headerEnd == std::string::npos) break;
+        if (headerEnd == std::string::npos)
+            break;
         std::string header = body.substr(pos, headerEnd - pos);
         pos = headerEnd + 4;
 
         size_t nextSep = body.find(sep, pos);
-        if (nextSep == std::string::npos) break;
+        if (nextSep == std::string::npos)
+            break;
 
         std::string content = body.substr(pos, nextSep - pos);
         if (!content.empty() && content[content.size()-2]=='\r' && content[content.size()-1]=='\n')
@@ -87,13 +94,16 @@ std::vector<Part> parseMultipart(const std::string& body, const std::string& bou
     return parts;
 }
 
-std::map<std::string,std::string> parseFormUrlEncoded(const std::string& body) {
+std::map<std::string,std::string> parseFormUrlEncoded(const std::string& body)
+{
     std::map<std::string,std::string> fields;
-    std::istringstream ss(body);
+    std::istringstream ss(body); //
     std::string pair;
-    while (std::getline(ss, pair, '&')) {
+    while (std::getline(ss, pair, '&'))
+    {
         size_t eq = pair.find('=');
-        if (eq != std::string::npos) {
+        if (eq != std::string::npos)
+        {
             std::string key = pair.substr(0, eq);
             std::string value = pair.substr(eq+1);
             fields[key] = value;
@@ -122,12 +132,12 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
     resp.version = req.version;
 
     std::string ct = req.GetHeader("content-type");
-    std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower);
-
+    std::cout << "line 125 :Content-Type: " << ct << std::endl; // remove this later
+    std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower); // transform to lowercase because content-type is case-insensitive
+    std::cout << "route.uploadDir: " << route.uploadDir << std::endl; // remove this later
     if (route.uploadDir.empty()) {
         return makeErrorResponse(500, "Upload directory not configured.");
     }
-
     try {
         if (ct.find("multipart/form-data") != std::string::npos) {
             std::string boundary = extractBoundary(ct);
@@ -135,7 +145,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
                 return makeErrorResponse(400, "Missing boundary in multipart data.");
 
             std::vector<Part> parts = parseMultipart(req.body, boundary);
-            bool saved = false;
+            bool saved = false; // this is for the case where no file is found in the multipart data
             for (size_t i=0; i<parts.size(); ++i) {
                 if (!parts[i].filename.empty()) {
                     std::string filepath = route.uploadDir + "/" + parts[i].filename;
@@ -149,7 +159,8 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
             if (!saved)
                 return makeErrorResponse(400, "No file found in multipart data.");
         }
-        else if (ct.find("application/x-www-form-urlencoded") != std::string::npos) {
+        else if (ct.find("application/x-www-form-urlencoded") != std::string::npos)
+        {
             std::map<std::string,std::string> fields = parseFormUrlEncoded(req.body);
             std::string filepath = route.uploadDir + "/form_" + std::to_string(std::time(0)) + ".txt";
             writeKeyValuesToFile(filepath, fields);
@@ -157,10 +168,10 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
             // set the response content type to html
             resp.body = "Form data saved to: " + filepath;
         }
-        else if (ct.find("application/json") != std::string::npos) {
+        else if (ct.find("application/json") != std::string::npos)
+        {
             std::string filepath = route.uploadDir + "/json_" + std::to_string(std::time(0)) + ".json";
             writeFile(filepath, req.body);
-            // resp.headers["Content-Type"] = "text/html; charset=UTF-8";
             resp.body = "JSON saved to: " + filepath;
         }
         else {

@@ -53,11 +53,45 @@ int main(int ac, char **av, char **envp) {
                 }
                 else if (event.isReadable) {
                     Connection& conn = reactor.getConnection(event.fd);
-                    std::string data = conn.readData();
-                    conn.getBuffer() += data; // accumulate
+                    std::string data = conn.readData(); // This reads new data and accumulates in buffer
+                    
+                    // Debug: Show current buffer state
+                    std::cout << "\033[1;35m[DEBUG] Current buffer size: " << conn.getBuffer().size() << " bytes\033[0m" << std::endl;
+                    
+                    // Check if we have complete headers
+                    size_t headerEnd = conn.getBuffer().find("\r\n\r\n");
+                    if (headerEnd == std::string::npos) {
+                        std::cout << "\033[1;33m[!] Incomplete headers, waiting for more data...\033[0m" << std::endl;
+                        continue;
+                    }
+                    
+                    // Headers are complete, now check if body is complete (for POST requests)
+                    std::string headerPart = conn.getBuffer().substr(0, headerEnd + 4);
+                    std::string remainingData = conn.getBuffer().substr(headerEnd + 4);
+                    
+                    size_t contentLength = 0;
+                    size_t clPos = headerPart.find("Content-Length:");
+                    if (clPos != std::string::npos) {
+                        size_t clStart = headerPart.find(":", clPos) + 1;
+                        size_t clEnd = headerPart.find("\r\n", clStart);
+                        if (clEnd != std::string::npos) {
+                            std::string clStr = headerPart.substr(clStart, clEnd - clStart);
+                            // Trim whitespace
+                            clStr.erase(0, clStr.find_first_not_of(" \t"));
+                            clStr.erase(clStr.find_last_not_of(" \t") + 1);
+                            contentLength = std::stoul(clStr);
+                        }
+                    }
+                    // Check if we have the complete body
+                    if (contentLength > 0 && remainingData.size() < contentLength) {
+                        // std::cout << "\033[1;33m[!] Incomplete body (" << remainingData.size() 
+                        //         //   << "/" << contentLength << " bytes), waiting for more data...\033[0m" << std::endl;
+                        continue;
+                    }
+                    
+                    std::cout << "\033[1;36m[>] Received complete request:\033[0m\n" << std::endl;
 
                     try {
-                        std::cout << "\033[1;31m"<< conn.getBuffer() << event.fd << std::endl;
                         HttpRequest req = HttpRequest::parse(conn.getBuffer());
                         conn.clearBuffer(); // parsed successfully
 
@@ -94,10 +128,17 @@ int main(int ac, char **av, char **envp) {
                     catch (const std::runtime_error& e) {
                         std::string msg = e.what();
                         if (msg.find("incomplete body") != std::string::npos) {
-                            // keep accumulating next poll
+                            // This should not happen now due to our pre-check above
+                            std::cout << "\033[1;33m[!] Unexpected incomplete body error, continuing...\033[0m" << std::endl;
                             continue;
                         } else {
                             std::cerr << "Parse error: " << msg << std::endl;
+                            HttpResponse errorResp;
+                            errorResp.statusCode = 400;
+                            errorResp.statusText = "Bad Request";
+                            errorResp.body = "HTTP/1.1 400 Bad Request\r\n\r\nBad Request";
+                            errorResp.headers["Content-Length"] = std::to_string(errorResp.body.size());
+                            conn.writeData(errorResp.toString());
                             reactor.removeConnection(event.fd);
                         }
                     }
