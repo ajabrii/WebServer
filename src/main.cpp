@@ -57,6 +57,7 @@ int main(int ac, char **av, char **envp) {
                     conn.getBuffer() += data; // accumulate
 
                     try {
+                        std::cout << "\033[1;31m"<< conn.getBuffer() << event.fd << std::endl;
                         HttpRequest req = HttpRequest::parse(conn.getBuffer());
                         conn.clearBuffer(); // parsed successfully
 

@@ -1,2 +1,0 @@
-email=hello%40gmail.com
-name=hello

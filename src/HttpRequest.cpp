@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 09:11:07 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/09 08:30:15 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,7 @@ HttpRequest HttpRequest::parse(const std::string& raw)
             req.contentLength = 0;
         }
         std::cout << "size is ::" << req.contentLength << std::endl;
+        std::cout << "all_body is ::" << all_body << std::endl;
         std::getline(stream, all_body, '\0');
         if (all_body.size() < req.contentLength)
         throwHttpError(400, "bad request, incomplete body"); // incomplete body
