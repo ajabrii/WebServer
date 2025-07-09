@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/07 20:32:53 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/09 00:45:26 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include <sstream>
 #include <algorithm>
 #include <cctype> 
+#include <signal.h>
+#include <unistd.h> 
 
 
 CgiHandler::CgiHandler() {}
@@ -77,7 +79,12 @@ char **CgiHandler::set_env(void)
     env_map["REQUEST_METHOD"] = _req.method;
     env_map["PATH_INFO"] = _data.PathInfo;
     env_map["SCRIPT_NAME"] = _data.script_path;
-    env_map["SCRIPT_FILENAME"] = "." + _data.script_path; // need to be changed so server must change dir at the time of run execve
+    // Set SCRIPT_FILENAME to just the script filename after chdir
+    std::string script_filename = _data.script_path;
+    size_t last_slash = script_filename.rfind('/');
+    if (last_slash != std::string::npos)
+        script_filename = script_filename.substr(last_slash + 1);
+    env_map["SCRIPT_FILENAME"] = script_filename;
     env_map["QUERY_STRING"] = _data.query;
     if (host.find(':') != std::string::npos)
     {
@@ -387,18 +394,24 @@ HttpResponse CgiHandler::execCgi(void)
             close(pfd_in[1]); // Close write end in child
         }
         
-        // **CRITICAL: chdir to the script's directory**
-        // Assuming _data.script_path is like "/cgi-bin/script.php"
-        // You need to figure out the actual physical directory.
-        std::cerr << _data.script_path << std::endl;
-        std::string script_dir_path = "." + _data.script_path; // Or parse _data.script_path
-        size_t last_slash = script_dir_path.rfind('/');
+        // **CRITICAL: Set up proper working directory and script path**
+        // Convert URI path to filesystem path
+        std::string filesystem_script_path = _data.script_path;
+        std::cerr << "Full script path: " << filesystem_script_path << std::endl;
+        
+        // Get the directory containing the script
+        size_t last_slash = filesystem_script_path.rfind('/');
+        std::string script_dir_path = ".";
+        std::string script_filename = filesystem_script_path;
+        
         if (last_slash != std::string::npos) {
-            script_dir_path = script_dir_path.substr(0, last_slash);
-        } else {
-            script_dir_path = "."; // Default to current directory if no slash
+            script_dir_path = filesystem_script_path.substr(0, last_slash);
+            script_filename = filesystem_script_path.substr(last_slash + 1);
         }
-        std::cerr << "script_dir_path: "<< script_dir_path << std::endl;
+        
+        script_dir_path = "." + script_dir_path; // Make it relative to current working directory 
+        std::cerr << "script_dir_path: " << script_dir_path << std::endl;
+        std::cerr << "script_filename: " << script_filename << std::endl;
 
         if (chdir(script_dir_path.c_str()) == -1) {
             perror("chdir failed");
@@ -406,12 +419,10 @@ HttpResponse CgiHandler::execCgi(void)
         }
         
         // Execute the CGI script
-        // argv[0] should be the interpreter's full path, argv[1] is the script path relative to CWD
-        // If _data.script_path is "/cgi-bin/test.php" and script_dir_path is "/var/www/html/cgi-bin",
-        // then argv[1] should be "test.php"
+        // argv[0] should be the interpreter name, argv[1] is the script filename
         char *final_argv[3];
-        final_argv[0] = (char *)fp.c_str(); // The interpreter's full path
-        final_argv[1] = (char *)_data.script_path.substr(last_slash).c_str(); // Just the filename of the script
+        final_argv[0] = (char *)cmd.c_str(); // Just the interpreter name
+        final_argv[1] = (char *)script_filename.c_str(); // Script filename relative to CWD
         final_argv[2] = NULL;
 
         for (size_t i = 0; i < 3; i++)
@@ -420,7 +431,7 @@ HttpResponse CgiHandler::execCgi(void)
         }
         
         
-        execve(final_argv[0], final_argv, env);
+        execve(fp.c_str(), final_argv, env);
         perror("execve failed"); // Only reached if execve fails
         _exit(1); // Child must exit on execve failure
     }
@@ -455,7 +466,48 @@ HttpResponse CgiHandler::execCgi(void)
         close(pfd[0]); // Close read end of output pipe
 
         int status;
-        waitpid(pid, &status, 0); // Wait for the child to finish
+        // Add timeout for CGI execution (30 seconds)
+        int timeout_seconds = 30;
+        bool child_finished = false;
+        
+        for (int i = 0; i < timeout_seconds; i++) {
+            pid_t result = waitpid(pid, &status, WNOHANG);
+            if (result == pid) {
+                child_finished = true;
+                break;
+            } else if (result == -1) {
+                perror("waitpid failed");
+                break;
+            }
+            sleep(1); // Wait 1 second before checking again
+        }
+        
+        if (!child_finished) {
+            // Timeout - kill the CGI process
+            kill(pid, SIGKILL);
+            waitpid(pid, &status, 0); // Clean up zombie
+            
+            // Free environment variables memory
+            for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+            delete[] env;
+            
+            f.statusCode = 504;
+            f.statusText = "Gateway Timeout";
+            f.body = "CGI script execution timed out.";
+            return f;
+        }
+        
+        // Check if child exited abnormally
+        if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+            // CGI script exited with error
+            for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+            delete[] env;
+            
+            f.statusCode = 500;
+            f.statusText = "Internal Server Error";
+            f.body = "CGI script execution failed.";
+            return f;
+        }
 
         // Free environment variables memory
         for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
@@ -463,7 +515,7 @@ HttpResponse CgiHandler::execCgi(void)
 
         // Process CGI output
         // Split headers and body
-        size_t header_end_pos = cgi_output_str.find("\r\n\r\n");
+        size_t header_end_pos = cgi_output_str.find("\r\n");
         if (header_end_pos == std::string::npos) {
             // No valid HTTP headers from CGI, or malformed
             f.statusCode = 500;

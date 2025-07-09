@@ -3,9 +3,10 @@
 import datetime
 
 def main():
-    print("PYTHONE!!!!!!\n")
+    print("Content-Type: text/html\r\n\r\n")
+    print("<h1>PYTHONE!!!!!!</h1>")
     now = datetime.datetime.now()
-    print("Current date and time:", now.strftime("%Y-%m-%d %H:%M:%S"))
+    print(f"<p>Current date and time: {now.strftime('%Y-%m-%d %H:%M:%S')}</p>")
 
 if __name__ == "__main__":
     main()

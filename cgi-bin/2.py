@@ -6,7 +6,7 @@
 
 # --- CGI Headers ---
 # This tells the web server (and browser) what kind of content to expect.
-print("Content-Type: text/html")
+print("Content-Type: text/html\r\n\r\n")
 
 # --- Blank Line ---
 # THIS IS CRITICAL! It separates the HTTP headers from the body.
