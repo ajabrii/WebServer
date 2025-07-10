@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/10 11:17:47 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/10 12:09:13 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,8 +76,8 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
     if (stat(filePath.c_str(), &pathStat) == 0) {
         // Path exists, check if it's a directory or file
         if (S_ISDIR(pathStat.st_mode)) {
-            std::cout << "\033[1;32m[GET Handler]\033[0m Path is a directory" << std::endl;
-            return handleDirectory(filePath, req.uri, !route.directory_listing);
+            std::cout << "\033[1;32m[GET Handler]\033[0m Path is a directory, directory_listing = " << (route.directory_listing ? "true" : "false") << std::endl;
+            return handleDirectory(filePath, req.uri, route.directory_listing);
         } else if (S_ISREG(pathStat.st_mode)) {
             std::cout << "\033[1;32m[GET Handler]\033[0m Path is a regular file" << std::endl;
             return serveStaticFile(filePath);

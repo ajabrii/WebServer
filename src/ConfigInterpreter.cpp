@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 10:17:52 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/10 12:12:10 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -267,10 +267,17 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
         route.root = value;
     else if (key == "directory_listing")
     {
-        if (key == "on")
+        // std::cout << "[Config Parser] directory_listing value: '" << value << "'" << std::endl;
+        if (value == "on")
+        {
             route.directory_listing = true;
+            // std::cout << "[Config Parser] Set directory_listing to true" << std::endl;
+        }
         else
+        {
             route.directory_listing = false;
+            // std::cout << "[Config Parser] Set directory_listing to false" << std::endl;
+        }
     }
     else if (key == "cgi")
     {
