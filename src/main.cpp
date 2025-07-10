@@ -61,7 +61,7 @@ int main(int ac, char **av, char **envp) {
                     // Check if we have complete headers
                     size_t headerEnd = conn.getBuffer().find("\r\n\r\n");
                     if (headerEnd == std::string::npos) {
-                        std::cout << "\033[1;33m[!] Incomplete headers, waiting for more data...\033[0m" << std::endl;
+                        // std::cout << "\033[1;33m[!] Incomplete headers, waiting for more data...\033[0m" << std::endl;
                         continue;
                     }
                     
