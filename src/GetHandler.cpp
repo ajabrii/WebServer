@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   GetHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/04 16:10:37 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/11 23:09:19 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <dirent.h>
 #include <sstream>
 # include <fstream>
+#include <sys/stat.h>
 
 std::string clean_line(std::string line);
 // HttpResponse RequestDispatcher::handleRedirect(const std::string &redirectUrl) const;
@@ -28,31 +29,36 @@ GetHandler::~GetHandler() {}
 
 HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route) const
 {
-    // TODO
-    //*-> GET method logic implimented here;
-    // 1. Redirects have highest priority
+    // 1. Redirects still have the highest priority
     if (!route.redirect.empty()) {
-        std::cout << "--------------------->[*] Redirecting to: " << route.redirect << std::endl;
         return handleRedirect(route.redirect);
     }
 
-    // 3. Compose file path: route.root + request.uri
-    // std::string filePath = route.path + req.uri;
-    // std::cout << "========================================================================uri" << req.uri << "\n";
-    // 4. Directory listing if enabled
-    // std::string filePath = clean_line(route.root) + clean_line(req.uri);
-    std::string filePath = clean_line(route.root);
-
-    // std::cout << "========================================================================request path: " << route.path << std::endl;
-    // std::cout << "========================================================================match root: " << route.root << std::endl;
-    // std::cout << "==============================================>File path: " << filePath << std::endl;
-    // std::cout << "match->directory_listing: " << match->directory_listing << std::endl
-    if (route.directory_listing) {
-        // std::cout << "--2------------------>[*] Redirecting to: " << route.redirect << std::endl;
-        return handleDirectoryListing(filePath, req.uri);
+    // --- PATH LOGIC ---
+    std::string requestPath = req.uri;
+    if (requestPath.find(route.path) == 0) {
+        requestPath.erase(0, route.path.length());
     }
+    std::string filePath = route.root + requestPath;
+    // --- END PATH LOGIC ---
 
-    // 5. Default: try serving static file
+    // --- DECISION LOGIC ---
+    struct stat file_info;
+    // Check if the path exists and if it's a directory
+    if (stat(filePath.c_str(), &file_info) == 0 && S_ISDIR(file_info.st_mode))
+    {
+        // Path is a directory.
+        // Check if we should serve a default index file.
+        if (!route.indexFile.empty())
+        {
+            return handleDirectoryIndex(filePath, route);
+        }
+        // Otherwise, check if we should show a directory listing.
+        else if (route.directory_listing)
+        {
+            return handleDirectoryListing(filePath, req.uri);
+        }
+    }
     return serveStaticFile(filePath);
 }
 
@@ -65,6 +71,29 @@ HttpResponse GetHandler::handleRedirect(const std::string& redirectUrl) const {
     res.headers["Location"] = redirectUrl;
     res.body = "<html><body><h1>301 Moved Permanently</h1></body></html>";
     return res;
+}
+
+HttpResponse GetHandler::handleDirectoryIndex(const std::string& dirPath, const RouteConfig& route) const
+{
+    if (route.indexFile.empty()) {
+        HttpResponse res;
+        res.statusCode = 403;
+        res.statusText = "Forbidden";
+        res.body = "<html><body><h1>403 Forbidden</h1><p>No index file configured.</p></body></html>";
+
+        std::ostringstream oss;
+        oss << res.body.length();
+        res.headers["Content-Length"] = oss.str();
+        return res;
+    }
+
+    std::string indexPath = dirPath;
+    if (indexPath[indexPath.length() - 1] != '/') {
+        indexPath += "/";
+    }
+    indexPath += route.indexFile;
+
+    return serveStaticFile(indexPath);
 }
 
 HttpResponse GetHandler::serveStaticFile(std::string& filePath) const 

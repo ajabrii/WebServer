@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   GetHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:19:03 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/02 11:40:29 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/11 23:00:52 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,4 +25,6 @@ class GetHandler : public IHttpMethodHandler
         GetHandler();
         ~GetHandler();
         virtual HttpResponse handle(const HttpRequest &req, const RouteConfig& route) const;
+        HttpResponse handleDirectoryIndex(const std::string& dirPath, const RouteConfig& route) const;
+
 };

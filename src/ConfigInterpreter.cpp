@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/08 16:07:49 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/11 21:36:09 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -260,6 +260,10 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
                 route.allowedMethods.push_back(method);
             else 
                 throw std::runtime_error("Unkownen method :: " + method);
+    }
+    else if (key == "indexfile")
+    {
+        route.indexFile = value;
     }
     else if (key == "redirect")
         route.redirect = value;

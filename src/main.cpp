@@ -53,17 +53,28 @@ int main(int ac, char **av, char **envp) {
                 }
                 else if (event.isReadable) {
                     Connection& conn = reactor.getConnection(event.fd);
-                    std::string data = conn.readData();
+                    HttpServer* server = reactor.getServerForClient(event.fd);
+                    if (!server) {
+                        std::cerr << "Error: No server found for client fd: " << event.fd << std::endl;
+                        continue;
+                    }
+                    conn.readData(server);
 
-                    if (!data.empty()) {
-                        std::cout << "\033[1;36m[>] Received:\033[0m\n" << data << std::endl;
+                   if (conn.isRequestComplete()) {
+                        std::cout << "\033[1;36m[>] Full Request Received and Parsed:\033[0m\n";
 
-                        HttpRequest req = HttpRequest::parse(data);
-                        HttpServer* server = reactor.getServerForClient(event.fd);
-                        if (!server) {
-                            std::cerr << "Error: No server found for client fd: " << event.fd << std::endl;
-                            continue;
-                        }
+                        HttpRequest& req = conn.getCurrentRequest();
+
+                            std::cout << "Method: " << req.method << std::endl;
+                            std::cout << "URI: " << req.uri << std::endl;
+                            std::cout << "Version: " << req.version << std::endl;
+                            if (!req.body.empty()) {
+                                std::cout << "Body Length: " << req.body.length() << std::endl;
+                                std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
+                            }
+
+                            conn.reset(); //m7i lkhra mn connection bach nwjdo request lakhra la kant connection keep alive
+                            // exit(1);
 
                         Router router;
                         const RouteConfig* route = router.match(req, server->getConfig());

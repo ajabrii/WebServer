@@ -3,13 +3,23 @@
 /*                                                        :::      ::::::::   */
 /*   RouteConfig.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:36:12 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 21:02:52 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/08 22:35:26 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/RouteConfig.hpp"
 
-RouteConfig::RouteConfig() : uploadDir("uploads") {}
+        RouteConfig::RouteConfig()
+            : path(""),
+              root(""),
+              allowedMethods(),
+              redirect(""),
+              indexFile(""),
+              cgi(),
+              directory_listing(false),
+              uploadPath("")
+        {
+        }

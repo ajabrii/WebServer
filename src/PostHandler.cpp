@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PostHandler.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 19:09:37 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/08 22:22:39 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
 {
     HttpResponse resp;
     resp.version = req.version;
+    (void) route;
     
     // req.
     return resp;

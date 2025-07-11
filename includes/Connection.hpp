@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/08 17:52:05 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/11 23:56:49 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,11 @@
 
 #include <string>
 #include <netinet/in.h>
+#include "../includes/HttpRequest.hpp"
+
+// Forward declaration to resolve unknown type error
+class HttpServer;
+
 
 enum RequestState {
     READING_HEADERS,
@@ -35,7 +40,7 @@ private:
     long contentLength; // Use long to match potential large sizes
     bool isChunked;
     HttpRequest currentRequest;
-    // HttpRequest req;
+    HttpServer* server;
 
 public:
     Connection();
@@ -43,9 +48,14 @@ public:
     ~Connection();
 
     int getFd() const;
-    std::string readData(); // i remove const here to work with buffer in readData() function
+    void readData(HttpServer* server); // i remove const here to work with buffer in readData() function
     void writeData(const std::string& response) const;
+    // Helper to get the current request once it's complete
+    HttpRequest& getCurrentRequest();
+    bool isRequestComplete() const; // New helper to check state for main loop
     void closeConnection();
+    void reset();
+    
 };
 
 #endif

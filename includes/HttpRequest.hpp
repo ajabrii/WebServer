@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/08 18:12:20 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/10 18:47:51 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,9 +34,9 @@ public:
 
     void parseHeaders(const std::string& rawHeaders);
 
-    void parseBody(const std::string& rawBodyChunk); // Will be called incrementally
+    bool parseBody(std::string& connectionBuffer, long maxBodySize); // Will be called incrementally
 
-    std::string decodeChunked(const std::string& chunkedBody);
+    bool decodeChunked(std::string& buffer, std::string& decodedOutput);
     void throwHttpError(int statusCode, const std::string& message);
     std::string GetHeader(std::string target) const;
 };
