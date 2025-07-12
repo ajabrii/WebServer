@@ -113,3 +113,7 @@
 //when client upload something that hase binary data it will not work so i fixed 
 
 // i should support text/plain  in the post handler
+
+// todo fix delete handler
+
+//TODO: youness should configure upload directory in the config file

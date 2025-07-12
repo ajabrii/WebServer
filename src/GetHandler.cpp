@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/10 12:09:13 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/12 10:14:05 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cctype>
-
+# include "../includes/Errors.hpp"
 GetHandler::GetHandler() { }
 
 GetHandler::~GetHandler() { }
@@ -32,17 +32,19 @@ GetHandler::~GetHandler() { }
  * 2. File serving or directory listing based on path
  * 3. Error responses for not found/forbidden
  */
-HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route) const
+
+ //
+HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route, const ServerConfig& serverConfig) const
 {
     std::cout << "\033[1;34m[GET Handler]\033[0m Processing request for URI: " << req.uri << std::endl;
     
-    // === STEP 1: Handle redirects (highest priority) ===
+    // *DONE=== STEP 1: Handle redirects (highest priority) ===
     if (!route.redirect.empty()) {
         std::cout << "\033[1;33m[GET Handler]\033[0m Redirect configured to: " << route.redirect << std::endl;
         return handleRedirect(route.redirect);
     }
 
-    // === STEP 2: Build the file system path ===
+    // *DONE === STEP 2: Build the file system path ===
     std::string requestPath = req.uri;
     
     // Remove the route path prefix from the request URI to get the relative path
@@ -54,17 +56,13 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
     
     // Normalize paths: ensure root doesn't end with '/' and requestPath starts with '/'
     std::string cleanRoot = route.root;
-    if (!cleanRoot.empty() && cleanRoot[cleanRoot.length() - 1] == '/') {
+    if (!cleanRoot.empty() && cleanRoot[cleanRoot.length() - 1] == '/')
         cleanRoot = cleanRoot.substr(0, cleanRoot.length() - 1);
-    }
-    
-    if (!requestPath.empty() && requestPath[0] != '/') {
+    if (!requestPath.empty() && requestPath[0] != '/')
         requestPath = "/" + requestPath;
-    }
-    
     // Build final file system path
     std::string filePath = cleanRoot + requestPath;
-    
+    //! To remove this print statement later on
     std::cout << "\033[1;36m[GET Handler]\033[0m Path construction:" << std::endl;
     std::cout << "  - Route path: '" << route.path << "'" << std::endl;
     std::cout << "  - Route root: '" << route.root << "'" << std::endl;
@@ -77,10 +75,10 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
         // Path exists, check if it's a directory or file
         if (S_ISDIR(pathStat.st_mode)) {
             std::cout << "\033[1;32m[GET Handler]\033[0m Path is a directory, directory_listing = " << (route.directory_listing ? "true" : "false") << std::endl;
-            return handleDirectory(filePath, req.uri, route.directory_listing);
+            return handleDirectory(filePath, req.uri, route.directory_listing, serverConfig);
         } else if (S_ISREG(pathStat.st_mode)) {
             std::cout << "\033[1;32m[GET Handler]\033[0m Path is a regular file" << std::endl;
-            return serveStaticFile(filePath);
+            return serveStaticFile(filePath, serverConfig);
         } else {
             std::cout << "\033[1;31m[GET Handler]\033[0m Path exists but is not a file or directory" << std::endl;
         }
@@ -89,7 +87,7 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
     }
     
     // === STEP 4: Return 404 for not found ===
-    return createNotFoundResponse();
+    return createNotFoundResponse(serverConfig);
 }
 
 /**
@@ -97,11 +95,11 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
  * If directory listing is enabled, generates an HTML index
  * Otherwise, tries to serve index.html or returns 403 Forbidden
  */
-HttpResponse GetHandler::handleDirectory(const std::string& dirPath, const std::string& urlPath, bool listingEnabled) const
+HttpResponse GetHandler::handleDirectory(const std::string& dirPath, const std::string& urlPath, bool listingEnabled, const ServerConfig& serverConfig) const
 {
     if (listingEnabled) {
         std::cout << "\033[1;32m[GET Handler]\033[0m Directory listing enabled, generating index" << std::endl;
-        return handleDirectoryListing(dirPath, urlPath);
+        return handleDirectoryListing(dirPath, urlPath, serverConfig);
     } else {
         std::cout << "\033[1;33m[GET Handler]\033[0m Directory listing disabled, looking for index file" << std::endl;
         
@@ -111,10 +109,10 @@ HttpResponse GetHandler::handleDirectory(const std::string& dirPath, const std::
         
         if (stat(indexPath.c_str(), &indexStat) == 0 && S_ISREG(indexStat.st_mode)) {
             std::cout << "\033[1;32m[GET Handler]\033[0m Found index.html, serving it" << std::endl;
-            return serveStaticFile(indexPath);
+            return serveStaticFile(indexPath, serverConfig);
         } else {
             std::cout << "\033[1;31m[GET Handler]\033[0m No index.html found, returning 403 Forbidden" << std::endl;
-            return createForbiddenResponse();
+            return createForbiddenResponse(serverConfig);
         }
     }
 }
@@ -123,7 +121,8 @@ HttpResponse GetHandler::handleDirectory(const std::string& dirPath, const std::
  * Handles HTTP redirects
  * Returns a 301 Moved Permanently response with Location header
  */
-HttpResponse GetHandler::handleRedirect(const std::string& redirectUrl) const {
+HttpResponse GetHandler::handleRedirect(const std::string& redirectUrl) const
+{
     std::cout << "\033[1;33m[GET Handler]\033[0m Creating redirect response to: " << redirectUrl << std::endl;
     
     HttpResponse res;
@@ -132,11 +131,11 @@ HttpResponse GetHandler::handleRedirect(const std::string& redirectUrl) const {
     res.headers["Location"] = redirectUrl;
     res.headers["Content-Type"] = "text/html";
     
-    // Create a user-friendly HTML redirect page
-    res.body = "<!DOCTYPE html>\n<html><head><title>301 Moved Permanently</title></head>";
-    res.body += "<body><h1>301 Moved Permanently</h1>";
-    res.body += "<p>The document has moved <a href=\"" + redirectUrl + "\">here</a>.</p>";
-    res.body += "</body></html>";
+    // Create a user-friendly HTML redirect page //!(machi darouri)
+    // res.body = "<!DOCTYPE html>\n<html><head><title>301 Moved Permanently</title></head>";
+    // res.body += "<body><h1>301 Moved Permanently</h1>";
+    // res.body += "<p>The document has moved <a href=\"" + redirectUrl + "\">here</a>.</p>";
+    // res.body += "</body></html>";
     res.headers["Content-Length"] = std::to_string(res.body.size());
     
     return res;
@@ -147,12 +146,12 @@ HttpResponse GetHandler::handleRedirect(const std::string& redirectUrl) const {
  * Automatically detects MIME type based on file extension
  * Handles binary files correctly
  */
-HttpResponse GetHandler::serveStaticFile(const std::string& filePath) const 
+HttpResponse GetHandler::serveStaticFile(const std::string& filePath, const ServerConfig& serverConfig) const 
 {
     std::cout << "\033[1;32m[GET Handler]\033[0m Attempting to serve file: '" << filePath << "'" << std::endl;
     
     // Open file in binary mode to handle all file types correctly
-    std::ifstream file(filePath.c_str(), std::ios::binary);
+    std::ifstream file(filePath.c_str(), std::ios::binary);//? ios::binary tels the stream to read the file as binay exactly as it is in disk
     HttpResponse res;
     
     if (file.is_open()) {
@@ -176,7 +175,7 @@ HttpResponse GetHandler::serveStaticFile(const std::string& filePath) const
         std::cout << "  - MIME type: " << contentType << std::endl;
     } else {
         std::cout << "\033[1;31m[GET Handler]\033[0m Failed to open file: " << filePath << std::endl;
-        res = createNotFoundResponse();
+        res = createNotFoundResponse(serverConfig);
     }
     
     return res;
@@ -187,13 +186,14 @@ HttpResponse GetHandler::serveStaticFile(const std::string& filePath) const
  * Creates a table with file names and types
  * Includes parent directory navigation
  */
-HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, const std::string& urlPath) const {
+HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, const std::string& urlPath, const ServerConfig& serverConfig) const
+{
     std::cout << "\033[1;32m[GET Handler]\033[0m Generating directory listing for: " << dirPath << std::endl;
     
     DIR* dir = opendir(dirPath.c_str());
     if (!dir) {
         std::cout << "\033[1;31m[GET Handler]\033[0m Cannot open directory: " << dirPath << std::endl;
-        return createForbiddenResponse();
+        return createForbiddenResponse(serverConfig);
     }
 
     // Build HTML page with CSS styling
@@ -216,18 +216,20 @@ HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, cons
     html << "<h1>📁 Index of " << urlPath << "</h1>";
     html << "<table><tr><th>Name</th><th>Type</th></tr>";
 
-    // Add parent directory link if not at root
-    if (urlPath != "/" && urlPath != "") {
-        std::string parentPath = getParentPath(urlPath);
-        html << "<tr><td><span class='icon'>📁</span><a href=\"" << parentPath << "\">../</a></td><td>Directory</td></tr>";
-    }
+    // Add parent directory link if not at root (machi darouri)
+    // if (urlPath != "/" && urlPath != "") {
+    //     std::string parentPath = getParentPath(urlPath);
+    //     std::cout << "\033[1;33m[GET Handler]\033[0m Adding parent directory link: " << parentPath << std::endl;
+    //     html << "<tr><td><span class='icon'>📁</span><a href=\"" << parentPath << "\">../</a></td><td>Directory</td></tr>";
+    // }
 
     // List directory contents
     struct dirent* entry;
-    while ((entry = readdir(dir)) != NULL) {
+    while ((entry = readdir(dir)) != NULL)
+    {
         std::string name = entry->d_name;
-        if (name == "." || name == "..") continue;
-        
+        if (name == "." || name == "..")
+            continue;
         std::string fullPath = dirPath + "/" + name;
         std::string linkPath = buildLinkPath(urlPath, name);
         
@@ -250,7 +252,7 @@ HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, cons
         html << "<td>" << type << "</td></tr>";
     }
     
-    html << "</table></div></body></html>";
+    html << "</table></div><p>return to the <a href=\"/\">homepage</a>.</p></body></html>";
     closedir(dir);
 
     HttpResponse res;
@@ -268,7 +270,8 @@ HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, cons
  * Determines MIME type based on file extension
  * Returns appropriate Content-Type header value
  */
-std::string GetHandler::getMimeType(const std::string& filePath) const {
+std::string GetHandler::getMimeType(const std::string& filePath) const
+{
     size_t dotPos = filePath.find_last_of('.');
     if (dotPos == std::string::npos) {
         return "application/octet-stream"; // Default for files without extension
@@ -282,16 +285,26 @@ std::string GetHandler::getMimeType(const std::string& filePath) const {
     }
     
     // Common MIME type mappings
-    if (extension == "html" || extension == "htm") return "text/html";
-    if (extension == "css") return "text/css";
-    if (extension == "js") return "application/javascript";
-    if (extension == "json") return "application/json";
-    if (extension == "png") return "image/png";
-    if (extension == "jpg" || extension == "jpeg") return "image/jpeg";
-    if (extension == "gif") return "image/gif";
-    if (extension == "svg") return "image/svg+xml";
-    if (extension == "ico") return "image/x-icon";
-    if (extension == "txt") return "text/plain";
+    if (extension == "html" || extension == "htm")
+        return "text/html";
+    if (extension == "css")
+        return "text/css";
+    if (extension == "js") 
+        return "application/javascript";
+    if (extension == "json")
+        return "application/json";
+    if (extension == "png")
+        return "image/png";
+    if (extension == "jpg" || extension == "jpeg")
+        return "image/jpeg";
+    if (extension == "gif")
+        return "image/gif";
+    if (extension == "svg")
+        return "image/svg+xml";
+    if (extension == "ico")
+        return "image/x-icon";
+    if (extension == "txt")
+        return "text/plain";
     if (extension == "xml") return "application/xml";
     if (extension == "pdf") return "application/pdf";
     if (extension == "zip") return "application/zip";
@@ -306,33 +319,36 @@ std::string GetHandler::getMimeType(const std::string& filePath) const {
 }
 
 /**
+ * !remove this function later is not important
  * Helper function to get parent directory path
  * Handles URL path normalization
  */
-std::string GetHandler::getParentPath(const std::string& urlPath) const {
-    std::string parentPath = urlPath;
+// std::string GetHandler::getParentPath(const std::string& urlPath) const
+// {
+//     std::string parentPath = urlPath;
     
-    // Remove trailing slash if present
-    if (parentPath[parentPath.length() - 1] == '/') {
-        parentPath = parentPath.substr(0, parentPath.length() - 1);
-    }
+//     // Remove trailing slash if present
+//     if (parentPath[parentPath.length() - 1] == '/') {
+//         parentPath = parentPath.substr(0, parentPath.length() - 1);
+//     }
     
-    // Find last slash and cut there
-    size_t lastSlash = parentPath.find_last_of('/');
-    if (lastSlash != std::string::npos) {
-        parentPath = parentPath.substr(0, lastSlash + 1);
-    } else {
-        parentPath = "/";
-    }
+//     // Find last slash and cut there
+//     size_t lastSlash = parentPath.find_last_of('/');
+//     if (lastSlash != std::string::npos) {
+//         parentPath = parentPath.substr(0, lastSlash + 1);
+//     } else {
+//         parentPath = "/";
+//     }
     
-    return parentPath;
-}
+//     return parentPath;
+// }
 
 /**
  * Helper function to build proper link paths for directory listing
  * Ensures correct URL formatting
  */
-std::string GetHandler::buildLinkPath(const std::string& urlPath, const std::string& name) const {
+std::string GetHandler::buildLinkPath(const std::string& urlPath, const std::string& name) const
+{
     std::string linkPath = urlPath;
     
     // Ensure urlPath ends with slash
@@ -346,33 +362,118 @@ std::string GetHandler::buildLinkPath(const std::string& urlPath, const std::str
 
 /**
  * Creates a standardized 404 Not Found response
+ * Uses custom error page if configured, otherwise uses default HTML
  */
-HttpResponse GetHandler::createNotFoundResponse() const {
-    HttpResponse res;
-    res.statusCode = 404;
-    res.statusText = "Not Found";
-    res.headers["Content-Type"] = "text/html";
-    res.body = "<!DOCTYPE html>\n<html><head><title>404 Not Found</title></head>";
-    res.body += "<body><h1>404 Not Found</h1>";
-    res.body += "<p>The requested resource could not be found on this server.</p>";
-    res.body += "</body></html>";
-    res.headers["Content-Length"] = std::to_string(res.body.size());
-    return res;
+HttpResponse GetHandler::createNotFoundResponse(const ServerConfig& serverConfig) const {
+    return createErrorResponse(404, "Not Found", serverConfig);
 }
 
 /**
  * Creates a standardized 403 Forbidden response
+ * Uses custom error page if configured, otherwise uses default HTML
  */
-HttpResponse GetHandler::createForbiddenResponse() const {
+HttpResponse GetHandler::createForbiddenResponse(const ServerConfig& serverConfig) const {
+    return createErrorResponse(403, "Forbidden", serverConfig);
+}
+
+/**
+ * Creates error responses using custom error pages when available
+ * Falls back to default HTML pages when custom pages are not configured
+ */
+HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string& statusText, const ServerConfig& serverConfig) const
+{
+    std::cout << "\033[1;31m[GET Handler]\033[0m Creating " << statusCode << " error response" << std::endl;
+    
+    // Check if custom error page is configured
+    std::map<int, std::string>::const_iterator it = serverConfig.error_pages.find(statusCode);
+    if (it != serverConfig.error_pages.end()) {
+        std::cout << "\033[1;33m[GET Handler]\033[0m Using custom error page: " << it->second << std::endl;
+        return loadCustomErrorPage(statusCode, it->second);
+    } else {
+        std::cout << "\033[1;33m[GET Handler]\033[0m Using default error page" << std::endl;
+        // Create default error page
+        HttpResponse res;
+        res.statusCode = statusCode;
+        res.statusText = statusText;
+        res.headers["Content-Type"] = "text/html";
+        
+        // Create a nice default error page
+        res.body = "<!DOCTYPE html>\n<html><head><title>" + std::to_string(statusCode) + " " + statusText + "</title>";
+        res.body += "<style>body{font-family:Arial,sans-serif;text-align:center;padding:50px;background-color:#f5f5f5;}";
+        res.body += ".error-container{background-color:white;padding:40px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);display:inline-block;}";
+        res.body += "h1{color:#dc3545;margin-bottom:20px;}p{color:#666;margin-bottom:30px;}";
+        res.body += ".error-code{font-size:72px;font-weight:bold;color:#dc3545;margin-bottom:20px;}</style></head>";
+        res.body += "<body><div class='error-container'>";
+        res.body += "<div class='error-code'>" + std::to_string(statusCode) + "</div>";
+        res.body += "<h1>" + statusText + "</h1>";
+        
+        if (statusCode == 404) {
+            res.body += "<p>The requested resource could not be found on this server.</p>";
+        } else if (statusCode == 403) {
+            res.body += "<p>You don't have permission to access this resource.</p>";
+        } else {
+            res.body += "<p>An error occurred while processing your request.</p>";
+        }
+        
+        res.body += "</div></body></html>";
+        res.headers["Content-Length"] = std::to_string(res.body.size());
+        return res;
+    }
+}
+
+/**
+ * Loads custom error page from filesystem
+ * Returns default error page if custom page cannot be loaded
+ */
+HttpResponse GetHandler::loadCustomErrorPage(int statusCode, const std::string& errorPagePath) const
+{
+    std::cout << "\033[1;33m[GET Handler]\033[0m Loading custom error page: " << errorPagePath << std::endl;
+    
+    std::ifstream file(errorPagePath.c_str());
     HttpResponse res;
-    res.statusCode = 403;
-    res.statusText = "Forbidden";
-    res.headers["Content-Type"] = "text/html";
-    res.body = "<!DOCTYPE html>\n<html><head><title>403 Forbidden</title></head>";
-    res.body += "<body><h1>403 Forbidden</h1>";
-    res.body += "<p>You don't have permission to access this resource.</p>";
-    res.body += "</body></html>";
-    res.headers["Content-Length"] = std::to_string(res.body.size());
+    
+    if (file.is_open()) {
+        // Successfully opened custom error page
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        file.close();
+        
+        res.statusCode = statusCode;
+        res.statusText = (statusCode == 404) ? "Not Found" : 
+                        (statusCode == 403) ? "Forbidden" : 
+                        (statusCode == 500) ? "Internal Server Error" : "Error";
+        res.headers["Content-Type"] = "text/html";
+        res.body = buffer.str();
+        res.headers["Content-Length"] = std::to_string(res.body.size());
+        
+        std::cout << "\033[1;32m[GET Handler]\033[0m Successfully loaded custom error page (" << res.body.size() << " bytes)" << std::endl;
+    } else {
+        std::cout << "\033[1;31m[GET Handler]\033[0m Failed to load custom error page: " << errorPagePath << std::endl;
+        std::cout << "\033[1;33m[GET Handler]\033[0m Falling back to default error page" << std::endl;
+        
+        // Fall back to default error page
+        res.statusCode = statusCode;
+        res.statusText = (statusCode == 404) ? "Not Found" : 
+                        (statusCode == 403) ? "Forbidden" : 
+                        (statusCode == 500) ? "Internal Server Error" : "Error";
+        res.headers["Content-Type"] = "text/html";
+        res.body = "<!DOCTYPE html>\n<html><head><title>" + std::to_string(statusCode) + " " + res.statusText + "</title></head>";
+        res.body += "<body><h1>" + std::to_string(statusCode) + " " + res.statusText + "</h1>";
+        res.body += "<p>Custom error page could not be loaded.</p></body></html>";
+        res.headers["Content-Length"] = std::to_string(res.body.size());
+    }
+    
     return res;
 }
+
+/**
+ * Legacy handler method for backward compatibility
+ * Uses default error pages when ServerConfig is not available// ! no need for it  for now
+ */
+// HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route) const
+// {
+//     // Create a default ServerConfig for backward compatibility
+//     ServerConfig defaultConfig;
+//     return handle(req, route, defaultConfig);
+// }
 

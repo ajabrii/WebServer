@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/09 13:31:21 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/12 10:51:42 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,13 +22,9 @@
 #include <iostream>
 
 // ----- helpers -----
-struct Part {
-    std::string name;
-    std::string filename;
-    std::string content;
-};
 
-std::string extractBoundary(const std::string& ct) {
+std::string extractBoundary(const std::string& ct)
+{
     size_t pos = ct.find("boundary=");
     if (pos != std::string::npos)
         return ct.substr(pos + 9); // skip 'boundary='
@@ -41,9 +37,11 @@ void writeFile(const std::string& path, const std::string& content) {
     out << content;
 }
 
-void writeKeyValuesToFile(const std::string& path, const std::map<std::string,std::string>& fields) {
+void writeKeyValuesToFile(const std::string& path, const std::map<std::string,std::string>& fields)
+{
     std::ofstream out(path.c_str());
-    if (!out) throw std::runtime_error("Failed to write file: " + path);
+    if (!out)
+        throw std::runtime_error("Failed to write file: " + path);
     for (std::map<std::string,std::string>::const_iterator it=fields.begin(); it!=fields.end(); ++it)
         out << it->first << "=" << it->second << "\n";
 }
@@ -51,7 +49,7 @@ void writeKeyValuesToFile(const std::string& path, const std::map<std::string,st
 std::vector<Part> parseMultipart(const std::string& body, const std::string& boundary)
 {
     std::vector<Part> parts;
-    std::string sep = "--" + boundary; 
+    std::string sep = "--" + boundary;  // i added -- because mulipart boundaries are prefixed with -- acording to RFC 2046 (for more data check https://datatracker.ietf.org/doc/html/rfc2046#section-5.1.1)
     std::cout << "line 123 :sep: " << sep << std::endl; // remove this later
     size_t pos = 0;
 
@@ -127,27 +125,30 @@ PostHandler::PostHandler() { }
 
 PostHandler::~PostHandler() { }
 
-HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& route) const {
+HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& route) const
+{
     HttpResponse resp;
     resp.version = req.version;
 
     std::string ct = req.GetHeader("content-type");
-    std::cout << "line 125 :Content-Type: " << ct << std::endl; // remove this later
+    // std::cout << "line 125 :Content-Type: " << ct << std::endl; // remove this later
     std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower); // transform to lowercase because content-type is case-insensitive
-    std::cout << "route.uploadDir: " << route.uploadDir << std::endl; // remove this later
+    // std::cout << "route.uploadDir: " << route.uploadDir << std::endl; // remove this later
     if (route.uploadDir.empty()) {
-        return makeErrorResponse(500, "Upload directory not configured.");
+        return makeErrorResponse(500, "Upload directory not configured."); //! Use error page from ServerConfig if available
     }
     try {
         if (ct.find("multipart/form-data") != std::string::npos) {
             std::string boundary = extractBoundary(ct);
             if (boundary.empty())
-                return makeErrorResponse(400, "Missing boundary in multipart data.");
+                return makeErrorResponse(400, "Missing boundary in multipart data."); //! Use error page from ServerConfig if available
 
             std::vector<Part> parts = parseMultipart(req.body, boundary);
             bool saved = false; // this is for the case where no file is found in the multipart data
-            for (size_t i=0; i<parts.size(); ++i) {
-                if (!parts[i].filename.empty()) {
+            for (size_t i=0; i<parts.size(); ++i)
+            {
+                if (!parts[i].filename.empty())
+                {
                     std::string filepath = route.uploadDir + "/" + parts[i].filename;
                     writeFile(filepath, parts[i].content);
                     // resp.headers["Content-Type"] = "text/html; charset=UTF-8";
@@ -157,7 +158,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
                 }
             }
             if (!saved)
-                return makeErrorResponse(400, "No file found in multipart data.");
+                return makeErrorResponse(400, "No file found in multipart data."); // Use error page from ServerConfig if available
         }
         else if (ct.find("application/x-www-form-urlencoded") != std::string::npos)
         {
@@ -182,7 +183,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
         }
     }
     catch (const std::exception& e) {
-        return makeErrorResponse(500, e.what());
+        return makeErrorResponse(500, e.what()); // Use error page from ServerConfig if available
     }
 
     resp.statusCode = 201;
@@ -190,4 +191,15 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
     resp.headers["Content-Type"] = "text/html; charset=UTF-8";
     resp.headers["Content-Length"] = std::to_string(resp.body.size());
     return resp;
+}
+
+/**
+ * New PostHandler method with ServerConfig support
+ * Delegates to legacy method for now (can be enhanced later for custom error pages)
+ */
+HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& route, const ServerConfig& serverConfig) const {
+    // For now, just delegate to the legacy method
+    // This can be enhanced later to use custom error pages from serverConfig
+    (void)serverConfig; // Suppress unused parameter warning
+    return handle(req, route);
 }

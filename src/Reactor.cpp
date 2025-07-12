@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 10:01:17 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/10 17:45:57 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,16 +54,19 @@ void Reactor::removeConnection(int fd) {
     clientToServerMap.erase(fd);
 }
 
-void Reactor::poll() {
+void Reactor::poll()
+{
     readyEvents.clear();
     int ret = ::poll(pollFDs.data(), pollFDs.size(), -1);
     if (ret < 0) {
         throw std::runtime_error("poll failed");
     }
 
-    for (size_t i = 0; i < pollFDs.size(); ++i) {
+    for (size_t i = 0; i < pollFDs.size(); ++i)
+    {
         pollfd& pfd = pollFDs[i];
-        if (pfd.revents & (POLLIN | POLLOUT)) {
+        if (pfd.revents & (POLLIN | POLLOUT))
+        {
             Event evt;
             evt.fd = pfd.fd;
             evt.isReadable = (pfd.revents & POLLIN);

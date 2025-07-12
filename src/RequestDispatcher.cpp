@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:14:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/09 10:22:20 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/12 10:17:19 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ std::string clean_line(std::string line);
 
 
 
-HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConfig& route) const
+HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConfig& route, const ServerConfig& serverConfig) const
 {
     
     bool allowed = false;
@@ -47,7 +47,7 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
     }
     if (req.method == "GET")
     {
-        return GetHandler().handle(req, route);
+        return GetHandler().handle(req, route, serverConfig);
     }
     else if (req.method == "POST")
     {
@@ -55,7 +55,7 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
     }
     else if (req.method == "DELETE")
     {
-        return DeleteHandler().handle(req, route);
+        return DeleteHandler().handle(req, route, serverConfig);
     }
     else
     {
@@ -68,77 +68,3 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
     }
 }
 
-
-
-// HttpResponse RequestDispatcher::dispatch(const HttpRequest& request, const RouteConfig& route) const
-// {
-//     HttpResponse response;
-
-//     std:: cout << route.path << std::endl; // Accessing route path for potential logging or processing
-//     // Here we would typically call the appropriate handler based on the method
-//     // For now, let's assume we have a GetHandler that handles GET requests
-//     if (request.method == "GET") {
-//         // GetHandler getHandler;
-//         // response = getHandler.handle(request, route);
-//         response.statusCode = 200; // Placeholder for successful GET response
-//         response.body = "GET request handled successfully.";
-//     } else {
-//         response.statusCode = 405; // Method Not Allowed
-//         response.body = "Method not allowed.";
-//     }
-
-//     return response;
-// }
-
-
-// HttpResponse RequestDispatcher::servStaticFile(const std::string& filepath_uri) const
-// {
-//     HttpResponse response;
-  
-//     return response;
-// }
-
-// HttpResponse RequestDispatcher::DirectoryListing(const std::string& path, const std::string& urlPath) const
-// {
-//     HttpResponse response;
-//     DIR* dir = opendir(path.c_str());
-//     if (!dir) {
-//         response.body = "<html><body><h1>403 Forbidden</h1></body></html>";
-//         return response; // or use your error page
-//     }
-
-//     std::ostringstream html;
-//     html << "<html><head><title>Index of " << urlPath << "</title></head><body>";
-//     html << "<h1>Index of " << urlPath << "</h1><ul>";
-
-//     struct dirent* entry;
-//     while ((entry = readdir(dir)) != NULL) {
-//         std::string name = entry->d_name;
-//         if (name == ".") continue;
-//         std::string link = urlPath + (urlPath.back() == '/' ? "" : "/") + name;
-//         html << "<li><a href=\"" << link << "\">" << name << "</a></li>";
-//     }
-
-//     html << "</ul></body></html>";
-//     response.body = html.str();
-//     response.statusCode = 200; // OK
-//     response.statusText = "OK";
-//     response.headers["Content-Type"] = "text/html";
-//     response.headers["Content-Length"] = std::to_string(response.body.size());
-//     closedir(dir);
-
-//     return response;
-// }
-
-// HttpResponse RequestDispatcher::handleRedirect(const std::string& redirectUri) const
-// {
-//     HttpResponse response;
-//     response.statusCode = 301; // Moved Permanently
-//     response.statusText = "Moved Permanently";
-//     response.headers["Location"] = redirectUri;
-//     response.body = "Redirecting to " + redirectUri;
-//     response.headers["Content-Type"] = "text/plain";
-//     response.headers["Content-Length"] = std::to_string(response.body.size());
-    
-//     return response;
-// }

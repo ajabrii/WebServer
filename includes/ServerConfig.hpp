@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:00:24 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 09:19:05 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/12 10:15:42 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,8 @@
 #include <map>
 #include "RouteConfig.hpp"
 
-class ServerConfig {
+class ServerConfig
+{
     public:
         std::string host;
         std::vector<int> port;

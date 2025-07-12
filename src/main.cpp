@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
+/*   Updated: 2025/07/11 13:37:53 by ajabri           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../includes/ConfigInterpreter.hpp"
 #include "../includes/HttpServer.hpp"
 #include "../includes/Reactor.hpp"
@@ -36,7 +48,8 @@ int main(int ac, char **av, char **envp) {
             reactor.registerServer(*servers[i]);
 
         // === Event loop ===
-        while (true) {
+        while (true)
+        {
             reactor.poll();
             std::vector<Event> events = reactor.getReadyEvents();
 
@@ -112,7 +125,7 @@ int main(int ac, char **av, char **envp) {
                                 resp = cgi.execCgi();
                             } else {
                                 RequestDispatcher dispatcher;
-                                resp = dispatcher.dispatch(req, *route);
+                                resp = dispatcher.dispatch(req, *route, server->getConfig());
                             }
                         } else {
                             resp.statusCode = 404;
