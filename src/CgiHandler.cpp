@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/12 18:26:37 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/12 19:05:04 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -453,7 +453,7 @@ HttpResponse CgiHandler::execCgi(void)
         }
         int status;
         int timeout_seconds = 5 * 60;
-        bool child_finished = false;
+        // bool child_finished = false;
 
         // Setup epoll for non-blocking read with timeout
         int epfd = epoll_create1(0);
@@ -549,7 +549,7 @@ HttpResponse CgiHandler::execCgi(void)
             pid_t result = waitpid(pid, &status, WNOHANG);
             if (result == pid) 
             {
-                child_finished = true;
+                // child_finished = true;
                 break;
             }
         }
@@ -562,20 +562,20 @@ HttpResponse CgiHandler::execCgi(void)
         delete[] env;
 
         // If child exited abnormally
-        if (!child_finished || (WIFEXITED(status) && WEXITSTATUS(status) != 0)) 
-        {
-            f.statusCode = 500;
-            f.statusText = "Internal Server Error";
-            f.body = "CGI script execution failed.";
-            return f;
-        }
+        // if (!child_finished || (WIFEXITED(status) && WEXITSTATUS(status) != 0)) 
+        // {
+        //     f.statusCode = 500;
+        //     f.statusText = "Internal Server Error 5";
+        //     f.body = "CGI script execution failed.";
+        //     return f;
+        // }
 
         // Process CGI output as before...
         size_t header_end_pos = cgi_output_str.find("\r\n\r\n");
         if (header_end_pos == std::string::npos) 
         {
             f.statusCode = 500;
-            f.statusText = "Internal Server Error 5";
+            f.statusText = "Internal Server Error 6";
             f.body = "CGI output malformed: No header end.";
             return f;
         }
