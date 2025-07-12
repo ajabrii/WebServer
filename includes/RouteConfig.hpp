@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RouteConfig.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 14:59:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/08 22:35:40 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/12 15:02:45 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ class RouteConfig {
         std::map<std::string, std::string> cgi;
         // std::string interpath;
         bool directory_listing;
-        std::string uploadPath;
+        std::string uploadDir;
         
         RouteConfig();
         

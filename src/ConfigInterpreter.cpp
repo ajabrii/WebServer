@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/11 21:36:09 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/12 15:09:52 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,8 +119,6 @@ bool ConfigInterpreter::Isspaces(const std::string& line)
 
 bool ConfigInterpreter::IsComment(const std::string& line)
 {
-    //! handle comment in the same line ex: error_page 404 = /404.html; #comment
-    //? done
     if (line.empty() || line.find('#') != std::string::npos || Isspaces(line))
         return true;
     return false;
@@ -133,10 +131,6 @@ void ConfigInterpreter::parse()
     RouteConfig current_route;
     std::string line;
 
-    // for (size_t i = 0; i < ConfigData.size(); i++)
-    // {
-    //     std::cout << "std::line :: " << ConfigData[i] << "\n";
-    // }
     for (size_t i = 0; i < ConfigData.size(); i++)
     {
         line = ConfigData[i];
@@ -202,11 +196,6 @@ void ConfigInterpreter::parse()
             }
             else
             {
-                // std::cout << "line ::::::::::::::::::: " << line << "\n";
-                // std::cout << "serverFlag is set\n";
-                // std::cout << "current_server.host is :: " << current_server << "\n";
-                // if (current_server)
-                // exit(0);
                 parseServerLine(current_server, line);
             }
         }
@@ -277,10 +266,10 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
             route.directory_listing = false;
     }
     else if (key == "upload_path") {
-        if (!route.uploadPath.empty()) {
+        if (!route.uploadDir.empty()) {
             throw std::runtime_error("Duplicate 'upload_path' entry in route block.");
         }
-        route.uploadPath = value;
+        route.uploadDir = value;
     }
     else if (key == "cgi")
     {
@@ -411,8 +400,8 @@ void ConfigInterpreter::checkValues() const
     {
         if (serverConfigs[i].host.empty())
             throw std::runtime_error("Host is not set for a server block.");
-        // if (serverConfigs[i].port.size() == 0)
-        //     throw std::runtime_error("Port is not set for a server block.");
+        if (serverConfigs[i].port.size() == 0)
+            throw std::runtime_error("Port is not set for a server block.");
         if (serverConfigs[i].clientMaxBodySize <= 0)
             throw std::runtime_error("Client max body size is not set correct for a server block.");
         for (size_t j = 0; j < serverConfigs[i].routes.size(); j++)
@@ -425,11 +414,11 @@ void ConfigInterpreter::checkValues() const
                 throw std::runtime_error("No methods specified for route " + serverConfigs[i].routes[j].path);
         }
         // Check for duplicate host in other servers
-        // for (size_t k = i + 1; k < serverConfigs.size(); k++)
-        // {
-        //     if (serverConfigs[i].host == serverConfigs[k].host)
-        //         throw std::runtime_error("Duplicate host found in two server blocks: " + serverConfigs[i].host);
-        // }
+        for (size_t k = i + 1; k < serverConfigs.size(); k++)
+        {
+            if (serverConfigs[i].host == serverConfigs[k].host)
+                throw std::runtime_error("Duplicate host found in two server blocks: " + serverConfigs[i].host);
+        }
     }
 }
 
