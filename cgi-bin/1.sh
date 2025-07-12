@@ -1,5 +1,7 @@
 #!/bin/bash bash
 
+printf "Content-Type: text/html\r\n\r\n"
+
 curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent" \
   -H 'Content-Type: application/json' \
   -H 'X-goog-api-key: AIzaSyBdYdPO-RcizI7JGMNFaUwzTxv4ZRgKD3c' \

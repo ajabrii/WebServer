@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/09 00:45:26 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/12 18:26:37 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@
 #include <cctype> 
 #include <signal.h>
 #include <unistd.h> 
+#include <sys/epoll.h>
+#include <ctime>
 
 
 CgiHandler::CgiHandler() {}
@@ -433,7 +435,7 @@ HttpResponse CgiHandler::execCgi(void)
         
         execve(fp.c_str(), final_argv, env);
         perror("execve failed"); // Only reached if execve fails
-        _exit(1); // Child must exit on execve failure
+        exit(1); // Child must exit on execve failure
     }
     else // Parent process
     {
@@ -449,75 +451,129 @@ HttpResponse CgiHandler::execCgi(void)
             }
             close(pfd_in[1]); // Close write end after writing (sends EOF to CGI)
         }
-        
+        int status;
+        int timeout_seconds = 5 * 60;
+        bool child_finished = false;
+
+        // Setup epoll for non-blocking read with timeout
+        int epfd = epoll_create1(0);
+        if (epfd == -1) 
+        {
+            perror("epoll_create1 failed");
+            // Free env
+            for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+            delete[] env;
+            f.statusCode = 500;
+            f.statusText = "Internal Server Error (epoll)";
+            f.body = "Server epoll creation failed.";
+            return f;
+        }
+        struct epoll_event ev;
+        ev.events = EPOLLIN;
+        ev.data.fd = pfd[0];
+        if (epoll_ctl(epfd, EPOLL_CTL_ADD, pfd[0], &ev) == -1) 
+        {
+            perror("epoll_ctl failed");
+            close(epfd);
+            for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+            delete[] env;
+            f.statusCode = 500;
+            f.statusText = "Internal Server Error (epoll_ctl)";
+            f.body = "Server epoll_ctl failed.";
+            return f;
+        }
+
         std::string cgi_output_str;
         char buffer[4096];
         ssize_t bytes_read;
-        while ((bytes_read = read(pfd[0], buffer, 4096 - 1)) > 0) 
-        {
-            buffer[bytes_read] = '\0';
-            cgi_output_str.append(buffer);
-        }
-        if (bytes_read == -1)
-        {
-            perror("read from pipe_stdout failed");
-            // Handle error, maybe return 500
-        }
-        close(pfd[0]); // Close read end of output pipe
+        time_t start_time = time(NULL);
 
-        int status;
-        // Add timeout for CGI execution (30 seconds)
-        int timeout_seconds = 30;
-        bool child_finished = false;
-        
-        for (int i = 0; i < timeout_seconds; i++) {
-            pid_t result = waitpid(pid, &status, WNOHANG);
-            if (result == pid) {
-                child_finished = true;
-                break;
-            } else if (result == -1) {
-                perror("waitpid failed");
+        while (true) 
+        {
+            int elapsed = time(NULL) - start_time;
+            int remaining = timeout_seconds - elapsed;
+            if (remaining <= 0) 
+            {
+                // Timeout reached
+                kill(pid, SIGKILL);
+                waitpid(pid, &status, 0);
+                close(pfd[0]);
+                close(epfd);
+                for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+                delete[] env;
+                f.statusCode = 504;
+                f.statusText = "Gateway Timeout";
+                f.body = "CGI script execution timed out (epoll).";
+                return f;
+            }
+
+            int nfds = epoll_wait(epfd, &ev, 1, remaining * 1000); // timeout in ms
+            if (nfds == -1) 
+            {
+                perror("epoll_wait failed");
                 break;
             }
-            sleep(1); // Wait 1 second before checking again
+            else if (nfds == 0) 
+            {
+                // Timeout reached (no data to read)
+                kill(pid, SIGKILL);
+                waitpid(pid, &status, 0);
+                close(pfd[0]);
+                close(epfd);
+                for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+                delete[] env;
+                f.statusCode = 504;
+                f.statusText = "Gateway Timeout";
+                f.body = "CGI script execution timed out (epoll wait).";
+                return f;
+            } 
+            else 
+            {
+                // Data available to read
+                bytes_read = read(pfd[0], buffer, sizeof(buffer) - 1);
+                if (bytes_read > 0) 
+                {
+                    buffer[bytes_read] = '\0';
+                    cgi_output_str.append(buffer);
+                } 
+                else if (bytes_read == 0) 
+                {
+                    // EOF
+                    break;
+                } else {
+                    perror("read from pipe_stdout failed");
+                    break;
+                }
+            }
+            // Also check if child finished
+            pid_t result = waitpid(pid, &status, WNOHANG);
+            if (result == pid) 
+            {
+                child_finished = true;
+                break;
+            }
         }
-        
-        if (!child_finished) {
-            // Timeout - kill the CGI process
-            kill(pid, SIGKILL);
-            waitpid(pid, &status, 0); // Clean up zombie
-            
-            // Free environment variables memory
-            for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
-            delete[] env;
-            
-            f.statusCode = 504;
-            f.statusText = "Gateway Timeout";
-            f.body = "CGI script execution timed out.";
-            return f;
-        }
-        
-        // Check if child exited abnormally
-        if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
-            // CGI script exited with error
-            for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
-            delete[] env;
-            
+
+        close(pfd[0]);
+        close(epfd);
+
+        // Free environment variables memory
+        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+        delete[] env;
+
+        // If child exited abnormally
+        if (!child_finished || (WIFEXITED(status) && WEXITSTATUS(status) != 0)) 
+        {
             f.statusCode = 500;
             f.statusText = "Internal Server Error";
             f.body = "CGI script execution failed.";
             return f;
         }
 
-        // Free environment variables memory
-        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
-        delete[] env;
-
-        // Process CGI output
-        // Split headers and body
-        size_t header_end_pos = cgi_output_str.find("\r\n");
-        if (header_end_pos == std::string::npos) {
-            // No valid HTTP headers from CGI, or malformed
+        // Process CGI output as before...
+        size_t header_end_pos = cgi_output_str.find("\r\n\r\n");
+        if (header_end_pos == std::string::npos) 
+        {
             f.statusCode = 500;
             f.statusText = "Internal Server Error 5";
             f.body = "CGI output malformed: No header end.";
@@ -527,43 +583,42 @@ HttpResponse CgiHandler::execCgi(void)
         std::string cgi_headers = cgi_output_str.substr(0, header_end_pos);
         std::string cgi_body = cgi_output_str.substr(header_end_pos + 4); // +4 for \r\n\r\n
 
-        // Parse CGI headers and add to HttpResponse
         std::istringstream iss(cgi_headers);
         std::string line;
-        while (std::getline(iss, line) && !line.empty()) {
+        while (std::getline(iss, line) && !line.empty()) 
+        {
             size_t colon_pos = line.find(':');
-            if (colon_pos != std::string::npos) {
+            if (colon_pos != std::string::npos) 
+            {
                 std::string name = line.substr(0, colon_pos);
                 std::string value = line.substr(colon_pos + 1);
-                // Trim whitespace
                 value.erase(0, value.find_first_not_of(" \t"));
                 value.erase(value.find_last_not_of(" \t\r\n") + 1);
-                
                 f.headers[name] = value;
             }
         }
-        
         f.version = "HTTP/1.1";
-        f.statusCode = 200; // Assuming CGI success unless `Status` header says otherwise
-        if (f.headers.count("Status")) { // Check for CGI 'Status' header
+        f.statusCode = 200;
+        if (f.headers.count("Status")) 
+        {
             std::string status_str = f.headers["Status"];
             size_t space_pos = status_str.find(' ');
-            if (space_pos != std::string::npos) {
+            if (space_pos != std::string::npos) 
+            {
                 f.statusCode = std::atoi(status_str.substr(0, space_pos).c_str());
                 f.statusText = status_str.substr(space_pos + 1);
             }
-            f.headers.erase("Status"); // Remove CGI-specific status header
-        } else {
-            f.statusText = "OK"; // Default to OK if CGI doesn't provide Status
+            f.headers.erase("Status");
+        } 
+        else 
+        {
+            f.statusText = "OK";
         }
-        
-        // Handle Content-Length from CGI
-        if (!f.headers.count("Content-Length")) {
-             // If CGI didn't provide Content-Length, your server should calculate it
+        if (!f.headers.count("Content-Length")) 
+        {
             f.headers["Content-Length"] = std::to_string(cgi_body.length());
         }
-
         f.body = cgi_body;
-        return f;   
+        return f;
     }
 }
