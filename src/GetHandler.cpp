@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/11 23:09:19 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/12 19:38:49 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ GetHandler::~GetHandler() {}
 
 HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route) const
 {
-    // 1. Redirects still have the highest priority
+    // Redirects still have the highest priority
     if (!route.redirect.empty()) {
         return handleRedirect(route.redirect);
     }

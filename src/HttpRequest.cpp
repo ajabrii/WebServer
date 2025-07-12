@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/12 14:58:34 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/12 18:38:41 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ void HttpRequest::parseHeaders(const std::string& rawHeaders)
         }
     }
 
-        if (this->uri.rfind("http://", 0) == 0)
+        if (this->uri.find("http://", 0) == 0)
         {
             size_t host_start_pos = 7; // length of "http://"
             size_t path_start_pos = this->uri.find('/', host_start_pos);
@@ -130,22 +130,18 @@ void HttpRequest::parseHeaders(const std::string& rawHeaders)
     }
 }
 
-// --- parseBody implementation ---
-// This function consumes data from 'connectionBuffer' and appends it to 'this->body'
-// Returns true when the entire body is received.
 bool HttpRequest::parseBody(std::string& connectionBuffer, long maxBodySize) {
     if (!isChunked && contentLength == 0) {
-        // No body expected, so it's already complete
+        // No body expected already done;
         return true;
     }
 
     if (!isChunked) { // Content-Length body
-        // If the accumulated buffer has enough data for the full body
         if (contentLength > maxBodySize)
             throwHttpError(413, "Payload Too Large");
         if (contentLength > 0 && connectionBuffer.length() >= static_cast<size_t>(contentLength)) {
-            this->body.append(connectionBuffer.substr(0, contentLength)); // Append to actual body
-            connectionBuffer.erase(0, contentLength); // Consume from connection buffer
+            this->body.append(connectionBuffer.substr(0, contentLength));
+            connectionBuffer.erase(0, contentLength);
             return true; // Body is complete
         }
         // Not enough data yet, will return false and wait for more
