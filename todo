@@ -117,3 +117,5 @@
 // todo fix delete handler
 
 //TODO: youness should configure upload directory in the config file
+
+//TODO: get post and delete improved + i should make the code more cleaner now and @youness should configure uploaddir in the config parser handle the cgi bypass problem + adapte the code to c++98 so i need to remove all non c++98 functions + i need to unify how the response is built across the all handlers + i need to impliment error pages logic + don't foget to add fcntl  function in the server setup ...
