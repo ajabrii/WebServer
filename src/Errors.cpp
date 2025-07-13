@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/07 11:31:49 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 19:03:47 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 19:50:33 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 #include <map>
 #include <iostream>
 
+
+//todo add a static map that holds status codes for errors and appropriete string response or map it to defualt html string
 std::string Error::loadErrorPage(int statusCode, const ServerConfig& config)
 {
     std::map<int, std::string>::const_iterator it = config.error_pages.find(statusCode);

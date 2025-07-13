@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:16:22 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/12 10:26:47 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 20:37:52 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,11 +24,5 @@ class PostHandler : public IHttpMethodHandler
     public:
         PostHandler();
         ~PostHandler();
-        // Legacy interface
-        virtual HttpResponse handle(const HttpRequest &req, const RouteConfig& route) const;
-        // New interface with ServerConfig
         virtual HttpResponse handle(const HttpRequest &req, const RouteConfig& route, const ServerConfig& serverConfig) const;
-        // std::string extractBoundary(const std::string& contentType);
-        // std::map<std::string, std::string> parseFormUrlEncoded(const std::string& body);
-        // void parseAndSaveFile(const std::string& body, const std::string& boundary, const std::string& uploadDir);
 };

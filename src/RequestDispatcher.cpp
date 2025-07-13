@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:14:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 19:13:00 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 20:20:05 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
     }
     else if (req.method == POST_M)
     {
-        return PostHandler().handle(req, route);
+        return PostHandler().handle(req, route, serverConfig);
     }
     else if (req.method == DELETE_M)
     {
