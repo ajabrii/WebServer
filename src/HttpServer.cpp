@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 17:03:22 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 17:06:22 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,10 +86,6 @@ void HttpServer::setup()
 }
 
 
-const std::vector<int>& HttpServer::getFds() const
-{
-    return listen_fds;
-}
 
 /*
 === this function for accepting the client and return Connection Object ===
@@ -105,8 +101,13 @@ Connection HttpServer::acceptConnection(int listen_fd) const
     if (client_fd < 0)
         throw std::runtime_error("Error: accept failed");
     if (fcntl(client_fd, F_SETFL,O_NONBLOCK | FD_CLOEXEC) < 0)
-            throw std::runtime_error("Error: fcntl failed client_fd");
+    throw std::runtime_error("Error: fcntl failed client_fd");
     return Connection(client_fd, client_addr);
+}
+//@ Getters
+const std::vector<int>& HttpServer::getFds() const
+{
+    return listen_fds;
 }
 
 const ServerConfig& HttpServer::getConfig() const

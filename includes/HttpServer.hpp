@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:14:39 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 17:03:05 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 17:04:37 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ class HttpServer
         void setup();
         const std::vector<int>& getFds() const;  // return all fds
         Connection acceptConnection(int listen_fd) const;  //  accept from specific fd
-        // HttpResponse handleRequest(const HttpRequest& request); // ! no need for this method for now i might remove it
+        // HttpResponse handleRequest(const HttpRequest& request); // ! no need for this method for now i might remove 
         const ServerConfig& getConfig() const;
 };
 
