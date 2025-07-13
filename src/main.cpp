@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 17:34:08 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 18:26:16 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,22 +54,27 @@ int main(int ac, char **av, char **envp)
         //* === Event loop ===
         while (true)
         {
-            reactor.poll();
-            std::vector<Event> events = reactor.getReadyEvents();
+            reactor.poll(); //? hna kan3mer wa7d struct smitha Event ghatl9awha f reactor class
+            std::vector<Event> events = reactor.getReadyEvents(); //? Hna kangeti dik struct li fiha evensts li 3mrathom poll (kernel li 3merhom poll it's system call you for more infos go to reactor.cpp > void Reactor::poll())
 
-            for (size_t i = 0; i < events.size(); ++i) {
+            //? hna kanlopi ela ga3 events struct kola wahd o chno khasni ndir lih/bih isnewconnection isReadble (POLLIN) isWritble
+            for (size_t i = 0; i < events.size(); ++i)
+            {
                 Event event = events[i];
 
-                if (event.isNewConnection) {
-                    HttpServer* server = reactor.getServerByListeningFd(event.fd);
-                    if (server) {
-                        Connection* conn = new Connection(server->acceptConnection(event.fd));
+                if (event.isNewConnection)
+                {
+                    HttpServer* server = reactor.getServerByListeningFd(event.fd); //? hna kanchof ina server t connecta m3ah l client bach nchof ina route khsni nmchi lih mn ber3d
+                    if (server)
+                    {
+                        Connection* conn = new Connection(server->acceptConnection(event.fd)); //? hna kan 9ad wahd object dial connection kan constructih b client object li kay creah (acceptih) server
                         reactor.addConnection(conn, server);
                         std::cout << "\033[1;32m[+]\033[0m New client connected" << std::endl;
                     }
                 }
-                else if (event.isReadable) {
-                    Connection& conn = reactor.getConnection(event.fd);
+                else if (event.isReadable)
+                {
+                    Connection& conn = reactor.getConnection(event.fd); // can geti dak l connection li tcreat (katkon fmap)
                     std::string data = conn.readData(); // This reads new data and accumulates in buffer
                     std::cout << data << std::endl;
                     // Debug: Show current buffer state
@@ -139,7 +144,7 @@ int main(int ac, char **av, char **envp)
                         }
 
                         conn.writeData(resp.toString());
-                        reactor.removeConnection(event.fd);
+                        reactor.removeConnection(event.fd); // later i shouldn't remove this !!
                         std::cout << "\033[1;31m[-]\033[0m Connection closed" << std::endl;
                     }
                     catch (const std::runtime_error& e) {
