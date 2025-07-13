@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 16:51:50 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 17:03:22 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,35 +26,31 @@ HttpServer::~HttpServer()
 }
 
 /*
-=== this function is for server's network side setup ===
+=== this function is for server's network setup ===
 
-* open fd (socket) with socket():
-? AF_INET : this flag says we are using IPv4.
-? SOCK_STREAM : so we create a TCP socket (stream-oriented).
-? 0 : tells the OS to choose the default protocol for this type of socket (for AF_INET + SOCK_STREAM, this means TCP).
+* socket() : creates a new socket.
+? AF_INET : IPv4
+? SOCK_STREAM : TCP (connection-oriented)
+? 0 : default protocol (TCP for AF_INET + SOCK_STREAM)
 
-* setsockopt() :
-@ This function lets us configure socket options before binding.
-? fd : the file descriptor returned earlier by socket().
-? SOL_SOCKET : tells the kernel that the option applies to the socket layer itself.
-? SO_REUSEADDR : the specific option we want to set.
-@ This allows us to reuse the address (port) even if it's in TIME_WAIT after the server stops.
-? Without this, after stopping the server, the port stays busy for a short time (TIME_WAIT state), so restarting immediately would fail with "address already in use".
+* setsockopt() : configures options before binding.
+? SOL_SOCKET + SO_REUSEADDR : allow quick restart of server on same port, even if in TIME_WAIT.
+? fd : socket file descriptor
+? opt : usually set to 1 (enable)
 
-* bind() :
-@ This function assigns the socket to a specific local address and port, so the server knows on which IP and port to listen.
-? sockaddr_in : is a struct that describes an IPv4 address.
+* bind() : attach socket to local address+port.
+? sockaddr_in : struct describing the IPv4 address
+    - sin_family = AF_INET
+    - sin_port = htons(port) // convert port to network byte order
+    - sin_addr.s_addr = inet_addr(host) // convert host string to binary
 
-struct sockaddr_in {
-    sa_family_t    sin_family;     // must be AF_INET for IPv4
-    in_port_t      sin_port;       // port number (needs to be in network byte order -> htons())
-    struct in_addr sin_addr;       // IP address (binary form, network byte order)
-    ...
-};
+* listen() : mark socket as passive to accept connections.
+? 128 : backlog (max pending connections queue)
 
-* listen() :
-@ This function marks the socket as passive, meaning it starts waiting for incoming connections.
-? The second parameter (128) is the backlog: how many pending connections the kernel will queue up before it starts refusing new ones.
+* fcntl() : set socket to non-blocking mode.
+? F_GETFL : get current flags
+? F_SETFL : set updated flags
+? O_NONBLOCK : makes socket non-blocking so accept/read/write don’t block if no data.
 */
 
 void HttpServer::setup()
@@ -64,8 +60,8 @@ void HttpServer::setup()
         int fd = socket(AF_INET, SOCK_STREAM, 0);
         if (fd < 0)
             throw std::runtime_error("Failed to create socket");
-        if (fcntl(fd, F_SETFL,O_NONBLOCK | FD_CLOEXEC) < 0) // set the client_fd to non_blocking too
-            throw std::runtime_error("Error: fcntl failed");
+        if (fcntl(fd, F_SETFL,O_NONBLOCK | FD_CLOEXEC) < 0)
+            throw std::runtime_error("Error: fcntl failed server_fd");
         int opt = 1;
         if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
             throw std::runtime_error("Error: setsockopt failed");
@@ -89,36 +85,45 @@ void HttpServer::setup()
     }
 }
 
-// Return all listen fds so Reactor can register them
+
 const std::vector<int>& HttpServer::getFds() const
 {
     return listen_fds;
 }
 
-// Accept a connection from a specific listen_fd
+/*
+=== this function for accepting the client and return Connection Object ===
+* accept function takes the socket that was listening for connection (server socket), takes sockaddr_in address (we don't need to fill the ip the port etc accept do that for us)
+*take the the size of the struct
+set the client_fd to non blocking
+*/
 Connection HttpServer::acceptConnection(int listen_fd) const
 {
     sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);
     int client_fd = accept(listen_fd, (struct sockaddr*)&client_addr, &client_len);
     if (client_fd < 0)
-        throw std::runtime_error("accept failed");
+        throw std::runtime_error("Error: accept failed");
+    if (fcntl(client_fd, F_SETFL,O_NONBLOCK | FD_CLOEXEC) < 0)
+            throw std::runtime_error("Error: fcntl failed client_fd");
     return Connection(client_fd, client_addr);
-}
-//i think this function is not important, i'll remove it later on
-HttpResponse HttpServer::handleRequest(const HttpRequest& request)
-{
-    (void)request;
-    HttpResponse response;
-    response.version = "HTTP/1.1";
-    response.statusCode = 200;
-    response.statusText = "OK";
-    response.headers["Content-Type"] = "text/plain";
-    response.body = "Hello from HttpServer!";
-    return response;
 }
 
 const ServerConfig& HttpServer::getConfig() const
 {
     return config;
 }
+
+//!i think this function is not important, i'll remove it later on
+// HttpResponse HttpServer::handleRequest(const HttpRequest& request)
+// {
+//     (void)request;
+//     HttpResponse response;
+//     response.version = "HTTP/1.1";
+//     response.statusCode = 200;
+//     response.statusText = "OK";
+//     response.headers["Content-Type"] = "text/plain";
+//     response.body = "Hello from HttpServer!";
+//     return response;
+// }
+

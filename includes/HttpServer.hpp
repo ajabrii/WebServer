@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:14:39 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 09:49:31 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 17:03:05 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
 #include <netinet/in.h>
-#include <stdexcept> 
+#include <stdexcept>
 # include <iostream>
 # include <fstream>
 # include <string>
@@ -38,38 +38,21 @@
 # include <fcntl.h>
 
 
-// class HttpServer {
-//     private:
-//         ServerConfig config;
-//         int listen_fd;
-//         std::vector<int> listen_fds; // For multiple ports
-//         sockaddr_in server_addr;
-    
-//     public:
-//         HttpServer(const ServerConfig& cfg);
-//         ~HttpServer();
-    
-//         void setup();
-//         int getFd() const;
-//         Connection acceptConnection() const;
-//         HttpResponse handleRequest(const HttpRequest& request);
-//         const ServerConfig& getConfig() const;
-// };
 
+class HttpServer
+{
+    private:
+        ServerConfig config;
+        std::vector<int> listen_fds;  // store multiple sockets if the server has more that one port
+    public:
+        HttpServer(const ServerConfig& cfg);
+        ~HttpServer();
 
-class HttpServer {
-private:
-    ServerConfig config;
-    std::vector<int> listen_fds;  // ✅ store multiple sockets
-public:
-    HttpServer(const ServerConfig& cfg);
-    ~HttpServer();
-
-    void setup();
-    const std::vector<int>& getFds() const;  // ✅ return all fds
-    Connection acceptConnection(int listen_fd) const;  // ✅ accept from specific fd
-    HttpResponse handleRequest(const HttpRequest& request);
-    const ServerConfig& getConfig() const;
+        void setup();
+        const std::vector<int>& getFds() const;  // return all fds
+        Connection acceptConnection(int listen_fd) const;  //  accept from specific fd
+        // HttpResponse handleRequest(const HttpRequest& request); // ! no need for this method for now i might remove it
+        const ServerConfig& getConfig() const;
 };
 
 
