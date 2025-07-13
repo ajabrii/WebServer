@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 17:07:49 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 17:34:08 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,37 +18,40 @@
 #include "../includes/CgiHandler.hpp"
 #include "../includes/Errors.hpp"
 
-int main(int ac, char **av, char **envp) {
+int main(int ac, char **av, char **envp)
+{
     if (ac != 2) {
         Error::logs("Usage: " + std::string(av[0]) + " <config_file>");
         return 1;
     }
 
-    try {
+    try
+    {
         //!=== Load & parse config === (youness should check and organize this part fo the code.)
         ConfigInterpreter parser;
         parser.getConfigData(av[1]);
         parser.parse();
         parser.checkValues();
         std::string cgiEnv = parser.getPathForCGI(envp);
-        
+
         std::cout << "[✔] Config loaded. CGI path: " << cgiEnv << std::endl;
 
         std::vector<ServerConfig> configs = parser.getServerConfigs();
         std::vector<HttpServer*> servers;
 
-        //* === Setup servers ===
+        //* === Setup servers === (done 100%)
         for (size_t i = 0; i < configs.size(); ++i) {
             HttpServer* server = new HttpServer(configs[i]);
             server->setup();
             servers.push_back(server);
         }
 
+        //* === Setup the multiplixing monitor aka reactor === (done 99.99%)
         Reactor reactor;
         for (size_t i = 0; i < servers.size(); ++i)
             reactor.registerServer(*servers[i]);
 
-        // === Event loop ===
+        //* === Event loop ===
         while (true)
         {
             reactor.poll();
