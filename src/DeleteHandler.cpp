@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:29:35 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 20:54:52 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 20:57:36 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,22 +34,22 @@ HttpResponse DeleteHandler::handle(const HttpRequest &req, const RouteConfig& ro
         requestPath = requestPath.substr(route.path.length());
     std::string filePath = buildFilePath(route.root, requestPath);
     if (!isPathSecure(filePath, route.root)) {
-        return createErrorResponse(403, "Forbidden", "Path traversal attempts are not allowed", serverConfig);
+        return createErrorResponse(403, "Forbidden", serverConfig);
     }
     struct stat fileStat;
     if (stat(filePath.c_str(), &fileStat) != 0) {
-        return createErrorResponse(404, "Not Found", "The requested file does not exist", serverConfig);
+        return createErrorResponse(404, "Not Found",  serverConfig);
     }
     if (!S_ISREG(fileStat.st_mode)) {
-        return createErrorResponse(403, "Forbidden", "Only regular files can be deleted", serverConfig);
+        return createErrorResponse(403, "Forbidden",  serverConfig);
     }
     if (access(filePath.c_str(), W_OK) != 0) {
-        return createErrorResponse(403, "Forbidden", "Permission denied", serverConfig);
+        return createErrorResponse(403, "Forbidden", serverConfig);
     }
     if (std::remove(filePath.c_str()) == 0) {
         return createSuccessResponse(filePath);
     } else {
-        return createErrorResponse(500, "Internal Server Error", "Failed to delete the file", serverConfig);
+        return createErrorResponse(500, "Internal Server Error",serverConfig);
     }
 }
 
@@ -103,7 +103,7 @@ HttpResponse DeleteHandler::createSuccessResponse(const std::string& filePath) c
     return resp;
 }
 
-HttpResponse DeleteHandler::createErrorResponse(int statusCode, const std::string& statusText, const std::string& message, const ServerConfig& serverConfig) const
+HttpResponse DeleteHandler::createErrorResponse(int statusCode, const std::string& statusText, const ServerConfig& serverConfig) const
 {
     HttpResponse resp;
     resp.statusCode = statusCode;
