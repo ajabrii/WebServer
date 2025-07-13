@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 18:27:33 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 18:27:53 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,6 @@ std::string& Connection::getBuffer()
 void Connection::clearBuffer()
 {
     buffer.clear();
-    // headersDone = false;
 }
 /*
 === readData() reads the HTTP request from the client socket and stores it in a buffer ===
