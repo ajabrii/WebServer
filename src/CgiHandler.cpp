@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/12 19:05:04 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/13 15:02:54 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -415,9 +415,10 @@ HttpResponse CgiHandler::execCgi(void)
         std::cerr << "script_dir_path: " << script_dir_path << std::endl;
         std::cerr << "script_filename: " << script_filename << std::endl;
 
-        if (chdir(script_dir_path.c_str()) == -1) {
+        if (chdir(script_dir_path.c_str()) == -1) 
+        {
             perror("chdir failed");
-            _exit(1); // Exit child process on chdir failure
+            exit(1); // Exit child process on chdir failure
         }
         
         // Execute the CGI script
@@ -452,8 +453,8 @@ HttpResponse CgiHandler::execCgi(void)
             close(pfd_in[1]); // Close write end after writing (sends EOF to CGI)
         }
         int status;
-        int timeout_seconds = 5 * 60;
-        // bool child_finished = false;
+        int timeout_seconds = 5 ;
+        bool child_finished = false;
 
         // Setup epoll for non-blocking read with timeout
         int epfd = epoll_create1(0);
@@ -536,20 +537,24 @@ HttpResponse CgiHandler::execCgi(void)
                     buffer[bytes_read] = '\0';
                     cgi_output_str.append(buffer);
                 } 
-                else if (bytes_read == 0) 
+                else if (bytes_read == 0)
                 {
                     // EOF
                     break;
-                } else {
+                } 
+                else 
+                {
                     perror("read from pipe_stdout failed");
                     break;
                 }
             }
             // Also check if child finished
             pid_t result = waitpid(pid, &status, WNOHANG);
+
+            std::cerr << "waitpid result: " << result << ", pid: " << pid << std::endl;
             if (result == pid) 
             {
-                // child_finished = true;
+                child_finished = true;
                 break;
             }
         }
@@ -557,18 +562,17 @@ HttpResponse CgiHandler::execCgi(void)
         close(pfd[0]);
         close(epfd);
 
-        // Free environment variables memory
         for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
         delete[] env;
 
         // If child exited abnormally
-        // if (!child_finished || (WIFEXITED(status) && WEXITSTATUS(status) != 0)) 
-        // {
-        //     f.statusCode = 500;
-        //     f.statusText = "Internal Server Error 5";
-        //     f.body = "CGI script execution failed.";
-        //     return f;
-        // }
+        if (!child_finished || (WIFEXITED(status) && WEXITSTATUS(status) != 0)) 
+        {
+            f.statusCode = 500;
+            f.statusText = "Internal Server Error 5";
+            f.body = "CGI script execution failed.";
+            return f;
+        }
 
         // Process CGI output as before...
         size_t header_end_pos = cgi_output_str.find("\r\n\r\n");
