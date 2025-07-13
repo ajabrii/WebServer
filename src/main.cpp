@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/12 18:23:26 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 16:12:02 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ int main(int ac, char **av, char **envp) {
     }
 
     try {
-        // === Load & parse config ===
+        //*=== Load & parse config === (done)
         ConfigInterpreter parser;
         parser.getConfigData(av[1]);
         parser.parse();
@@ -70,18 +70,18 @@ int main(int ac, char **av, char **envp) {
                     std::cout << data << std::endl;
                     // Debug: Show current buffer state
                     // std::cout << "\033[1;35m[DEBUG] Current buffer size: " << conn.getBuffer().size() << " bytes\033[0m" << std::endl;
-                    
+
                     // Check if we have complete headers
                     size_t headerEnd = conn.getBuffer().find("\r\n\r\n");
                     if (headerEnd == std::string::npos) {
                         // std::cout << "\033[1;33m[!] Incomplete headers, waiting for more data...\033[0m" << std::endl;
                         continue;
                     }
-                    
+
                     // Headers are complete, now check if body is complete (for POST requests)
                     std::string headerPart = conn.getBuffer().substr(0, headerEnd + 4);
                     std::string remainingData = conn.getBuffer().substr(headerEnd + 4);
-                    
+
                     size_t contentLength = 0;
                     size_t clPos = headerPart.find("Content-Length:");
                     if (clPos != std::string::npos) {
@@ -97,11 +97,11 @@ int main(int ac, char **av, char **envp) {
                     }
                     // Check if we have the complete body
                     if (contentLength > 0 && remainingData.size() < contentLength) {
-                        // std::cout << "\033[1;33m[!] Incomplete body (" << remainingData.size() 
+                        // std::cout << "\033[1;33m[!] Incomplete body (" << remainingData.size()
                         //         //   << "/" << contentLength << " bytes), waiting for more data...\033[0m" << std::endl;
                         continue;
                     }
-                    
+
                     std::cout << "\033[1;36m[>] Received complete request:\033[0m\n" << std::endl;
 
                     try {

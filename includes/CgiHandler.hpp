@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:56:52 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/05 14:32:51 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/13 16:52:10 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class CgiHandler
         HttpRequest _req;
         std::string _env_paths;
         CgiData _data;
-        int _serverSocket;
+        // int _serverSocket;
         int _clientSocket;
     public:
         CgiHandler();
