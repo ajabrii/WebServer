@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/11 13:37:53 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/12 18:23:26 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ int main(int ac, char **av, char **envp) {
                 else if (event.isReadable) {
                     Connection& conn = reactor.getConnection(event.fd);
                     std::string data = conn.readData(); // This reads new data and accumulates in buffer
-                    
+                    std::cout << data << std::endl;
                     // Debug: Show current buffer state
                     // std::cout << "\033[1;35m[DEBUG] Current buffer size: " << conn.getBuffer().size() << " bytes\033[0m" << std::endl;
                     
