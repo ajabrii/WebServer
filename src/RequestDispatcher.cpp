@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:14:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 18:50:07 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 19:13:00 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,55 +15,56 @@
 #include "../includes/GetHandler.hpp"
 #include "../includes/DeleteHandler.hpp"
 #include "../includes/PostHandler.hpp"
+# include "../includes/Errors.hpp"
 # include <iostream>
 # include <fcntl.h>
 #include <dirent.h>
 #include <sstream>
 # include <fstream>
+
 std::string clean_line(std::string line);
 
-
-
+bool RequestDispatcher::isHttpMethodAllowed(const HttpRequest& req, std::vector<std::string> Imethods)
+{
+    for (size_t i = 0; i < Imethods.size(); ++i)
+    {
+        if (req.method == Imethods[i]) {
+            return true;
+        }
+    }
+    return false;
+}
 
 HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConfig& route, const ServerConfig& serverConfig) const
 {
-
-    bool allowed = false;
-    for (size_t i = 0; i < route.allowedMethods.size(); ++i) {
-        if (req.method == route.allowedMethods[i]) {
-            allowed = true;
-            break;
-        }
-    }
-    if (!allowed) {
-
-        HttpResponse res;
+    HttpResponse res;
+    if (!RequestDispatcher::isHttpMethodAllowed(req, route.allowedMethods))
+    {
         res.statusCode = 405;
+        res.headers["content-type"] = "text/html; charset=UTF-8";
         res.statusText = "Method Not Allowed";
-        res.body = "HTTP method not allowed for this route.";
-        std::cout << "--2------------------>[*] Redirecting to: " << route.redirect << std::endl;
+        res.body = Error::loadErrorPage(res.statusCode, serverConfig);
 
         return res;
     }
-    if (req.method == "GET")
+    if (req.method == GET_M)
     {
         return GetHandler().handle(req, route, serverConfig);
     }
-    else if (req.method == "POST")
+    else if (req.method == POST_M)
     {
         return PostHandler().handle(req, route);
     }
-    else if (req.method == "DELETE")
+    else if (req.method == DELETE_M)
     {
         return DeleteHandler().handle(req, route, serverConfig);
     }
     else
     {
-        HttpResponse res;
         res.statusCode = 501;
         res.headers["content-type"] = "text/html; charset=UTF-8";
         res.statusText = "Not Implemented";
-        res.body = "HTTP method not implemented.";
+        res.body = Error::loadErrorPage(res.statusCode, serverConfig);
         return res;
     }
 }
