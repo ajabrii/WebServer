@@ -118,7 +118,7 @@ The server follows a modular, layered architecture designed for maintainability 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/nexWebserv.git
+   git clone https://github.com/ajabrii/Webserver.git
    cd nexWebserv
    ```
 
@@ -161,10 +161,10 @@ make re         # Rebuild everything
        port = 8080;
        server_name = localhost;
        client_max_body_size = 10M;
-       
+
        error_page 404 /404.html;
        error_page 500 /500.html;
-       
+
        route / {
            methods = GET POST;
            root = ./www;
@@ -204,28 +204,28 @@ server {
     port = 8080;                         # Listening port
     port = 8081;                         # Additional ports (multi-port support)
     server_name = example.com www.example.com;  # Server names
-    
+
     # Security settings
     client_max_body_size = 10M;          # Maximum request body size
-    
+
     # Error pages
     error_page 404 /errors/404.html;
     error_page 500 /errors/500.html;
-    
+
     # Route configuration
     route / {
         methods = GET POST DELETE;        # Allowed HTTP methods
         root = /var/www/html;            # Document root
         directory_listing = on;          # Enable directory listing
     }
-    
+
     # File upload route
     route /uploads {
         methods = POST GET DELETE;
         root = /var/www/uploads;
         directory_listing = on;
     }
-    
+
     # Redirect configuration
     route /old-page {
         methods = GET;
@@ -238,7 +238,7 @@ server {
     host = 127.0.0.1;
     port = 9090;
     server_name = api.example.com;
-    
+
     route /api {
         methods = GET POST PUT DELETE;
         root = /var/www/api;
@@ -342,10 +342,10 @@ Server: NexWebserv/1.0
    ```bash
    # Test GET request
    curl -v http://localhost:8080/
-   
+
    # Test POST request
    curl -X POST -d "test=data" http://localhost:8080/api/test
-   
+
    # Test file upload
    curl -X POST -F "file=@test.txt" http://localhost:8080/uploads/
    ```
@@ -354,7 +354,7 @@ Server: NexWebserv/1.0
    ```bash
    # Using Apache Bench
    ab -n 1000 -c 10 http://localhost:8080/
-   
+
    # Using wrk
    wrk -t12 -c400 -d30s http://localhost:8080/
    ```
@@ -363,7 +363,7 @@ Server: NexWebserv/1.0
    ```bash
    # Test large request body
    curl -X POST -d "$(head -c 20M /dev/zero | tr '\0' 'x')" http://localhost:8080/
-   
+
    # Test path traversal
    curl http://localhost:8080/../../../etc/passwd
    ```
