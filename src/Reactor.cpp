@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 17:27:55 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 17:31:16 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ void Reactor::removeConnection(int fd)
 ? If pfd.revents shows readable or writable, we create an Event struct to describe it.
 @ This way, our reactor collects all ready events so we can handle them later.
 */
-
+ //TODO: I should check if POLLERR or POLLHUB happend close the fd ... 
 void Reactor::poll()
 {
     readyEvents.clear();

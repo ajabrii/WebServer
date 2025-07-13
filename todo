@@ -1,4 +1,4 @@
-1- fix the serversocket in cgi 
+1- fix the serversocket in cgi
 // CgiHandler::CgiHandler(const HttpServer &server, const HttpRequest& req , const RouteConfig& route ,int clientSocket, std::string env_paths)
 // {
 //     _serverData = server.getConfig();
@@ -12,7 +12,7 @@
 // }
 
 
-2 what i add in the parsing so i can work with muliple ports 
+2 what i add in the parsing so i can work with muliple ports
 // void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string& line)
 // {
 //     size_t equal = line.find('=');
@@ -103,14 +103,14 @@
 // }
 
 
-3 //TODO: I'll read the entire code base fix and clean the code so it can be ready to be submitted 
+3 //TODO: I'll read the entire code base fix and clean the code so it can be ready to be submitted
 4 //Posthandler.cpp/hpp code | main.cpp
 
 //set socket to non-blocking mode
 5 // Todo : -> 1.fix post problem 2.test methods and fix the problems | 3.read the entire code base clean it understand deeply all used function 4. fix the make file
 
 // problem is parse body (upload file) and parse form data
-//when client upload something that hase binary data it will not work so i fixed 
+//when client upload something that hase binary data it will not work so i fixed
 
 // i should support text/plain  in the post handler
 
@@ -119,3 +119,5 @@
 //TODO: youness should configure upload directory in the config file
 
 //TODO: get post and delete improved + i should make the code more cleaner now and @youness should configure uploaddir in the config parser handle the cgi bypass problem + adapte the code to c++98 so i need to remove all non c++98 functions + i need to unify how the response is built across the all handlers + i need to impliment error pages logic + don't foget to add fcntl  function in the server setup ...
+
+ //TODO: I should check if POLLERR or POLLHUB happend close the fd ... 
