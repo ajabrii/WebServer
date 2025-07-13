@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 18:24:06 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 18:27:33 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void Connection::clearBuffer()
 
 std::string Connection::readData()
 {
-    char tmp[BUFFER_SIZE]; //? pay attantion to this i will change it later maybe
+    char tmp[BUFFER_SIZE];
     ssize_t bytesRead = recv(client_fd, tmp, BUFFER_SIZE, 0);
     if (bytesRead < 0)
         throw std::runtime_error("Error: Failed to read from client");
