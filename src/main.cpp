@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 16:12:02 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 17:07:49 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,18 +25,19 @@ int main(int ac, char **av, char **envp) {
     }
 
     try {
-        //*=== Load & parse config === (done)
+        //!=== Load & parse config === (youness should check and organize this part fo the code.)
         ConfigInterpreter parser;
         parser.getConfigData(av[1]);
         parser.parse();
         parser.checkValues();
         std::string cgiEnv = parser.getPathForCGI(envp);
+        
         std::cout << "[✔] Config loaded. CGI path: " << cgiEnv << std::endl;
 
         std::vector<ServerConfig> configs = parser.getServerConfigs();
         std::vector<HttpServer*> servers;
 
-        // === Setup servers ===
+        //* === Setup servers ===
         for (size_t i = 0; i < configs.size(); ++i) {
             HttpServer* server = new HttpServer(configs[i]);
             server->setup();
