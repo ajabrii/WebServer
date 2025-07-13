@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:14:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/12 10:17:19 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 18:50:07 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ std::string clean_line(std::string line);
 
 HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConfig& route, const ServerConfig& serverConfig) const
 {
-    
+
     bool allowed = false;
     for (size_t i = 0; i < route.allowedMethods.size(); ++i) {
         if (req.method == route.allowedMethods[i]) {
@@ -36,7 +36,7 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
         }
     }
     if (!allowed) {
-        
+
         HttpResponse res;
         res.statusCode = 405;
         res.statusText = "Method Not Allowed";
@@ -60,8 +60,8 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
     else
     {
         HttpResponse res;
-        res.statusCode = 501; // Not Implemented
-        res.headers["Content-Type"] = "text/html; charset=UTF-8";
+        res.statusCode = 501;
+        res.headers["content-type"] = "text/html; charset=UTF-8";
         res.statusText = "Not Implemented";
         res.body = "HTTP method not implemented.";
         return res;

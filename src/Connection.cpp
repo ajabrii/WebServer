@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 18:27:53 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 18:46:31 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,10 @@ std::string Connection::readData()
     buffer.append(tmp, bytesRead);
     return std::string(buffer);
 }
-
+/*
+=== this function writes data aka response to the client ==
+? send it's like write function but used for socket the last param is  like the recv is flag that twiks the behavior of send
+*/
 void Connection::writeData(const std::string& response) const
 {
     ssize_t bytesSent = send(client_fd, response.c_str(), response.size(), 0);

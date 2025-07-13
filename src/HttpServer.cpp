@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 17:06:22 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 18:29:31 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,17 +114,3 @@ const ServerConfig& HttpServer::getConfig() const
 {
     return config;
 }
-
-//!i think this function is not important, i'll remove it later on
-// HttpResponse HttpServer::handleRequest(const HttpRequest& request)
-// {
-//     (void)request;
-//     HttpResponse response;
-//     response.version = "HTTP/1.1";
-//     response.statusCode = 200;
-//     response.statusText = "OK";
-//     response.headers["Content-Type"] = "text/plain";
-//     response.body = "Hello from HttpServer!";
-//     return response;
-// }
-

@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 18:26:16 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 18:46:46 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,57 +69,49 @@ int main(int ac, char **av, char **envp)
                     {
                         Connection* conn = new Connection(server->acceptConnection(event.fd)); //? hna kan 9ad wahd object dial connection kan constructih b client object li kay creah (acceptih) server
                         reactor.addConnection(conn, server);
-                        std::cout << "\033[1;32m[+]\033[0m New client connected" << std::endl;
+                        std::cout << NEW_CLIENT_CON << std::endl;
                     }
                 }
                 else if (event.isReadable)
                 {
-                    Connection& conn = reactor.getConnection(event.fd); // can geti dak l connection li tcreat (katkon fmap)
-                    std::string data = conn.readData(); // This reads new data and accumulates in buffer
-                    std::cout << data << std::endl;
-                    // Debug: Show current buffer state
-                    // std::cout << "\033[1;35m[DEBUG] Current buffer size: " << conn.getBuffer().size() << " bytes\033[0m" << std::endl;
-
-                    // Check if we have complete headers
+                    Connection& conn = reactor.getConnection(event.fd); //@ kangeti dak l connection li tcreat (katkon fmap)
+                    std::string data = conn.readData(); //@ (request li kaysifto l kliyan)This reads new data and accumulates in buffer
+                    std::cout << data << std::endl; //TODO remove this line later on no need for it
+                    //@ Check if we have complete headers hna fin kantsna ywselni request camel
                     size_t headerEnd = conn.getBuffer().find("\r\n\r\n");
                     if (headerEnd == std::string::npos) {
-                        // std::cout << "\033[1;33m[!] Incomplete headers, waiting for more data...\033[0m" << std::endl;
+                        Error::logs(INCOMPLATE_HEADER); //! maybe i'll remove it later on in here and in httpserver.hpp
                         continue;
                     }
 
-                    // Headers are complete, now check if body is complete (for POST requests)
+                    //@ Headers are complete, now check if body is complete (for POST requests)
                     std::string headerPart = conn.getBuffer().substr(0, headerEnd + 4);
                     std::string remainingData = conn.getBuffer().substr(headerEnd + 4);
 
                     size_t contentLength = 0;
-                    size_t clPos = headerPart.find("Content-Length:");
+                    size_t clPos = headerPart.find("content-length:");
                     if (clPos != std::string::npos) {
                         size_t clStart = headerPart.find(":", clPos) + 1;
                         size_t clEnd = headerPart.find("\r\n", clStart);
-                        if (clEnd != std::string::npos) {
+                        if (clEnd != std::string::npos)
+                        {
                             std::string clStr = headerPart.substr(clStart, clEnd - clStart);
-                            // Trim whitespace
                             clStr.erase(0, clStr.find_first_not_of(" \t"));
                             clStr.erase(clStr.find_last_not_of(" \t") + 1);
                             contentLength = std::stoul(clStr);
                         }
                     }
-                    // Check if we have the complete body
-                    if (contentLength > 0 && remainingData.size() < contentLength) {
-                        // std::cout << "\033[1;33m[!] Incomplete body (" << remainingData.size()
-                        //         //   << "/" << contentLength << " bytes), waiting for more data...\033[0m" << std::endl;
+                    if (contentLength > 0 && remainingData.size() < contentLength)
                         continue;
-                    }
+                    std::cout << RECEV_COMPLETE << std::endl;
 
-                    std::cout << "\033[1;36m[>] Received complete request:\033[0m\n" << std::endl;
-
-                    try {
+                    try
+                    {
                         HttpRequest req = HttpRequest::parse(conn.getBuffer());
-                        conn.clearBuffer(); // parsed successfully
-
+                        conn.clearBuffer();
                         HttpServer* server = reactor.getServerForClient(event.fd);
                         if (!server) {
-                            std::cerr << "Error: No server found for fd: " << event.fd << std::endl;
+                            Error::logs("Error: No server found");
                             reactor.removeConnection(event.fd);
                             continue;
                         }
@@ -140,18 +132,16 @@ int main(int ac, char **av, char **envp)
                             resp.statusCode = 404;
                             resp.statusText = "Not Found";
                             resp.body = Error::loadErrorPage(404, server->getConfig());
-                            resp.headers["Content-Length"] = std::to_string(resp.body.size());
+                            resp.headers["content-length"] = std::to_string(resp.body.size());
                         }
 
                         conn.writeData(resp.toString());
-                        reactor.removeConnection(event.fd); // later i shouldn't remove this !!
+                        reactor.removeConnection(event.fd); //! later i shouldn't remove this !!
                         std::cout << "\033[1;31m[-]\033[0m Connection closed" << std::endl;
                     }
                     catch (const std::runtime_error& e) {
                         std::string msg = e.what();
                         if (msg.find("incomplete body") != std::string::npos) {
-                            // This should not happen now due to our pre-check above
-                            // std::cout << "\033[1;33m[!] Unexpected incomplete body error, continuing...\033[0m" << std::endl;
                             continue;
                         } else {
                             std::cerr << "Parse error: " << msg << std::endl;
