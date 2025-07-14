@@ -6,11 +6,12 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:29:35 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 20:57:36 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 13:56:42 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/DeleteHandler.hpp"
+#include "../includes/Utils.hpp"
 #include <sys/stat.h>
 #include <unistd.h>
 #include <iostream>
@@ -99,7 +100,7 @@ HttpResponse DeleteHandler::createSuccessResponse(const std::string& filePath) c
     json << "  \"timestamp\": \"" << getCurrentTimestamp() << "\"\n";
     json << "}";
     resp.body = json.str();
-    resp.headers["Content-Length"] = std::to_string(resp.body.size());
+    resp.headers["Content-Length"] = Utils::toString(resp.body.size());
     return resp;
 }
 
@@ -110,7 +111,7 @@ HttpResponse DeleteHandler::createErrorResponse(int statusCode, const std::strin
     resp.statusText = statusText;
     resp.headers["content-type"] = "text/html";
     resp.body = Error::loadErrorPage(resp.statusCode, serverConfig);
-    resp.headers["content-length"] = std::to_string(resp.body.size());
+    resp.headers["content-length"] = Utils::toString(resp.body.size());
 
     return resp;
 }
@@ -128,7 +129,7 @@ HttpResponse DeleteHandler::createRedirectResponse(const std::string& redirectUr
     resp.body += "<body><h1>301 Moved Permanently</h1>";
     resp.body += "<p>The document has moved <a href=\"" + redirectUrl + "\">here</a>.</p>";
     resp.body += "</body></html>";
-    resp.headers["Content-Length"] = std::to_string(resp.body.size());
+    resp.headers["Content-Length"] = Utils::toString(resp.body.size());
 
     return resp;
 }

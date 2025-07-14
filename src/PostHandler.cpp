@@ -6,11 +6,12 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 20:43:01 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:00:15 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/PostHandler.hpp"
+#include "../includes/Utils.hpp"
 #include <fstream>
 #include <sstream>
 #include <ctime>
@@ -116,7 +117,7 @@ HttpResponse makeErrorResponse(int code, const std::string& text, const ServerCo
     resp.statusCode = code;
     resp.statusText = text;
     resp.body = Error::loadErrorPage(code, serverConfig);
-    resp.headers["content-length"] = std::to_string(resp.body.size());
+    resp.headers["content-length"] = Utils::toString(resp.body.size());
     return resp;
 }
 
@@ -161,20 +162,20 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
         else if (ct.find("application/x-www-form-urlencoded") != std::string::npos)
         {
             std::map<std::string,std::string> fields = parseFormUrlEncoded(req.body);
-            std::string filepath = route.uploadDir + "/form_" + std::to_string(std::time(0)) + ".txt";
+            std::string filepath = route.uploadDir + "/form_" + Utils::toString(std::time(0)) + ".txt";
             writeKeyValuesToFile(filepath, fields);
             resp.version = "HTTP/1.1";
             resp.body = "Form data saved to: " + filepath;
         }
         else if (ct.find("application/json") != std::string::npos)
         {
-            std::string filepath = route.uploadDir + "/json_" + std::to_string(std::time(0)) + ".json";
+            std::string filepath = route.uploadDir + "/json_" + Utils::toString(std::time(0)) + ".json";
             writeFile(filepath, req.body);
             resp.body = "JSON saved to: " + filepath;
         }
         else
         {
-            std::string filepath = route.uploadDir + "/data_" + std::to_string(std::time(0)) + ".txt";
+            std::string filepath = route.uploadDir + "/data_" + Utils::toString(std::time(0)) + ".txt";
             writeFile(filepath, req.body);
             resp.body = "Data saved to: " + filepath;
         }
@@ -186,7 +187,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
     resp.statusCode = 201;
     resp.statusText = "Created";
     resp.headers["content-type"] = "text/html; charset=UTF-8";
-    resp.headers["content-length"] = std::to_string(resp.body.size());
+    resp.headers["content-length"] = Utils::toString(resp.body.size());
     return resp;
 }
 

@@ -6,12 +6,13 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/07 09:55:07 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 13:58:28 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/CgiHandler.hpp"
 # include "../includes/CgiData.hpp"
+#include "../includes/Utils.hpp"
 #include <sstream>
 #include <algorithm>
 #include <cctype> 
@@ -104,8 +105,8 @@ char **CgiHandler::set_env(void)
     env_map["SCRIPT_NAME"] = _data.script_path;
     env_map["SCRIPT_FILENAME"] = "." + _data.script_path; // Assuming server root is current dir
     env_map["QUERY_STRING"] = _data.query;
-    env_map["SERVER_PORT"] = std::to_string(_serverData.port[0]); // ! port[0]
-    env_map["REMOTE_ADDR"] = std::to_string(_clientSocket); // Get client IP address
+    env_map["SERVER_PORT"] = Utils::toString(_serverData.port[0]); // ! port[0]
+    env_map["REMOTE_ADDR"] = Utils::toString(_clientSocket); // Get client IP address
     
     env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
     env_map["SERVER_PROTOCOL"] = "HTTP/1.1";

@@ -6,11 +6,49 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 17:31:16 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 13:57:21 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Reactor.hpp"
+#include "../includes/Utils.hpp"
+
+Reactor::Reactor() {
+    // Constructor
+}
+
+Reactor::~Reactor() {
+    cleanup();
+}
+
+void Reactor::cleanup() {
+    // Clean up all connections
+    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) {
+        delete it->second;
+    }
+    connectionMap.clear();
+    clientToServerMap.clear();
+    pollFDs.clear();
+    serverMap.clear();
+}
+
+void Reactor::cleanupTimedOutConnections()
+{
+    std::vector<int> timedOutFds;
+    
+    // Find timed out connections
+    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) {
+        if (it->second->isKeepAlive() && it->second->isTimedOut()) {
+            timedOutFds.push_back(it->first);
+        }
+    }
+    
+    // Remove timed out connections
+    for (size_t i = 0; i < timedOutFds.size(); ++i) {
+        std::cout << "\033[1;33m[TIMEOUT]\033[0m Connection " << timedOutFds[i] << " timed out" << std::endl;
+        removeConnection(timedOutFds[i]);
+    }
+}
  /*
  === registerServer & add connection do the same thing one for server the other for the client ===
   ?this function register and add the servers fd to pollfd
@@ -76,7 +114,7 @@ void Reactor::removeConnection(int fd)
 void Reactor::poll()
 {
     readyEvents.clear();
-    int ret = ::poll(pollFDs.data(), pollFDs.size(), -1);
+    int ret = ::poll(pollFDs.data(), pollFDs.size(), 1000); // 1 second timeout for keep-alive cleanup
     if (ret < 0)
         throw std::runtime_error("Error: poll failed");
     for (size_t i = 0; i < pollFDs.size(); ++i)
@@ -104,7 +142,7 @@ Connection& Reactor::getConnection(int fd)
 {
     std::map<int, Connection*>::iterator it = connectionMap.find(fd);
     if (it == connectionMap.end())
-        throw std::runtime_error("Error: Connection not found for fd: " + std::to_string(fd));
+        throw std::runtime_error("Error: Connection not found for fd: " + Utils::toString(fd));
     return *(it->second);
 }
 

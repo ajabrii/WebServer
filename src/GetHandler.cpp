@@ -6,12 +6,13 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 11:16:11 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 13:59:29 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/GetHandler.hpp"
 #include "../includes/RequestDispatcher.hpp"
+#include "../includes/Utils.hpp"
 #include <iostream>
 #include <fcntl.h>
 #include <dirent.h>
@@ -102,7 +103,7 @@ HttpResponse GetHandler::handleRedirect(const std::string& redirectUrl) const
     res.statusText = "Moved Permanently";
     res.headers["Location"] = redirectUrl;
     res.headers["Content-Type"] = "text/html";
-    res.headers["Content-Length"] = std::to_string(res.body.size());
+    res.headers["Content-Length"] = Utils::toString(res.body.size());
 
     return res;
 }
@@ -124,7 +125,7 @@ HttpResponse GetHandler::serveStaticFile(const std::string& filePath, const Serv
         res.body = buffer.str();
         std::string contentType = getMimeType(filePath);
         res.headers["content-type"] = contentType;
-        res.headers["content-length"] = std::to_string(res.body.size());
+        res.headers["content-length"] = Utils::toString(res.body.size());
     }
     else
         res = createNotFoundResponse(serverConfig);
@@ -198,7 +199,7 @@ HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, cons
     res.statusText = "OK";
     res.headers["content-type"] = "text/html; charset=utf-8";
     res.body = html.str();
-    res.headers["content-length"] = std::to_string(res.body.size());
+    res.headers["content-length"] = Utils::toString(res.body.size());
     return res;
 }
 
@@ -292,7 +293,7 @@ HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string& 
     res.statusText = statusText;
     res.headers["content-type"] = "text/html";
     res.body = Error::loadErrorPage(statusCode, serverConfig); // Load body first
-    res.headers["content-length"] = std::to_string(res.body.size()); // Then set content-length
+    res.headers["content-length"] = Utils::toString(res.body.size()); // Then set content-length
     return res;
 }
 

@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 11:25:01 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:07:41 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,21 +17,43 @@
 #include "../includes/RequestDispatcher.hpp"
 #include "../includes/CgiHandler.hpp"
 #include "../includes/Errors.hpp"
+#include "../includes/Utils.hpp"
 #include <sstream>
 #include <algorithm>
 #include <cctype>
+#include <signal.h>
+#include <cstdlib>
+# define REQUEST_LIMIT_PER_CONNECTION 100 
 
-// Forward declarations for helper functions
-void handleNewConnection(const Event& event, Reactor& reactor);
-void handleReadableEvent(const Event& event, Reactor& reactor, const std::string& cgiEnv);
-HttpResponse createErrorResponse(int statusCode, const std::string& statusText, const ServerConfig& serverConfig);
-HttpResponse create413Response(const ServerConfig& serverConfig);
-HttpResponse create431Response();
-HttpResponse create400Response();
-bool checkBufferSizeLimit(Connection& conn, size_t maxBodySize, Reactor& reactor, int clientFd);
-bool checkHeaderCompletion(Connection& conn, Reactor& reactor, int clientFd);
-bool checkContentLength(Connection& conn, size_t maxBodySize, Reactor& reactor, int clientFd, const ServerConfig& serverConfig);
-void processCompleteRequest(Connection& conn, Reactor& reactor, int clientFd, const std::string& cgiEnv);
+// Global variables for signal handling
+static volatile bool g_shutdown = false;
+static std::vector<HttpServer*>* g_servers = NULL;
+static Reactor* g_reactor = NULL;
+
+void signalHandler(int signum) {
+    (void)signum;
+    g_shutdown = true;
+}
+
+bool shouldKeepAlive(const HttpRequest& request)
+{
+    std::string connection = request.GetHeader("connection");
+    std::transform(connection.begin(), connection.end(), connection.begin(), ::tolower); // http is case-insensitive
+    
+    if (connection == "close") 
+        return false;
+    return true;
+}
+
+void setConnectionHeaders(HttpResponse& response, bool keepAlive)
+{
+    if (keepAlive) {
+        response.headers["Connection"] = "keep-alive";
+        response.headers["Keep-Alive"] = "timeout=60, max=100";
+    } else {
+        response.headers["Connection"] = "close";
+    }
+}
 
 int main(int ac, char **av, char **envp)
 {
@@ -42,7 +64,6 @@ int main(int ac, char **av, char **envp)
 
     try
     {
-        //!=== Load & parse config === (youness should check and organize this part fo the code.)
         ConfigInterpreter parser;
         parser.getConfigData(av[1]);
         parser.parse();
@@ -54,6 +75,11 @@ int main(int ac, char **av, char **envp)
         std::vector<ServerConfig> configs = parser.getServerConfigs();
         std::vector<HttpServer*> servers;
 
+        // Setup signal handlers for graceful shutdown
+        signal(SIGINT, signalHandler);
+        signal(SIGTERM, signalHandler);
+        g_servers = &servers;
+
         //* === Setup servers === (done 100%)
         for (size_t i = 0; i < configs.size(); ++i) {
             HttpServer* server = new HttpServer(configs[i]);
@@ -63,14 +89,19 @@ int main(int ac, char **av, char **envp)
 
         //* === Setup the multiplixing monitor aka reactor === (done 99.99%)
         Reactor reactor;
+        g_reactor = &reactor;
         for (size_t i = 0; i < servers.size(); ++i)
             reactor.registerServer(*servers[i]);
 
         //* === Event loop ===
-        while (true)
+        while (!g_shutdown)
         {
             try {
                 reactor.poll(); //? hna kan3mer wa7d struct smitha Event ghatl9awha f reactor class
+                
+                // Cleanup timed-out connections periodically
+                reactor.cleanupTimedOutConnections();
+                
                 std::vector<Event> events = reactor.getReadyEvents(); //? Hna kangeti dik struct li fiha evensts li 3mrathom poll (kernel li 3merhom poll it's system call you for more infos go to reactor.cpp > void Reactor::poll())
 
                 //? hna kanlopi ela ga3 events struct kola wahd o chno khasni ndir lih/bih isnewconnection isReadble (POLLIN) isWritble
@@ -111,7 +142,6 @@ int main(int ac, char **av, char **envp)
                             resp.statusCode = 413;
                             resp.statusText = "Payload Too Large";
                             resp.body = Error::loadErrorPage(413, server->getConfig());
-                            
                             std::stringstream ss;
                             ss << resp.body.size();
                             resp.headers["content-length"] = ss.str();
@@ -124,8 +154,6 @@ int main(int ac, char **av, char **envp)
                         
                         std::string data = conn.readData(); //@ (request li kaysifto l kliyan)This reads new data and accumulates in buffer
                         
-    
-                        
                         //@ Check if we have complete headers hna fin kantsna ywselni request camel
                         size_t headerEnd = conn.getBuffer().find("\r\n\r\n");
                         if (headerEnd == std::string::npos) {
@@ -136,8 +164,7 @@ int main(int ac, char **av, char **envp)
                                 resp.statusCode = 431;
                                 resp.statusText = "Request Header Fields Too Large";
                                 resp.headers["content-type"] = "text/html";
-                                resp.body = "<!DOCTYPE html><html><body><h1>431 Request Header Fields Too Large</h1></body></html>";
-                                
+                                resp.body = Error::loadErrorPage(431, server->getConfig());
                                 std::stringstream ss;
                                 ss << resp.body.size();
                                 resp.headers["content-length"] = ss.str();
@@ -146,10 +173,8 @@ int main(int ac, char **av, char **envp)
                                 reactor.removeConnection(event.fd);
                                 continue;
                             }
-                            Error::logs(INCOMPLATE_HEADER); //! maybe i'll remove it later on in here and in httpserver.hpp
                             continue;
                         }
-
                     //@ Headers are complete, now check if body is complete (for POST requests)
                     std::string headerPart = conn.getBuffer().substr(0, headerEnd + 4);
                     std::string remainingData = conn.getBuffer().substr(headerEnd + 4);
@@ -160,7 +185,8 @@ int main(int ac, char **av, char **envp)
                     std::transform(headerLower.begin(), headerLower.end(), headerLower.begin(), ::tolower);
                     
                     size_t clPos = headerLower.find("content-length:");
-                    if (clPos != std::string::npos) {
+                    if (clPos != std::string::npos)
+                    {
                         size_t clStart = headerPart.find(":", clPos) + 1;
                         size_t clEnd = headerPart.find("\r\n", clStart);
                         if (clEnd != std::string::npos)
@@ -232,8 +258,8 @@ int main(int ac, char **av, char **envp)
                             resp.version = "HTTP/1.1";  // Fix: Set HTTP version
                             resp.statusCode = 404;
                             resp.statusText = "Not Found";
-                            resp.body = Error::loadErrorPage(404, server->getConfig());
                             resp.headers["content-type"] = "text/html";
+                            resp.body = Error::loadErrorPage(404, server->getConfig());
                             
                             // C++98 compatible string conversion
                             std::stringstream ss;
@@ -243,9 +269,29 @@ int main(int ac, char **av, char **envp)
                             std::cout << "\033[1;33m[Main]\033[0m No route found for URI: " << req.uri << " - returning 404" << std::endl;
                         }
 
+                        // Determine if we should keep the connection alive
+                        bool keepAlive = shouldKeepAlive(req);
+                        
+                        // Limit number of requests per connection to prevent resource exhaustion
+                        if (conn.getRequestCount() >= REQUEST_LIMIT_PER_CONNECTION)
+                            keepAlive = false;
+                        // Set appropriate connection headers
+                        setConnectionHeaders(resp, keepAlive);
+                        
+                        // Send the response
                         conn.writeData(resp.toString());
-                        reactor.removeConnection(event.fd); //! later i shouldn't remove this !!
-                        std::cout << "\033[1;31m[-]\033[0m Connection closed" << std::endl;
+                        
+                        // Handle connection based on keep-alive decision
+                        if (keepAlive) {
+                            conn.setKeepAlive(true);
+                            conn.incrementRequestCount();
+                            conn.resetForNextRequest();
+                            // conn.updateLastActivity();
+                            std::cout << "\033[1;32m[+]\033[0m Connection kept alive (request #" << conn.getRequestCount() << ")" << std::endl;
+                        } else {
+                            reactor.removeConnection(event.fd);
+                            std::cout << "\033[1;31m[-]\033[0m Connection closed" << std::endl;
+                        }
                     }
                     catch (const std::runtime_error& e) {
                         std::string msg = e.what();
@@ -258,14 +304,15 @@ int main(int ac, char **av, char **envp)
                             errorResp.statusCode = 400;
                             errorResp.statusText = "Bad Request";
                             errorResp.headers["content-type"] = "text/html";
-                            errorResp.body = "<!DOCTYPE html><html><head><title>400 Bad Request</title></head>";
-                            errorResp.body += "<body><h1>400 Bad Request</h1><p>Invalid HTTP request format.</p></body></html>";
+                            errorResp.body = Error::loadErrorPage(400, server->getConfig());
                             
                             // C++98 compatible string conversion
                             std::stringstream ss;
                             ss << errorResp.body.size();
                             errorResp.headers["content-length"] = ss.str();
                             
+                            // Always close connection on parse errors
+                            setConnectionHeaders(errorResp, false);
                             conn.writeData(errorResp.toString());
                             reactor.removeConnection(event.fd);
                         }
@@ -285,12 +332,27 @@ int main(int ac, char **av, char **envp)
             }
         } // End of while loop
 
-        // === Cleanup (never reached) ===
-        for (size_t i = 0; i < servers.size(); ++i)
+        // === Graceful cleanup ===
+        std::cout << "\n[INFO] Shutting down gracefully..." << std::endl;
+        
+        // Clean up all connections in reactor
+        reactor.cleanup();
+        
+        // Clean up servers
+        for (size_t i = 0; i < servers.size(); ++i) {
             delete servers[i];
+        }
+        servers.clear();
 
     } catch (const std::exception& e) {
         std::cerr << "Fatal: " << e.what() << std::endl;
+        
+        // Emergency cleanup
+        if (g_servers) {
+            for (size_t i = 0; i < g_servers->size(); ++i) {
+                delete (*g_servers)[i];
+            }
+        }
         return 1;
     }
 

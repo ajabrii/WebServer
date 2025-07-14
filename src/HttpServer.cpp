@@ -6,11 +6,12 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 18:29:31 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 13:57:01 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/HttpServer.hpp"
+#include "../includes/Utils.hpp"
 #include <stdexcept>
 
 HttpServer::HttpServer(const ServerConfig& cfg) : config(cfg)
@@ -72,7 +73,7 @@ void HttpServer::setup()
         addr.sin_addr.s_addr = inet_addr(config.host.c_str()); // this function is not int the in subject !!!
 
         if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
-            throw std::runtime_error("Error: bind failed on port " + std::to_string(config.port[i]));
+            throw std::runtime_error("Error: bind failed on port " + Utils::toString(config.port[i]));
 
         if (listen(fd, 128) < 0)
             throw std::runtime_error("Error: listen failed");

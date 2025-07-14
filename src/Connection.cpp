@@ -6,20 +6,20 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 18:46:31 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 12:00:11 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 # include "../includes/HttpServer.hpp"
 
-Connection::Connection() : client_fd(-1)
+Connection::Connection() : client_fd(-1), lastActivityTime(std::time(0)), keepAlive(false), requestCount(0)
 {
     std::memset(&client_addr, 0, sizeof(client_addr));
 }
 
 Connection::Connection(int fd, const sockaddr_in& addr)
-    : client_fd(fd), client_addr(addr)
+    : client_fd(fd), client_addr(addr), lastActivityTime(std::time(0)), keepAlive(false), requestCount(0)
 {
 }
 
@@ -60,8 +60,38 @@ std::string Connection::readData()
     if (bytesRead < 0)
         throw std::runtime_error("Error: Failed to read from client");
 
+    updateLastActivity();
     buffer.append(tmp, bytesRead);
     return std::string(buffer);
+}
+
+void Connection::updateLastActivity() {
+    lastActivityTime = std::time(0);
+}
+
+bool Connection::isKeepAlive() const {
+    return keepAlive;
+}
+
+void Connection::setKeepAlive(bool ka) {
+    keepAlive = ka;
+}
+
+bool Connection::isTimedOut() const {
+    return (std::time(0) - lastActivityTime) > KEEP_ALIVE_TIMEOUT;
+}
+
+int Connection::getRequestCount() const {
+    return requestCount;
+}
+
+void Connection::incrementRequestCount() {
+    requestCount++;
+}
+
+void Connection::resetForNextRequest() {
+    buffer.clear();
+    updateLastActivity();
 }
 /*
 === this function writes data aka response to the client ==

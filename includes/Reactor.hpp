@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 17:19:00 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:01:59 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,8 @@ class Reactor
         std::vector<Event> readyEvents;
 
     public:
+        Reactor();
+        ~Reactor();
         void registerServer(HttpServer& server);
         void addConnection(Connection* conn, HttpServer* server);
         void removeConnection(int fd);
@@ -45,6 +47,8 @@ class Reactor
         Connection& getConnection(int fd);
         HttpServer* getServerByListeningFd(int fd);
         HttpServer* getServerForClient(int clientFd);
+        void cleanup();
+        void cleanupTimedOutConnections(); // Cleanup connections that have timed out
 };
 
 
