@@ -6,26 +6,16 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:02:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 18:48:13 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:29:40 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Router.hpp"
+#include "../includes/Utils.hpp"
 # include <iostream>
 # include <string>
 
-//! add this function to header
-std::string clean_line(std::string line)
-{
-    line.erase(0, line.find_first_not_of(" \t\n\r"));
-    line.erase(line.find_last_not_of(" \t\n\r") + 1);
 
-    if (!line.empty() && line.back() == ';')
-    {
-        line.pop_back();
-    }
-    return line;
-}
 
 const RouteConfig* Router::match(const HttpRequest& request, const ServerConfig& serverConfig) const
 {

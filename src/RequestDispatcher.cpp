@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:14:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 20:20:05 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:29:33 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,13 +16,14 @@
 #include "../includes/DeleteHandler.hpp"
 #include "../includes/PostHandler.hpp"
 # include "../includes/Errors.hpp"
+# include "../includes/Utils.hpp"
+
 # include <iostream>
 # include <fcntl.h>
 #include <dirent.h>
 #include <sstream>
 # include <fstream>
 
-std::string clean_line(std::string line);
 
 bool RequestDispatcher::isHttpMethodAllowed(const HttpRequest& req, std::vector<std::string> Imethods)
 {
