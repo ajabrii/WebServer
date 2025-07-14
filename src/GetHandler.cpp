@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 09:35:29 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 11:16:11 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -285,15 +285,14 @@ HttpResponse GetHandler::createForbiddenResponse(const ServerConfig& serverConfi
 HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string& statusText, const ServerConfig& serverConfig) const
 {
     std::cout << "\033[1;31m[GET Handler]\033[0m Creating " << statusCode << " error response" << std::endl;
-
-
     std::cout << "\033[1;33m[GET Handler]\033[0m Using default error page" << std::endl;
+    
     HttpResponse res;
     res.statusCode = statusCode;
     res.statusText = statusText;
-    res.headers["content-length"] = std::to_string(res.body.size());
     res.headers["content-type"] = "text/html";
-    res.body = Error::loadErrorPage(statusCode, serverConfig);
+    res.body = Error::loadErrorPage(statusCode, serverConfig); // Load body first
+    res.headers["content-length"] = std::to_string(res.body.size()); // Then set content-length
     return res;
 }
 
