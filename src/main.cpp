@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:56:05 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 16:19:29 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,27 +211,6 @@ int main(int ac, char **av, char **envp)
                                 contentLength = 0;
                             }
                         }
-                    }
-                    
-                    // Check if the declared content length exceeds the maximum allowed body size
-                    if (contentLength > maxBodySize)
-                    {
-                        Error::logs("Request body exceeds maximum size limit");
-                        HttpResponse resp;
-                        resp.version = "HTTP/1.1";
-                        resp.statusCode = 413;
-                        resp.statusText = "Payload Too Large";
-                        resp.body = Error::loadErrorPage(413, server->getConfig());
-                        
-                        // C++98 compatible string conversion
-                        std::stringstream ss;
-                        ss << resp.body.size();
-                        resp.headers["content-length"] = ss.str();
-                        resp.headers["content-type"] = "text/html";
-                        
-                        conn.writeData(resp.toString());
-                        reactor.removeConnection(event.fd);
-                        continue; // Important: continue to next event
                     }
                         
                     if (contentLength > 0 && remainingData.size() < contentLength)
