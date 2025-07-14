@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:02:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:29:40 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:37:35 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 
 const RouteConfig* Router::match(const HttpRequest& request, const ServerConfig& serverConfig) const
 {
-    std::cout << "[Router] Matching route for URI: " << request.uri << std::endl;
+    // std::cout << "[Router] Matching route for URI: " << request.uri << std::endl;
 
     const RouteConfig* bestMatch = 0;
 
@@ -35,10 +35,10 @@ const RouteConfig* Router::match(const HttpRequest& request, const ServerConfig&
     }
 
     if (bestMatch) {
-        std::cout << "[Router] Matched route: " << bestMatch->path << std::endl;
+        // std::cout << "[Router] Matched route: " << bestMatch->path << std::endl;
         return bestMatch;
     } else {
-        std::cout << "[Router] No matching route found. Return nullptr." << std::endl;
+        // std::cout << "[Router] No matching route found. Return nullptr." << std::endl;
         return 0;
     }
 }

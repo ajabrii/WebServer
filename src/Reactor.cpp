@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 13:57:21 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:48:04 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,10 +120,23 @@ void Reactor::poll()
     for (size_t i = 0; i < pollFDs.size(); ++i)
     {
         pollfd& pfd = pollFDs[i];
+        if (pfd.revents == 0) continue; // No events on this fd
+        
+        Event evt;
+        evt.fd = pfd.fd;
+        
+        // Check for error conditions FIRST (highest priority)
+        if (pfd.revents & (POLLERR | POLLHUP | POLLNVAL))
+        {
+            evt.isError = true;
+            evt.errorType = pfd.revents;
+            readyEvents.push_back(evt);
+            continue; // Don't process other events for this fd
+        }
+        
+        // Check for normal events
         if (pfd.revents & (POLLIN | POLLOUT))
         {
-            Event evt;
-            evt.fd = pfd.fd;
             evt.isReadable = (pfd.revents & POLLIN);
             evt.isWritable = (pfd.revents & POLLOUT);
             evt.isNewConnection = (serverMap.find(pfd.fd) != serverMap.end());

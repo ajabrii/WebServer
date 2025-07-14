@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/14 13:58:28 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:38:08 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ CgiHandler::CgiHandler(const HttpServer &server, const HttpRequest& req , const 
     // _serverSocket = server.getFd(); // it should be a vector later on
     _clientSocket = clientSocket;
     _data = check_cgi();
-    _data.DebugPrint();
+    // _data.DebugPrint();
 }
 void printEnvp(char** envp) 
 {

@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:20:14 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:48:29 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,29 @@ void setConnectionHeaders(HttpResponse& response, bool keepAlive)
     }
 }
 
+// Helper function to handle poll error events
+void handleErrorEvent(const Event& event)
+{
+    std::string errorMsg = "Connection error on fd " + Utils::toString(event.fd) + ": ";
+    
+    if (event.errorType & POLLHUP) {
+        errorMsg += "Client disconnected (POLLHUP)";
+    }
+    if (event.errorType & POLLERR) {
+        errorMsg += "Socket error (POLLERR)";
+    }
+    if (event.errorType & POLLNVAL) {
+        errorMsg += "Invalid file descriptor (POLLNVAL)";
+    }
+    
+    Error::logs(errorMsg);
+    
+    // Remove the connection immediately - this will clean up resources
+    if (g_reactor) {
+        g_reactor->removeConnection(event.fd);
+    }
+}
+
 int main(int ac, char **av, char **envp)
 {
     if (ac != 2) {
@@ -70,7 +93,7 @@ int main(int ac, char **av, char **envp)
         parser.checkValues();
         std::string cgiEnv = parser.getPathForCGI(envp);
 
-        std::cout << "[✔] Config loaded. CGI path: " << cgiEnv << std::endl;
+        std::cout << "[✔] Config loaded" << std::endl;
 
         std::vector<ServerConfig> configs = parser.getServerConfigs();
         std::vector<HttpServer*> servers;
@@ -109,7 +132,12 @@ int main(int ac, char **av, char **envp)
             {
                 Event event = events[i];
 
-                if (event.isNewConnection)
+                // Handle error events FIRST (highest priority)
+                if (event.isError)
+                {
+                    handleErrorEvent(event);
+                }
+                else if (event.isNewConnection)
                 {
                     HttpServer* server = reactor.getServerByListeningFd(event.fd); //? hna kanchof ina server t connecta m3ah l client bach nchof ina route khsni nmchi lih mn ber3d
                     if (server)

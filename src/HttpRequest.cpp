@@ -80,19 +80,19 @@ HttpRequest HttpRequest::parse(const std::string& raw)
         // Extract body from raw data (everything after headers)
         std::string all_body = raw.substr(headerEnd + 4);
         
-        std::cout << "size is ::" << req.contentLength << std::endl;
-        std::cout << "all_body size is ::" << all_body.size() << std::endl;
-        std::cout << "::::::::::::::::::::::::::::::::::::::::::::::::::ANA:HNA:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<  std::endl;
+        // std::cout << "size is ::" << req.contentLength << std::endl;
+        // std::cout << "all_body size is ::" << all_body.size() << std::endl;
+        // std::cout << "::::::::::::::::::::::::::::::::::::::::::::::::::ANA:HNA:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<  std::endl;
         
         if (all_body.size() < req.contentLength) {
-            std::cout << "------------------------------> incomplete body detected, have: " << all_body.size() << " need: " << req.contentLength << std::endl;
+            // std::cout << "------------------------------> incomplete body detected, have: " << all_body.size() << " need: " << req.contentLength << std::endl;
             throwHttpError(400, "incomplete body");
         }
         else {
             // Body is complete
             req.bodyReceived = all_body.size();
             req.body = all_body.substr(0, req.contentLength);
-            std::cout << "------------------------------> Body successfully parsed, size: " << req.body.size() << std::endl;
+            // std::cout << "------------------------------> Body successfully parsed, size: " << req.body.size() << std::endl;
         }
     }
     else if (!req.headers["Transfer-Encoding"].empty()) {
