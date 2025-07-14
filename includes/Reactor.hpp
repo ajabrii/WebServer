@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 15:46:23 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:57:23 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,26 +25,33 @@ struct Event {
     bool isReadable;
     bool isWritable;
     bool isNewConnection;
+    bool isError;
+    short errorType;
+    Event();
 };
 
 class Reactor
 {
-private:
-    std::vector<pollfd> pollFDs;
-    std::map<int, HttpServer*> serverMap;         // listening_fd → server
-    std::map<int, Connection*> connectionMap;     // client_fd → Connection*
-    std::map<int, HttpServer*> clientToServerMap; // client_fd → server
-    std::vector<Event> readyEvents;
+    private:
+        std::vector<pollfd> pollFDs;
+        std::map<int, HttpServer*> serverMap;
+        std::map<int, Connection*> connectionMap;
+        std::map<int, HttpServer*> clientToServerMap;
+        std::vector<Event> readyEvents;
 
-public:
-    void registerServer(HttpServer& server);
-    void addConnection(Connection* conn, HttpServer* server);
-    void removeConnection(int fd);
-    void poll();
-    std::vector<Event> getReadyEvents();
-    Connection& getConnection(int fd);
-    HttpServer* getServerByListeningFd(int fd);       // for new connections
-    HttpServer* getServerForClient(int clientFd);     // for existing client fd
+    public:
+        Reactor();
+        ~Reactor();
+        void registerServer(HttpServer& server);
+        void addConnection(Connection* conn, HttpServer* server);
+        void removeConnection(int fd);
+        void poll();
+        std::vector<Event> getReadyEvents() const;
+        Connection& getConnection(int fd);
+        HttpServer* getServerByListeningFd(int fd);
+        HttpServer* getServerForClient(int clientFd);
+        void cleanup();
+        void cleanupTimedOutConnections(); // Cleanup connections that have timed out
 };
 
 

@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:13:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/02 11:40:43 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 16:35:19 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,17 +16,16 @@
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
 #include "RouteConfig.hpp"
-// #include "GetHandler.hpp"
-// + PostHandler.hpp, DeleteHandler.hpp when implemented
+#include "ServerConfig.hpp"
+# define GET_M "GET"
+#define POST_M "POST"
+# define DELETE_M "DELETE"
 
 class RequestDispatcher
 {
-    // private:
-    //     HttpResponse serveStaticFile(std::string& filepath) const;
-    //     HttpResponse  handleDirectoryListing(const std::string& path, const std::string& urlPath) const;
-    //     HttpResponse handleRedirect(const std::string& redirectUri) const;
     public:
-        HttpResponse dispatch(const HttpRequest& request, const RouteConfig& route) const;
+        static bool isHttpMethodAllowed(const HttpRequest& req,std::vector<std::string> Imethods);
+        HttpResponse dispatch(const HttpRequest &request, const RouteConfig &route, const ServerConfig &serverConfig) const;
 };
 
 #endif

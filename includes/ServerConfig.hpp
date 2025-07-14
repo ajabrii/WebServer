@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:00:24 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/01 15:41:41 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/12 10:15:42 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,12 @@
 #include <map>
 #include "RouteConfig.hpp"
 
-class ServerConfig {
+class ServerConfig
+{
     public:
         std::string host;
-        int port;
+        std::vector<int> port;
+        // int port;
         std::vector<std::string> serverName;
         std::map<int, std::string> error_pages;
         size_t clientMaxBodySize;

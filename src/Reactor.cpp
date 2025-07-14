@@ -6,58 +6,140 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/06/30 15:46:52 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:56:46 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-# include "../includes/Reactor.hpp"
+#include "../includes/Reactor.hpp"
+#include "../includes/Utils.hpp"
 
-
-void Reactor::registerServer(HttpServer& server) {
-    pollfd pfd;
-    pfd.fd = server.getFd();
-    pfd.events = POLLIN;
-    pfd.revents = 0;
-    pollFDs.push_back(pfd);
-    serverMap[server.getFd()] = &server;
+Reactor::Reactor() {
+    // Constructor
 }
 
-void Reactor::addConnection(Connection* conn, HttpServer* server) {
+Reactor::~Reactor() {
+    cleanup();
+}
+
+Event::Event() : fd(-1), isReadable(false), isWritable(false), 
+              isNewConnection(false), isError(false), errorType(0) {}
+
+void Reactor::cleanup() {
+    // Clean up all connections
+    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) {
+        delete it->second;
+    }
+    connectionMap.clear();
+    clientToServerMap.clear();
+    pollFDs.clear();
+    serverMap.clear();
+}
+
+void Reactor::cleanupTimedOutConnections()
+{
+    std::vector<int> timedOutFds;
+    
+    // Find timed out connections
+    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) {
+        if (it->second->isKeepAlive() && it->second->isTimedOut()) {
+            timedOutFds.push_back(it->first);
+        }
+    }
+    
+    // Remove timed out connections
+    for (size_t i = 0; i < timedOutFds.size(); ++i) {
+        std::cout << "\033[1;33m[TIMEOUT]\033[0m Connection " << timedOutFds[i] << " timed out" << std::endl;
+        removeConnection(timedOutFds[i]);
+    }
+}
+ /*
+ === registerServer & add connection do the same thing one for server the other for the client ===
+  ?this function register and add the servers fd to pollfd
+  ?so we can start the listening on the expected events
+ */
+void Reactor::registerServer(HttpServer& server)
+{
+    const std::vector<int>& fds = server.getFds();
+
+    for (size_t i = 0; i < fds.size(); ++i)
+    {
+        pollfd pfd;
+        pfd.fd = fds[i];
+        pfd.events = POLLIN;
+        pfd.revents = 0;
+        pollFDs.push_back(pfd);
+        serverMap[fds[i]] = &server;
+    }
+}
+
+void Reactor::addConnection(Connection* conn, HttpServer* server)
+{
     pollfd pfd;
     pfd.fd = conn->getFd();
-    pfd.events = POLLIN; // only listen for read initially
+    pfd.events = POLLIN;
     pfd.revents = 0;
     pollFDs.push_back(pfd);
     connectionMap[conn->getFd()] = conn;
     clientToServerMap[conn->getFd()] = server;
 }
 
-void Reactor::removeConnection(int fd) {
-    for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it) {
-        if (it->fd == fd) {
+void Reactor::removeConnection(int fd)
+{
+    for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it)
+    {
+        if (it->fd == fd)
+        {
             pollFDs.erase(it);
             break;
         }
     }
-    std::map<int, Connection*>::iterator it = connectionMap.find(fd);
-    if (it != connectionMap.end()) {
-        delete it->second;  // free memory
-        connectionMap.erase(it);
+    std::map<int, Connection*>::iterator connIt = connectionMap.find(fd);
+    if (connIt != connectionMap.end())
+    {
+        delete connIt->second;
+        connectionMap.erase(connIt);
     }
     clientToServerMap.erase(fd);
 }
 
-void Reactor::poll() {
-    readyEvents.clear();
-    int ret = ::poll(pollFDs.data(), pollFDs.size(), -1);
-    if (ret < 0)
-        throw std::runtime_error("poll failed");
+/*
+=== this function is where the multiplexing magic happens ===
 
-    for (size_t i = 0; i < pollFDs.size(); ++i) {
+*(x) poll() : lets the kernel watch multiple fds at once (monitoring for read/write events).
+@ It blocks until at least one fd is ready (here we block forever with -1).
+@ The kernel sets pfd.revents flags to show which events happened (e.g., POLLIN, POLLOUT).
+
+*(x) We loop over pollFDs:
+? If pfd.revents shows readable or writable, we create an Event struct to describe it.
+@ This way, our reactor collects all ready events so we can handle them later.
+*/
+ //TODO: I should check if POLLERR or POLLHUB happend close the fd ... 
+void Reactor::poll()
+{
+    readyEvents.clear();
+    int ret = ::poll(pollFDs.data(), pollFDs.size(), 1000); // 1 second timeout for keep-alive cleanup
+    if (ret < 0)
+        throw std::runtime_error("Error: poll failed");
+    for (size_t i = 0; i < pollFDs.size(); ++i)
+    {
         pollfd& pfd = pollFDs[i];
-        if (pfd.revents & (POLLIN | POLLOUT)) {
-            Event evt;
-            evt.fd = pfd.fd;
+        if (pfd.revents == 0) continue; // No events on this fd
+        
+        Event evt;
+        evt.fd = pfd.fd;
+        
+        // Check for error conditions FIRST (highest priority)
+        if (pfd.revents & (POLLERR | POLLHUP | POLLNVAL))
+        {
+            evt.isError = true;
+            evt.errorType = pfd.revents;
+            readyEvents.push_back(evt);
+            continue; // Don't process other events for this fd
+        }
+        
+        // Check for normal events
+        if (pfd.revents & (POLLIN | POLLOUT))
+        {
             evt.isReadable = (pfd.revents & POLLIN);
             evt.isWritable = (pfd.revents & POLLOUT);
             evt.isNewConnection = (serverMap.find(pfd.fd) != serverMap.end());
@@ -66,105 +148,28 @@ void Reactor::poll() {
     }
 }
 
-std::vector<Event> Reactor::getReadyEvents() { return readyEvents; }
+//@ reactors Getters
+std::vector<Event> Reactor::getReadyEvents() const
+{
+    return readyEvents;
+}
 
-Connection& Reactor::getConnection(int fd) {
+Connection& Reactor::getConnection(int fd)
+{
     std::map<int, Connection*>::iterator it = connectionMap.find(fd);
     if (it == connectionMap.end())
-        throw std::runtime_error("Connection not found");
+        throw std::runtime_error("Error: Connection not found for fd: " + Utils::toString(fd));
     return *(it->second);
 }
 
-HttpServer* Reactor::getServerByListeningFd(int fd) {
+HttpServer* Reactor::getServerByListeningFd(int fd)
+{
     std::map<int, HttpServer*>::iterator it = serverMap.find(fd);
-    return it != serverMap.end() ? it->second : nullptr;
+    return (it != serverMap.end()) ? it->second : 0;
 }
 
-HttpServer* Reactor::getServerForClient(int clientFd) {
+HttpServer* Reactor::getServerForClient(int clientFd)
+{
     std::map<int, HttpServer*>::iterator it = clientToServerMap.find(clientFd);
-    return it != clientToServerMap.end() ? it->second : nullptr;
+    return (it != clientToServerMap.end()) ? it->second : 0;
 }
-
-
-// // Implementation
-// void Reactor::registerServer(HttpServer& server) {
-//     pollfd pfd;
-//     pfd.fd = server.getFd();
-//     pfd.events = POLLIN;
-//     pfd.revents = 0;
-//     pollFDs.push_back(pfd);
-//     serverFd = server.getFd(); // Store the server's file descriptor
-//     serverMap[server.getFd()] = &server;
-// }
-
-// // void Reactor::addConnection(const Connection& conn) {
-// //     pollfd pfd;
-// //     pfd.fd = conn.getFd();
-// //     pfd.events = POLLIN | POLLOUT;
-// //     pfd.revents = 0;
-// //     pollFDs.push_back(pfd);
-// //     connectionMap[conn.getFd()] = conn;
-// // }
-
-// void Reactor::addConnection(Connection* conn, HttpServer* serv) {
-//     pollfd pfd;
-//     pfd.fd = conn->getFd();
-//     pfd.events = POLLIN | POLLOUT;
-//     pfd.revents = 0;
-//     pollFDs.push_back(pfd);
-//     connectionMap[conn->getFd()] = conn;
-//     clientToservers[conn->getFd()] = &serv; // Map connection fd to server
-// }
-
-
-// void Reactor::removeConnection(int fd) {
-//     for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it) {
-//         if (it->fd == fd) {
-//             pollFDs.erase(it);
-//             break;
-//         }
-//     }
-//     std::map<int, Connection*>::iterator it = connectionMap.find(fd);
-//     if (it != connectionMap.end()) {
-//         delete it->second;  // free memory
-//         connectionMap.erase(it);
-//     }
-// }
-
-
-// void Reactor::poll() 
-// {
-//     readyEvents.clear(); //
-//     int ret = ::poll(&pollFDs[0], pollFDs.size(), -1);
-//     if (ret < 0) {
-//         throw std::runtime_error("poll failed");
-//     }
-//     for (size_t i = 0; i < pollFDs.size(); ++i) {
-//         pollfd& pfd = pollFDs[i];
-//         if (pfd.revents & POLLIN || pfd.revents & POLLOUT) {
-//             Event evt;
-//             evt.fd = pfd.fd;
-//             evt.isReadable = (pfd.revents & POLLIN) != 0;
-//             evt.isWritable = (pfd.revents & POLLOUT) != 0;
-//             evt.isNewConnection = (serverMap.find(pfd.fd) != serverMap.end());
-//             readyEvents.push_back(evt);
-//         }
-//     }
-// }
-
-// std::vector<Event> Reactor::getReadyEvents() {
-//     return readyEvents;
-// }
-
-// Connection& Reactor::getConnection(int fd) 
-// {
-//     std::map<int, Connection*>::iterator it = connectionMap.find(fd);
-//     if (it == connectionMap.end())
-//         throw std::runtime_error("Connection not found");
-//     return (*it->second);
-// }
-
-// HttpServer* Reactor::getServer(int fd) {
-//     std::map<int, HttpServer*>::iterator it = clientToservers.find(fd);
-//     return it != serverMap.end() ? it->second : 0;
-// }
