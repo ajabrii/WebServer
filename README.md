@@ -119,7 +119,7 @@ The server follows a modular, layered architecture designed for maintainability 
 1. **Clone the repository**
    ```bash
    git clone https://github.com/ajabrii/Webserver.git
-   cd nexWebserv
+   cd Webserver
    ```
 
 2. **Compile the project**
