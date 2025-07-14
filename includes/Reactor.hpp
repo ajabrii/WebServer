@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:48:04 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:57:23 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,7 @@ struct Event {
     bool isNewConnection;
     bool isError;
     short errorType;
-    
-    Event() : fd(-1), isReadable(false), isWritable(false), 
-              isNewConnection(false), isError(false), errorType(0) {}
+    Event();
 };
 
 class Reactor

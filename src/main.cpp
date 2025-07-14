@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:48:29 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:56:05 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,6 @@
 #include <cstdlib>
 # define REQUEST_LIMIT_PER_CONNECTION 100 
 
-// Global variables for signal handling
 static volatile bool g_shutdown = false;
 static std::vector<HttpServer*>* g_servers = NULL;
 static Reactor* g_reactor = NULL;
@@ -35,27 +34,6 @@ void signalHandler(int signum) {
     g_shutdown = true;
 }
 
-bool shouldKeepAlive(const HttpRequest& request)
-{
-    std::string connection = request.GetHeader("connection");
-    std::transform(connection.begin(), connection.end(), connection.begin(), ::tolower); // http is case-insensitive
-    
-    if (connection == "close") 
-        return false;
-    return true;
-}
-
-void setConnectionHeaders(HttpResponse& response, bool keepAlive)
-{
-    if (keepAlive) {
-        response.headers["Connection"] = "keep-alive";
-        response.headers["Keep-Alive"] = "timeout=60, max=100";
-    } else {
-        response.headers["Connection"] = "close";
-    }
-}
-
-// Helper function to handle poll error events
 void handleErrorEvent(const Event& event)
 {
     std::string errorMsg = "Connection error on fd " + Utils::toString(event.fd) + ": ";

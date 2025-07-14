@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:48:04 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:56:46 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,9 @@ Reactor::Reactor() {
 Reactor::~Reactor() {
     cleanup();
 }
+
+Event::Event() : fd(-1), isReadable(false), isWritable(false), 
+              isNewConnection(false), isError(false), errorType(0) {}
 
 void Reactor::cleanup() {
     // Clean up all connections
