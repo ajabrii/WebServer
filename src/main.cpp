@@ -71,14 +71,20 @@ int main(int ac, char **av, char **envp) {
                         if (route) {
                             std::cout << "event fd_----------------> " << event.fd << "\n";
                             CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
-                            if (cgi.IsCgi()) {
+                            if (cgi.IsCgi()) 
+                            {
                                 response = cgi.execCgi();
-                            } else {
+                                std::cerr << "Res is : "<< response.toString() << std::endl;
+                            } 
+                            else 
+                            {
                                 RequestDispatcher dispatcher;
                                 response = dispatcher.dispatch(req, *route);
                             }
                             std::cout << "[<] Response: " << response.statusCode << " " << response.statusText << std::endl;
-                        } else {
+                        } 
+                        else 
+                        {
                             response.statusCode = 404;
                             response.statusText = "Not Found";
                             response.body = Error::loadErrorPage(404, server->getConfig());

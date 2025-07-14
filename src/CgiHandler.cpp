@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/13 15:02:54 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/14 16:44:53 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -311,6 +311,16 @@ HttpResponse CgiHandler::execCgi(void)
     pid_t pid;
     char **env;
 
+    std::string check_existing;
+
+    check_existing = _data.script_path.substr(1);
+    if (access((char *)check_existing.c_str(), F_OK) < 0)
+    {
+        f.statusCode = 404;
+        f.statusText = "Internal Server Error";
+        f.body = "CGI : Script file not found, path: {" + check_existing + "}" ;
+        return f;
+    }
     env = set_env(); // Environment variables prepared
 
     // Determine command to pass to execve
@@ -333,10 +343,7 @@ HttpResponse CgiHandler::execCgi(void)
         return f;
     }
     
-    // Prepare argv: argv[0] is the interpreter, argv[1] is the script path
-    str = _data.script_path.substr(1); // Removes leading '/' to make it relative for `chdir` or directly usable
-    // For argv[0], it's common to use the interpreter's full path or just its name. `cmd.c_str()` is usually fine.
-    // char *argv[] = { (char *)fp.c_str(), (char *)str.c_str(), NULL }; // Argv[0] should be the full path if possible
+    str = _data.script_path.substr(1);
 
     int pfd[2]; // Pipe for CGI output
     int pfd_in[2]; // Pipe for CGI input (for POST requests)
@@ -383,6 +390,7 @@ HttpResponse CgiHandler::execCgi(void)
     }
     else if (pid == 0) // Child process (CGI)
     {
+        std::cerr << "HELLO FROM CHILD PID: " << getpid() << std::endl;
         // Redirect stdout to parent
         dup2(pfd[1], STDOUT_FILENO);
         close(pfd[0]); // Close read end in child
@@ -420,7 +428,6 @@ HttpResponse CgiHandler::execCgi(void)
             perror("chdir failed");
             exit(1); // Exit child process on chdir failure
         }
-        
         // Execute the CGI script
         // argv[0] should be the interpreter name, argv[1] is the script filename
         char *final_argv[3];
@@ -503,7 +510,7 @@ HttpResponse CgiHandler::execCgi(void)
                 for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
                 delete[] env;
                 f.statusCode = 504;
-                f.statusText = "Gateway Timeout";
+                f.statusText = "Gateway Timeout 1";
                 f.body = "CGI script execution timed out (epoll).";
                 return f;
             }
@@ -516,7 +523,9 @@ HttpResponse CgiHandler::execCgi(void)
             }
             else if (nfds == 0) 
             {
+                
                 // Timeout reached (no data to read)
+                std::cerr << "curr pid: " << getpid() << ",PID TO KILL: " << pid << std::endl;
                 kill(pid, SIGKILL);
                 waitpid(pid, &status, 0);
                 close(pfd[0]);
@@ -524,7 +533,7 @@ HttpResponse CgiHandler::execCgi(void)
                 for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
                 delete[] env;
                 f.statusCode = 504;
-                f.statusText = "Gateway Timeout";
+                f.statusText = "Gateway Timeout 2";
                 f.body = "CGI script execution timed out (epoll wait).";
                 return f;
             } 
@@ -540,11 +549,12 @@ HttpResponse CgiHandler::execCgi(void)
                 else if (bytes_read == 0)
                 {
                     // EOF
+                    child_finished = true;
                     break;
                 } 
                 else 
                 {
-                    perror("read from pipe_stdout failed");
+                    perror("read from pipe_stdout failed\n");
                     break;
                 }
             }
@@ -565,11 +575,10 @@ HttpResponse CgiHandler::execCgi(void)
         for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
         delete[] env;
 
-        // If child exited abnormally
         if (!child_finished || (WIFEXITED(status) && WEXITSTATUS(status) != 0)) 
         {
             f.statusCode = 500;
-            f.statusText = "Internal Server Error 5";
+            f.statusText = "Internal Server Error Child finish";
             f.body = "CGI script execution failed.";
             return f;
         }
