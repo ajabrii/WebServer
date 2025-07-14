@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 19:46:20 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 09:35:29 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,8 +67,8 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
             std::cout << "\033[1;31m[GET Handler]\033[0m Path exists but is not a file or directory" << std::endl;
         }
     }
-    else
-        throw std::runtime_error("\033[1;31m[GET Handler]\033[0m Path does not exist: " + filePath);
+    // else
+    //     throw std::runtime_error("\033[1;31m[GET Handler]\033[0m Path does not exist: " + filePath);
 
     return createNotFoundResponse(serverConfig);
 }

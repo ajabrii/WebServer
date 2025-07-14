@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 18:46:46 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 09:40:48 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ int main(int ac, char **av, char **envp)
             reactor.registerServer(*servers[i]);
 
         //* === Event loop ===
+        size_t MaxSizeToUPload;
         while (true)
         {
             reactor.poll(); //? hna kan3mer wa7d struct smitha Event ghatl9awha f reactor class
@@ -65,6 +66,11 @@ int main(int ac, char **av, char **envp)
                 if (event.isNewConnection)
                 {
                     HttpServer* server = reactor.getServerByListeningFd(event.fd); //? hna kanchof ina server t connecta m3ah l client bach nchof ina route khsni nmchi lih mn ber3d
+                    MaxSizeToUPload = server->getConfig().clientMaxBodySize;
+                    std::cout << "==========================MAX-body-Size=====================" << std::endl;
+                    std::cout << "Max body size for this server: " << MaxSizeToUPload << " bytes" << std::endl;
+                    std::cout << "==========================/MAX-body-Size=====================" << std::endl;
+
                     if (server)
                     {
                         Connection* conn = new Connection(server->acceptConnection(event.fd)); //? hna kan 9ad wahd object dial connection kan constructih b client object li kay creah (acceptih) server
@@ -101,6 +107,21 @@ int main(int ac, char **av, char **envp)
                             contentLength = std::stoul(clStr);
                         }
                     }
+                    if (contentLength > MaxSizeToUPload)
+                    {
+                        HttpServer* server = reactor.getServerForClient(event.fd);
+                        Error::logs("Request body exceeds maximum size limit.");
+                        HttpResponse resp;
+                        resp.version = "HTTP/1.1";
+                        resp.statusCode = 413;
+                        resp.statusText = "Payload Too Large";
+                        resp.body = Error::loadErrorPage(413, server->getConfig());
+                        resp.headers["content-length"] = std::to_string(resp.body.size());
+                        resp.headers["content-type"] = "text/html";
+                        conn.writeData(resp.toString());
+                        reactor.removeConnection(event.fd);
+                    }
+                        
                     if (contentLength > 0 && remainingData.size() < contentLength)
                         continue;
                     std::cout << RECEV_COMPLETE << std::endl;
@@ -127,6 +148,9 @@ int main(int ac, char **av, char **envp)
                             } else {
                                 RequestDispatcher dispatcher;
                                 resp = dispatcher.dispatch(req, *route, server->getConfig());
+                                std::cout << "[Response status]: " << resp.statusCode << std::endl;
+                                std::cout << "[Response body]: " << resp.body << std::endl;
+    
                             }
                         } else {
                             resp.statusCode = 404;
@@ -148,7 +172,7 @@ int main(int ac, char **av, char **envp)
                             HttpResponse errorResp;
                             errorResp.statusCode = 400;
                             errorResp.statusText = "Bad Request";
-                            errorResp.body = "HTTP/1.1 400 Bad Request\r\n\r\nBad Request";
+                            errorResp.body = "HTTP/1.1 400 Bad Requestooooo\r\n\r\nBad Request";
                             errorResp.headers["Content-Length"] = std::to_string(errorResp.body.size());
                             conn.writeData(errorResp.toString());
                             reactor.removeConnection(event.fd);
