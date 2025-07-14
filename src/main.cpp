@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 11:16:11 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 11:25:01 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,18 @@
 #include <sstream>
 #include <algorithm>
 #include <cctype>
+
+// Forward declarations for helper functions
+void handleNewConnection(const Event& event, Reactor& reactor);
+void handleReadableEvent(const Event& event, Reactor& reactor, const std::string& cgiEnv);
+HttpResponse createErrorResponse(int statusCode, const std::string& statusText, const ServerConfig& serverConfig);
+HttpResponse create413Response(const ServerConfig& serverConfig);
+HttpResponse create431Response();
+HttpResponse create400Response();
+bool checkBufferSizeLimit(Connection& conn, size_t maxBodySize, Reactor& reactor, int clientFd);
+bool checkHeaderCompletion(Connection& conn, Reactor& reactor, int clientFd);
+bool checkContentLength(Connection& conn, size_t maxBodySize, Reactor& reactor, int clientFd, const ServerConfig& serverConfig);
+void processCompleteRequest(Connection& conn, Reactor& reactor, int clientFd, const std::string& cgiEnv);
 
 int main(int ac, char **av, char **envp)
 {

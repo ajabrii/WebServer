@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/07 11:31:49 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 19:50:33 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 11:35:19 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,20 @@
 #include <sstream>
 #include <map>
 #include <iostream>
+
+std::map<int, std::string> Error::defaultErrResponses = {
+    {400, "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>400 Bad Request</h1></body></html>"},
+    {403, "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>403 Forbidden</h1></body></html>"},
+    {404, "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>404 Not Found</h1></body></html>"},
+    {405, "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>405 Method Not Allowed</h1></body></html>"},
+    {413, "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>413 Payload Too Large</h1></body></html>"},
+    {431, "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>431 Request Header Fields Too Large</h1></body></html>"},
+    {500, "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>500 Internal Server Error</h1></body></html>"},
+    {501, "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>501 Not Implemented</h1></body></html>"},
+    {505, "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>505 HTTP Version Not Supported</h1></body></html>"},
+    // TODO: add more error codes if needed
+};
+
 
 
 //todo add a static map that holds status codes for errors and appropriete string response or map it to defualt html string
@@ -32,7 +46,7 @@ std::string Error::loadErrorPage(int statusCode, const ServerConfig& config)
             return buffer.str();
         }
     }
-    return "<html><body><h1>" + std::to_string(statusCode) + " Error</h1></body></html>";
+    return defaultErrResponses[statusCode];
 }
 
 
