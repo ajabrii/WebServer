@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:07:41 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/14 14:20:14 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,6 +115,7 @@ int main(int ac, char **av, char **envp)
                     if (server)
                     {
                         Connection* conn = new Connection(server->acceptConnection(event.fd)); //? hna kan 9ad wahd object dial connection kan constructih b client object li kay creah (acceptih) server
+                        conn->updateLastActivity(); // Initialize activity timestamp for new connection
                         reactor.addConnection(conn, server);
                         std::cout << NEW_CLIENT_CON << std::endl;
                     }
@@ -153,6 +154,7 @@ int main(int ac, char **av, char **envp)
                         }
                         
                         std::string data = conn.readData(); //@ (request li kaysifto l kliyan)This reads new data and accumulates in buffer
+                        conn.updateLastActivity(); // Update activity timestamp when receiving data from client
                         
                         //@ Check if we have complete headers hna fin kantsna ywselni request camel
                         size_t headerEnd = conn.getBuffer().find("\r\n\r\n");
@@ -280,13 +282,14 @@ int main(int ac, char **av, char **envp)
                         
                         // Send the response
                         conn.writeData(resp.toString());
+                        conn.updateLastActivity(); // Update activity timestamp after sending response
                         
                         // Handle connection based on keep-alive decision
                         if (keepAlive) {
                             conn.setKeepAlive(true);
                             conn.incrementRequestCount();
                             conn.resetForNextRequest();
-                            // conn.updateLastActivity();
+                            conn.updateLastActivity(); // Reset timeout for keep-alive connection
                             std::cout << "\033[1;32m[+]\033[0m Connection kept alive (request #" << conn.getRequestCount() << ")" << std::endl;
                         } else {
                             reactor.removeConnection(event.fd);
@@ -314,6 +317,7 @@ int main(int ac, char **av, char **envp)
                             // Always close connection on parse errors
                             setConnectionHeaders(errorResp, false);
                             conn.writeData(errorResp.toString());
+                            conn.updateLastActivity(); // Update activity timestamp after error response
                             reactor.removeConnection(event.fd);
                         }
                     } catch (const std::exception& e) {
