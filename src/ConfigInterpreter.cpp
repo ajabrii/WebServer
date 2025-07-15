@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 11:42:55 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/15 13:09:54 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -355,7 +355,7 @@ void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string&
         if (value.empty())
             throw std::runtime_error("client_max_body_size cannot be empty");
         int size = 0;
-        if (value.back() == 'M') {
+        if (value[value.size() - 1] == 'M') {
             std::string num = value.substr(0, value.size()-1);
             if (!isNum(num))
                 throw std::runtime_error("Invalid client_max_body_size number: " + num);
