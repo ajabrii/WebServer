@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 13:09:54 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/15 19:39:14 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -260,7 +260,7 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
         route.root = value;
     else if (key == "directory_listing")
     {
-        if (key == "on")
+        if (value == "on")
             route.directory_listing = true;
         else
             route.directory_listing = false;
