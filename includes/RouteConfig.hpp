@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RouteConfig.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 14:59:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/05 21:02:45 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/15 11:44:19 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ class RouteConfig {
         std::string uploadDir;
         
         RouteConfig();
+        
 };
 
 #endif

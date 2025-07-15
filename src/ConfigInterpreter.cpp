@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 16:29:50 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/15 11:42:55 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,8 +119,6 @@ bool ConfigInterpreter::Isspaces(const std::string& line)
 
 bool ConfigInterpreter::IsComment(const std::string& line)
 {
-    //! handle comment in the same line ex: error_page 404 = /404.html; #comment
-    //? done
     if (line.empty() || line.find('#') != std::string::npos || Isspaces(line))
         return true;
     return false;
@@ -133,10 +131,6 @@ void ConfigInterpreter::parse()
     RouteConfig current_route;
     std::string line;
 
-    // for (size_t i = 0; i < ConfigData.size(); i++)
-    // {
-    //     std::cout << "std::line :: " << ConfigData[i] << "\n";
-    // }
     for (size_t i = 0; i < ConfigData.size(); i++)
     {
         line = ConfigData[i];
@@ -202,11 +196,6 @@ void ConfigInterpreter::parse()
             }
             else
             {
-                // std::cout << "line ::::::::::::::::::: " << line << "\n";
-                // std::cout << "serverFlag is set\n";
-                // std::cout << "current_server.host is :: " << current_server << "\n";
-                // if (current_server)
-                // exit(0);
                 parseServerLine(current_server, line);
             }
         }
@@ -261,23 +250,26 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
             else 
                 throw std::runtime_error("Unkownen method :: " + method);
     }
+    else if (key == "indexfile")
+    {
+        route.indexFile = value;
+    }
     else if (key == "redirect")
         route.redirect = value;
     else if (key == "root")
         route.root = value;
     else if (key == "directory_listing")
     {
-        // std::cout << "[Config Parser] directory_listing value: '" << value << "'" << std::endl;
-        if (value == "on")
-        {
+        if (key == "on")
             route.directory_listing = true;
-            // std::cout << "[Config Parser] Set directory_listing to true" << std::endl;
-        }
         else
-        {
             route.directory_listing = false;
-            // std::cout << "[Config Parser] Set directory_listing to false" << std::endl;
+    }
+    else if (key == "upload_path") {
+        if (!route.uploadDir.empty()) {
+            throw std::runtime_error("Duplicate 'upload_path' entry in route block.");
         }
+        route.uploadDir = value;
     }
     else if (key == "cgi")
     {
@@ -408,8 +400,8 @@ void ConfigInterpreter::checkValues() const
     {
         if (serverConfigs[i].host.empty())
             throw std::runtime_error("Host is not set for a server block.");
-        // if (serverConfigs[i].port.size() == 0)
-        //     throw std::runtime_error("Port is not set for a server block.");
+        if (serverConfigs[i].port.size() == 0)
+            throw std::runtime_error("Port is not set for a server block.");
         if (serverConfigs[i].clientMaxBodySize <= 0)
             throw std::runtime_error("Client max body size is not set correct for a server block.");
         for (size_t j = 0; j < serverConfigs[i].routes.size(); j++)
@@ -422,11 +414,11 @@ void ConfigInterpreter::checkValues() const
                 throw std::runtime_error("No methods specified for route " + serverConfigs[i].routes[j].path);
         }
         // Check for duplicate host in other servers
-        // for (size_t k = i + 1; k < serverConfigs.size(); k++)
-        // {
-        //     if (serverConfigs[i].host == serverConfigs[k].host)
-        //         throw std::runtime_error("Duplicate host found in two server blocks: " + serverConfigs[i].host);
-        // }
+        for (size_t k = i + 1; k < serverConfigs.size(); k++)
+        {
+            if (serverConfigs[i].host == serverConfigs[k].host)
+                throw std::runtime_error("Duplicate host found in two server blocks: " + serverConfigs[i].host);
+        }
     }
 }
 

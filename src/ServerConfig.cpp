@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:35:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 09:26:53 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/15 11:45:58 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,4 +42,8 @@ ServerConfig& ServerConfig::operator=(const ServerConfig& other)
     this->routes = other.routes;
     this->serverName = other.serverName;
     return *this;
+}
+
+int ServerConfig::getMaxSize(){
+    return this->clientMaxBodySize;
 }
