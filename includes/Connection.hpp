@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 11:12:33 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/15 16:37:47 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,7 @@ class Connection
 
         HttpRequest& getCurrentRequest();
         bool isRequestComplete() const; // New helper to check state for main loop
+        bool isConnectionClosed() const; // Check if connection is closed
         void reset();
 };
 
