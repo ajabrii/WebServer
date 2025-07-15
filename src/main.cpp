@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 13:10:35 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/15 16:37:43 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,13 +135,31 @@ int main(int ac, char **av, char **envp)
                         std::cerr << "Error: No server found for client fd: " << event.fd << std::endl;
                         continue;
                     }
-                    conn.readData(server);
+                    
+                    try {
+                        conn.readData(server);
+                    } catch (const std::exception& e) {
+                        std::string msg = e.what();
+                        if (msg.find("Client disconnected") != std::string::npos) {
+                            // Client disconnected - remove connection from reactor
+                            std::cout << "[Error] Connection read error: " << msg << std::endl;
+                            reactor.removeConnection(event.fd);
+                            continue;
+                        } else {
+                            // Other read errors - also remove connection
+                            std::cerr << "Connection read error: " << msg << std::endl;
+                            reactor.removeConnection(event.fd);
+                            continue;
+                        }
+                    }
 
                    if (conn.isRequestComplete()) {
+                        
+                        // std::cout << "dekhel" << std::endl;
                         std::cout << "\033[1;36m[>] Full Request Received and Parsed:\033[0m\n";
                         
 
-                        // HttpRequest& req = conn.getCurrentRequest();
+                        HttpRequest& req = conn.getCurrentRequest();
 
                             // std::cout << "Method: " << req.method << std::endl;
                             // std::cout << "URI: " << req.uri << std::endl;
@@ -150,24 +168,38 @@ int main(int ac, char **av, char **envp)
                             //     std::cout << "Body Length: " << req.body.length() << std::endl;
                                 // std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
                             // }
-                            conn.reset(); //m7i lkhra mn connection bach nwjdo request lakhra la kant connection keep alive
-                    std::cout << RECEV_COMPLETE << std::endl;
-
+                            std::cout << RECEV_COMPLETE << std::endl;
+                            
                     try
                     {
-                        HttpServer* server = reactor.getServerForClient(event.fd);
-                        HttpRequest& req = conn.getCurrentRequest();
-                         std::cout << "Method: " << req.method << std::endl;
-                            std::cout << "URI: " << req.uri << std::endl;
-                            std::cout << "Version: " << req.version << std::endl;
-                            if (!req.body.empty()) {
-                                std::cout << "Body Length: " << req.body.length() << std::endl;
-                                std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
-                            }
+                        // HttpServer* server = reactor.getServerForClient(event.fd);
+                        // HttpRequest& req = conn.getCurrentRequest();
+                        //  std::cout << "Method: " << req.method << std::endl;
+                        //     std::cout << "URI: " << req.uri << std::endl;
+                        //     std::cout << "Version: " << req.version << std::endl;
+                        //     if (!req.body.empty()) {
+                        //         std::cout << "Body Length: " << req.body.length() << std::endl;
+                        //         std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
+                        //     }
                         Router router;
                         const RouteConfig* route = router.match(req, server->getConfig());
                         HttpResponse resp;
-
+                            
+                        // Print all request details here
+                        // std::cout << "----- FULL REQUEST DETAILS -----" << std::endl;
+                        // std::cout << "Method: " << req.method << std::endl;
+                        // std::cout << "URI: " << req.uri << std::endl;
+                        // std::cout << "Version: " << req.version << std::endl;
+                        // std::cout << "Headers:" << std::endl;
+                        // for (std::map<std::string, std::string>::const_iterator it = req.headers.begin(); it != req.headers.end(); ++it) {
+                        //     std::cout << "  " << it->first << ": " << it->second << std::endl;
+                        // }
+                        // if (!req.body.empty()) {
+                        //     std::cout << "Body Length: " << req.body.length() << std::endl;
+                        //     std::cout << "Body: " << req.body << std::endl;
+                        // }
+                        
+                        // exit(0);
                         if (route) {
                             CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
                             if (cgi.IsCgi()) {
@@ -204,6 +236,7 @@ int main(int ac, char **av, char **envp)
                         
                         // Send the response
                         conn.writeData(resp.toString());
+                        conn.reset(); //m7i lkhra mn connection bach nwjdo request lakhra la kant connection keep alive
                         conn.updateLastActivity(); // Update activity timestamp after sending response
                         
                         // Handle connection based on keep-alive decision
@@ -217,7 +250,7 @@ int main(int ac, char **av, char **envp)
                             reactor.removeConnection(event.fd);
                             std::cout << "\033[1;31m[-]\033[0m Connection closed" << std::endl;
                         }
-                    }
+                        }
                     catch (const std::runtime_error& e) {
                         std::string msg = e.what();
                         if (msg.find("incomplete body") != std::string::npos) {
@@ -231,12 +264,12 @@ int main(int ac, char **av, char **envp)
                             errorResp.headers["content-type"] = "text/html";
                             errorResp.body = Error::loadErrorPage(400, server->getConfig());
                             
-                            // C++98 compatible string conversion
+                    //         // C++98 compatible string conversion
                             std::stringstream ss;
                             ss << errorResp.body.size();
                             errorResp.headers["content-length"] = ss.str();
                             
-                            // Always close connection on parse errors
+                    //         // Always close connection on parse errors
                             setConnectionHeaders(errorResp, false);
                             conn.writeData(errorResp.toString());
                             conn.updateLastActivity(); // Update activity timestamp after error response
