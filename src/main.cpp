@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 16:19:29 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/15 11:42:06 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,27 @@ void signalHandler(int signum) {
     (void)signum;
     g_shutdown = true;
 }
+
+// Helper function to check if request wants keep-alive (HTTP/1.1 only)
+// bool shouldKeepAlive(const HttpRequest& request) {
+//     std::string connection = request.GetHeader("connection");
+//     std::transform(connection.begin(), connection.end(), connection.begin(), ::tolower);
+    
+//     // HTTP/1.1 defaults to keep-alive, closes only if "Connection: close"
+//     if (connection == "close") 
+//         return false;
+//     return true;
+// }
+
+// // Helper function to set appropriate connection headers
+// void setConnectionHeaders(HttpResponse& response, bool keepAlive) {
+//     if (keepAlive) {
+//         response.headers["Connection"] = "keep-alive";
+//         response.headers["Keep-Alive"] = "timeout=60, max=100";
+//     } else {
+//         response.headers["Connection"] = "close";
+//     }
+// }
 
 void handleErrorEvent(const Event& event)
 {
@@ -128,106 +149,42 @@ int main(int ac, char **av, char **envp)
                 }
                 else if (event.isReadable)
                 {
-                    try {
-                        Connection& conn = reactor.getConnection(event.fd); //@ kangeti dak l connection li tcreat (katkon fmap)
-                        
-                        // Get the server for this specific client connection
-                        HttpServer* server = reactor.getServerForClient(event.fd);
-                        if (!server) {
-                            Error::logs("Error: No server found for client connection");
-                            reactor.removeConnection(event.fd);
-                            continue;
-                        }
-                        
-                        size_t maxBodySize = server->getConfig().clientMaxBodySize;
-                        
-                        // Check if buffer size exceeds the limit (protection against buffer overflow)
-                        if (conn.getBuffer().size() > maxBodySize) {
-                            Error::logs("Request buffer exceeds maximum size limit");
-                            HttpResponse resp;
-                            resp.version = "HTTP/1.1";
-                            resp.statusCode = 413;
-                            resp.statusText = "Payload Too Large";
-                            resp.body = Error::loadErrorPage(413, server->getConfig());
-                            std::stringstream ss;
-                            ss << resp.body.size();
-                            resp.headers["content-length"] = ss.str();
-                            resp.headers["content-type"] = "text/html";
-                            
-                            conn.writeData(resp.toString());
-                            reactor.removeConnection(event.fd);
-                            continue;
-                        }
-                        
-                        std::string data = conn.readData(); //@ (request li kaysifto l kliyan)This reads new data and accumulates in buffer
-                        conn.updateLastActivity(); // Update activity timestamp when receiving data from client
-                        
-                        //@ Check if we have complete headers hna fin kantsna ywselni request camel
-                        size_t headerEnd = conn.getBuffer().find("\r\n\r\n");
-                        if (headerEnd == std::string::npos) {
-                            // Check for oversized headers (security protection)
-                            if (conn.getBuffer().size() > 8192) { // 8KB header limit
-                                Error::logs("Header too large - potential attack");
-                                HttpResponse resp;
-                                resp.statusCode = 431;
-                                resp.statusText = "Request Header Fields Too Large";
-                                resp.headers["content-type"] = "text/html";
-                                resp.body = Error::loadErrorPage(431, server->getConfig());
-                                std::stringstream ss;
-                                ss << resp.body.size();
-                                resp.headers["content-length"] = ss.str();
-                                
-                                conn.writeData(resp.toString());
-                                reactor.removeConnection(event.fd);
-                                continue;
-                            }
-                            continue;
-                        }
-                    //@ Headers are complete, now check if body is complete (for POST requests)
-                    std::string headerPart = conn.getBuffer().substr(0, headerEnd + 4);
-                    std::string remainingData = conn.getBuffer().substr(headerEnd + 4);
-
-                    size_t contentLength = 0;
-                    // Make header search case-insensitive
-                    std::string headerLower = headerPart;
-                    std::transform(headerLower.begin(), headerLower.end(), headerLower.begin(), ::tolower);
-                    
-                    size_t clPos = headerLower.find("content-length:");
-                    if (clPos != std::string::npos)
-                    {
-                        size_t clStart = headerPart.find(":", clPos) + 1;
-                        size_t clEnd = headerPart.find("\r\n", clStart);
-                        if (clEnd != std::string::npos)
-                        {
-                            std::string clStr = headerPart.substr(clStart, clEnd - clStart);
-                            clStr.erase(0, clStr.find_first_not_of(" \t"));
-                            clStr.erase(clStr.find_last_not_of(" \t") + 1);
-                            
-                            // C++98 compatible conversion instead of std::stoul
-                            std::stringstream ss(clStr);
-                            ss >> contentLength;
-                            if (ss.fail()) {
-                                Error::logs("Invalid Content-Length header: " + clStr);
-                                contentLength = 0;
-                            }
-                        }
-                    }
-                        
-                    if (contentLength > 0 && remainingData.size() < contentLength)
+                    Connection& conn = reactor.getConnection(event.fd);
+                    HttpServer* server = reactor.getServerForClient(event.fd);
+                    if (!server) {
+                        reactor.removeConnection(event.fd);
+                        std::cerr << "Error: No server found for client fd: " << event.fd << std::endl;
                         continue;
+                    }
+                    conn.readData(server);
+
+                   if (conn.isRequestComplete()) {
+                        std::cout << "\033[1;36m[>] Full Request Received and Parsed:\033[0m\n";
+                        
+
+                        // HttpRequest& req = conn.getCurrentRequest();
+
+                            // std::cout << "Method: " << req.method << std::endl;
+                            // std::cout << "URI: " << req.uri << std::endl;
+                            // std::cout << "Version: " << req.version << std::endl;
+                            // if (!req.body.empty()) {
+                            //     std::cout << "Body Length: " << req.body.length() << std::endl;
+                                // std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
+                            // }
+                            conn.reset(); //m7i lkhra mn connection bach nwjdo request lakhra la kant connection keep alive
                     std::cout << RECEV_COMPLETE << std::endl;
 
                     try
                     {
-                        HttpRequest req = HttpRequest::parse(conn.getBuffer());
-                        conn.clearBuffer();
                         HttpServer* server = reactor.getServerForClient(event.fd);
-                        if (!server) {
-                            Error::logs("Error: No server found");
-                            reactor.removeConnection(event.fd);
-                            continue;
-                        }
-
+                        HttpRequest& req = conn.getCurrentRequest();
+                         std::cout << "Method: " << req.method << std::endl;
+                            std::cout << "URI: " << req.uri << std::endl;
+                            std::cout << "Version: " << req.version << std::endl;
+                            if (!req.body.empty()) {
+                                std::cout << "Body Length: " << req.body.length() << std::endl;
+                                std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
+                            }
                         Router router;
                         const RouteConfig* route = router.match(req, server->getConfig());
                         HttpResponse resp;
@@ -242,6 +199,7 @@ int main(int ac, char **av, char **envp)
                             }
                         } else {
                             // No route found - return 404
+                            std::cout << "::::::::::::::::::::::::::::::::::NOT-FOUND:::::::::::::::::::::::::::::::::::::" << std::endl;
                             resp.version = "HTTP/1.1";  // Fix: Set HTTP version
                             resp.statusCode = 404;
                             resp.statusText = "Not Found";
@@ -309,10 +267,7 @@ int main(int ac, char **av, char **envp)
                         Error::logs("Connection error: " + std::string(e.what()));
                         reactor.removeConnection(event.fd);
                     }
-                    } catch (const std::exception& e) {
-                        Error::logs("Connection read error: " + std::string(e.what()));
-                        reactor.removeConnection(event.fd);
-                    }
+                    } // End of if (conn.isRequestComplete())
                 }
             } // End of for loop
             } catch (const std::exception& e) {
