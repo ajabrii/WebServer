@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/15 17:39:35 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/15 22:50:10 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -469,7 +469,7 @@ CgiState *CgiHandler::execCgi(void)
         if (_req.method == POST)
             close(pfd_in[0]); // Read end, not needed
 
-        fcntl(pfd[0], F_SETFL, O_NONBLOCK);
+        fcntl(pfd[0], F_SETFL, O_NONBLOCK); // protcect
         if (_req.method == POST)
             fcntl(pfd_in[1], F_SETFL, O_NONBLOCK);
 

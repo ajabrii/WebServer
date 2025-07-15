@@ -197,7 +197,7 @@ int main(int ac, char **av, char **envp) {
                                 if (cgi.IsCgi()) 
                                 {
                                     conn.cgi = cgi.execCgi();
-                                    if (conn.cgi) 
+                                    if (conn.cgi)
                                     {
                                         conn.cgi->pendingBody = req.body;
                                         reactor.watchCgi(&conn);
