@@ -7,6 +7,7 @@
 # include "ServerConfig.hpp"
 # include "HttpServer.hpp"
 # include "CgiData.hpp"
+# include "CgiState.hpp"
 
 #include <sys/wait.h>
 # include <iostream>
@@ -30,7 +31,7 @@ class CgiHandler
         CgiHandler();
         CgiHandler(const HttpServer &server, const HttpRequest& req , const RouteConfig& route ,int clientSocket, std::string env_paths);
         ~CgiHandler();
-        HttpResponse execCgi(void);
+        CgiState* execCgi(void);
         CgiData check_cgi(void);
         char **set_env(void);
         bool IsCgi();

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Reactor.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 09:59:47 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/15 17:08:50 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,8 @@ public:
     Connection& getConnection(int fd);
     HttpServer* getServerByListeningFd(int fd);
     HttpServer* getServerForClient(int clientFd);
+    void watchCgi(Connection* conn);
+    void unregisterFd(int fd);
 };
-
 
 #endif

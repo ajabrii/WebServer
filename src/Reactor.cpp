@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Reactor.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 10:01:17 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/15 17:09:01 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,8 @@ void Reactor::poll() {
         throw std::runtime_error("poll failed");
     }
 
-    for (size_t i = 0; i < pollFDs.size(); ++i) {
+    for (size_t i = 0; i < pollFDs.size(); ++i) 
+    {
         pollfd& pfd = pollFDs[i];
         if (pfd.revents & (POLLIN | POLLOUT)) {
             Event evt;
@@ -93,4 +94,43 @@ HttpServer* Reactor::getServerByListeningFd(int fd) {
 HttpServer* Reactor::getServerForClient(int clientFd) {
     std::map<int, HttpServer*>::iterator it = clientToServerMap.find(clientFd);
     return (it != clientToServerMap.end()) ? it->second : nullptr;
+}
+
+void Reactor::watchCgi(Connection* conn) 
+{
+    if (!conn || !conn->cgi) 
+        return;
+
+    // Watch CGI output (stdout)
+    pollfd pfdOut;
+    pfdOut.fd = conn->cgi->output_fd;
+    pfdOut.events = POLLIN;
+    pollFDs.push_back(pfdOut);
+
+    // Watch CGI input (stdin) only for POST
+    if (conn->cgi->input_fd != -1) 
+    {
+        pollfd pfdIn;
+        pfdIn.fd = conn->cgi->input_fd;
+        pfdIn.events = POLLOUT;
+        pollFDs.push_back(pfdIn);
+    }
+
+    // Optional: associate CGI fds with connection
+    connectionMap[conn->cgi->output_fd] = conn;
+    if (conn->cgi->input_fd != -1)
+        connectionMap[conn->cgi->input_fd] = conn;
+}
+
+void Reactor::unregisterFd(int fd) 
+{
+    for (size_t i = 0; i < pollFDs.size(); ++i) 
+    {
+        if (pollFDs[i].fd == fd) 
+        {
+            pollFDs.erase(pollFDs.begin() + i);
+            break;
+        }
+    }
+    connectionMap.erase(fd);
 }

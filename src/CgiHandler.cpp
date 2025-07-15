@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/14 16:44:53 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/15 17:39:35 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -302,9 +302,9 @@ std::string GetKey(std::map<std::string, std::string> map ,std::string target)
 }
 
 
-HttpResponse CgiHandler::execCgi(void)
+CgiState *CgiHandler::execCgi(void)
 {
-    HttpResponse f;
+    CgiState *f = new CgiState();
     std::string cmd;
     std::string fp; // Full path to interpreter
     std::string str; // Script path to pass as argv[1]
@@ -316,10 +316,12 @@ HttpResponse CgiHandler::execCgi(void)
     check_existing = _data.script_path.substr(1);
     if (access((char *)check_existing.c_str(), F_OK) < 0)
     {
-        f.statusCode = 404;
-        f.statusText = "Internal Server Error";
-        f.body = "CGI : Script file not found, path: {" + check_existing + "}" ;
-        return f;
+        // f.statusCode = 404;
+        // f.statusText = "Internal Server Error";
+        // f.body = "CGI : Script file not found, path: {" + check_existing + "}" ;
+        // return f;
+        delete f; // Clean up before returning
+        return NULL;
     }
     env = set_env(); // Environment variables prepared
 
@@ -335,12 +337,14 @@ HttpResponse CgiHandler::execCgi(void)
     {
         // Handle error: Interpreter not found (e.g., 500 Internal Server Error)
         // Free env memory
-        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
-        delete[] env;
-        f.statusCode = 500;
-        f.statusText = "Internal Server Error 1";
-        f.body = "CGI Interpreter not found.";
-        return f;
+        // for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+        // delete[] env;
+        // f.statusCode = 500;
+        // f.statusText = "Internal Server Error 1";
+        // f.body = "CGI Interpreter not found.";
+        // return f;
+        delete f;
+        return NULL; // Return NULL to indicate error
     }
     
     str = _data.script_path.substr(1);
@@ -352,12 +356,15 @@ HttpResponse CgiHandler::execCgi(void)
     {
         perror("pipe stdout failed");
         // Clean up env
-        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+        for (int i = 0; env[i] != NULL; ++i) 
+            delete[] env[i];
         delete[] env;
-        f.statusCode = 500;
-        f.statusText = "Internal Server Error 2";
-        f.body = "Server pipe creation failed.";
-        return f;
+        // f.statusCode = 500;
+        // f.statusText = "Internal Server Error 2";
+        // f.body = "Server pipe creation failed.";
+        // return f;
+        delete f;
+        return NULL; // Return NULL to indicate error
     }
 
     if (_req.method == POST && pipe(pfd_in) == -1) // Pipe for stdin to CGI (only for POST)
@@ -366,12 +373,15 @@ HttpResponse CgiHandler::execCgi(void)
         close(pfd[0]);
         close(pfd[1]);
         // Clean up env
-        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+        for (int i = 0; env[i] != NULL; ++i) 
+            delete[] env[i];
         delete[] env;
-        f.statusCode = 500;
-        f.statusText = "Internal Server Error 3";
-        f.body = "Server pipe creation failed.";
-        return f;
+        // f.statusCode = 500;
+        // f.statusText = "Internal Server Error 3";
+        // f.body = "Server pipe creation failed.";
+        // return f;
+        delete f;
+        return NULL; // Return NULL to indicate error
     }
 
     pid = fork();
@@ -379,14 +389,20 @@ HttpResponse CgiHandler::execCgi(void)
     {
         perror("fork failed");
         close(pfd[0]); close(pfd[1]);
-        if (_req.method == POST) { close(pfd_in[0]); close(pfd_in[1]); }
+        if (_req.method == POST) 
+        {
+            close(pfd_in[0]); 
+            close(pfd_in[1]); 
+        }
         // Clean up env
         for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
         delete[] env;
-        f.statusCode = 500;
-        f.statusText = "Internal Server Error 4";
-        f.body = "Server fork failed.";
-        return f;
+        // f.statusCode = 500;
+        // f.statusText = "Internal Server Error 4";
+        // f.body = "Server fork failed.";
+        // return f;
+        delete f;
+        return NULL; // Return NULL to indicate error
     }
     else if (pid == 0) // Child process (CGI)
     {
@@ -435,203 +451,41 @@ HttpResponse CgiHandler::execCgi(void)
         final_argv[1] = (char *)script_filename.c_str(); // Script filename relative to CWD
         final_argv[2] = NULL;
 
-        for (size_t i = 0; i < 3; i++)
-        {
-            std::cerr << "-------->FINAL ARGV[" << i << "]" << " " <<  final_argv[i] << std::endl;
-        }
+        // for (size_t i = 0; i < 3; i++)
+        // {
+        //     std::cerr << "-------->FINAL ARGV[" << i << "]" << " " <<  final_argv[i] << std::endl;
+        // }
         
         
         execve(fp.c_str(), final_argv, env);
         perror("execve failed"); // Only reached if execve fails
+        if (_req.method == POST)
+            close(pfd_in[1]);
         exit(1); // Child must exit on execve failure
     }
     else // Parent process
     {
-        close(pfd[1]); // Close write end of output pipe in parent
+       close(pfd[1]); // Write end, not needed
         if (_req.method == POST)
-        {
-            close(pfd_in[0]); // Close read end of input pipe in parent
-            // Write request body to CGI's stdin
-            ssize_t bytes_written = write(pfd_in[1], _req.body.c_str(), _req.body.size());
-            if (bytes_written == -1) {
-                perror("write to pipe_stdin failed");
-                // Handle error
-            }
-            close(pfd_in[1]); // Close write end after writing (sends EOF to CGI)
-        }
-        int status;
-        int timeout_seconds = 5 ;
-        bool child_finished = false;
+            close(pfd_in[0]); // Read end, not needed
 
-        // Setup epoll for non-blocking read with timeout
-        int epfd = epoll_create1(0);
-        if (epfd == -1) 
-        {
-            perror("epoll_create1 failed");
-            // Free env
-            for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
-            delete[] env;
-            f.statusCode = 500;
-            f.statusText = "Internal Server Error (epoll)";
-            f.body = "Server epoll creation failed.";
-            return f;
-        }
-        struct epoll_event ev;
-        ev.events = EPOLLIN;
-        ev.data.fd = pfd[0];
-        if (epoll_ctl(epfd, EPOLL_CTL_ADD, pfd[0], &ev) == -1) 
-        {
-            perror("epoll_ctl failed");
-            close(epfd);
-            for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
-            delete[] env;
-            f.statusCode = 500;
-            f.statusText = "Internal Server Error (epoll_ctl)";
-            f.body = "Server epoll_ctl failed.";
-            return f;
-        }
+        fcntl(pfd[0], F_SETFL, O_NONBLOCK);
+        if (_req.method == POST)
+            fcntl(pfd_in[1], F_SETFL, O_NONBLOCK);
 
-        std::string cgi_output_str;
-        char buffer[4096];
-        ssize_t bytes_read;
-        time_t start_time = time(NULL);
-
-        while (true) 
-        {
-            int elapsed = time(NULL) - start_time;
-            int remaining = timeout_seconds - elapsed;
-            if (remaining <= 0) 
-            {
-                // Timeout reached
-                kill(pid, SIGKILL);
-                waitpid(pid, &status, 0);
-                close(pfd[0]);
-                close(epfd);
-                for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
-                delete[] env;
-                f.statusCode = 504;
-                f.statusText = "Gateway Timeout 1";
-                f.body = "CGI script execution timed out (epoll).";
-                return f;
-            }
-
-            int nfds = epoll_wait(epfd, &ev, 1, remaining * 1000); // timeout in ms
-            if (nfds == -1) 
-            {
-                perror("epoll_wait failed");
-                break;
-            }
-            else if (nfds == 0) 
-            {
-                
-                // Timeout reached (no data to read)
-                std::cerr << "curr pid: " << getpid() << ",PID TO KILL: " << pid << std::endl;
-                kill(pid, SIGKILL);
-                waitpid(pid, &status, 0);
-                close(pfd[0]);
-                close(epfd);
-                for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
-                delete[] env;
-                f.statusCode = 504;
-                f.statusText = "Gateway Timeout 2";
-                f.body = "CGI script execution timed out (epoll wait).";
-                return f;
-            } 
-            else 
-            {
-                // Data available to read
-                bytes_read = read(pfd[0], buffer, sizeof(buffer) - 1);
-                if (bytes_read > 0) 
-                {
-                    buffer[bytes_read] = '\0';
-                    cgi_output_str.append(buffer);
-                } 
-                else if (bytes_read == 0)
-                {
-                    // EOF
-                    child_finished = true;
-                    break;
-                } 
-                else 
-                {
-                    perror("read from pipe_stdout failed\n");
-                    break;
-                }
-            }
-            // Also check if child finished
-            pid_t result = waitpid(pid, &status, WNOHANG);
-
-            std::cerr << "waitpid result: " << result << ", pid: " << pid << std::endl;
-            if (result == pid) 
-            {
-                child_finished = true;
-                break;
-            }
-        }
-
-        close(pfd[0]);
-        close(epfd);
-
-        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+        f->output_fd = pfd[0];
+        if (_req.method == POST)
+            f->input_fd = pfd_in[1]; // Only for POST requests
+        else
+            f->input_fd = -1; // No input for GET requests
+        f->pid = pid;
+        f->script_path = _data.script_path;
+        f->startTime = time(NULL);
+        f->rawOutput.clear();
+        f->headersParsed = false;
+        f->headerBuffer.clear();
+        f->bodyBuffer.clear();
         delete[] env;
-
-        if (!child_finished || (WIFEXITED(status) && WEXITSTATUS(status) != 0)) 
-        {
-            f.statusCode = 500;
-            f.statusText = "Internal Server Error Child finish";
-            f.body = "CGI script execution failed.";
-            return f;
-        }
-
-        // Process CGI output as before...
-        size_t header_end_pos = cgi_output_str.find("\r\n\r\n");
-        if (header_end_pos == std::string::npos) 
-        {
-            f.statusCode = 500;
-            f.statusText = "Internal Server Error 6";
-            f.body = "CGI output malformed: No header end.";
-            return f;
-        }
-
-        std::string cgi_headers = cgi_output_str.substr(0, header_end_pos);
-        std::string cgi_body = cgi_output_str.substr(header_end_pos + 4); // +4 for \r\n\r\n
-
-        std::istringstream iss(cgi_headers);
-        std::string line;
-        while (std::getline(iss, line) && !line.empty()) 
-        {
-            size_t colon_pos = line.find(':');
-            if (colon_pos != std::string::npos) 
-            {
-                std::string name = line.substr(0, colon_pos);
-                std::string value = line.substr(colon_pos + 1);
-                value.erase(0, value.find_first_not_of(" \t"));
-                value.erase(value.find_last_not_of(" \t\r\n") + 1);
-                f.headers[name] = value;
-            }
-        }
-        f.version = "HTTP/1.1";
-        f.statusCode = 200;
-        if (f.headers.count("Status")) 
-        {
-            std::string status_str = f.headers["Status"];
-            size_t space_pos = status_str.find(' ');
-            if (space_pos != std::string::npos) 
-            {
-                f.statusCode = std::atoi(status_str.substr(0, space_pos).c_str());
-                f.statusText = status_str.substr(space_pos + 1);
-            }
-            f.headers.erase("Status");
-        } 
-        else 
-        {
-            f.statusText = "OK";
-        }
-        if (!f.headers.count("Content-Length")) 
-        {
-            f.headers["Content-Length"] = std::to_string(cgi_body.length());
-        }
-        f.body = cgi_body;
         return f;
     }
 }

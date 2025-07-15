@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 19:02:20 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/15 17:24:24 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 
 #include <string>
 #include <netinet/in.h>
+#include "CgiState.hpp"
 
 class Connection {
 private:
@@ -26,6 +27,7 @@ private:
     // HttpRequest req;
 
 public:
+    CgiState* cgi = NULL; // Pointer to CgiState, initialized to NULL
     Connection();
     Connection(int fd, const sockaddr_in& addr);
     ~Connection();
