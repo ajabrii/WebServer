@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:55:37 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/15 12:05:34 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,9 @@ std::string clean_line(std::string line)
     line.erase(0, line.find_first_not_of(" \t\n\r"));
     line.erase(line.find_last_not_of(" \t\n\r") + 1);
 
-    if (!line.empty() && line.back() == ';')
+    if (!line.empty() && line[line.size() - 1] == ';')
     {
-        line.pop_back();
+        line.erase(line.size() - 1);
     }
     return line;
 }

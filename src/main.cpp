@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 11:42:06 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/15 12:05:34 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,27 +33,6 @@ void signalHandler(int signum) {
     (void)signum;
     g_shutdown = true;
 }
-
-// Helper function to check if request wants keep-alive (HTTP/1.1 only)
-// bool shouldKeepAlive(const HttpRequest& request) {
-//     std::string connection = request.GetHeader("connection");
-//     std::transform(connection.begin(), connection.end(), connection.begin(), ::tolower);
-    
-//     // HTTP/1.1 defaults to keep-alive, closes only if "Connection: close"
-//     if (connection == "close") 
-//         return false;
-//     return true;
-// }
-
-// // Helper function to set appropriate connection headers
-// void setConnectionHeaders(HttpResponse& response, bool keepAlive) {
-//     if (keepAlive) {
-//         response.headers["Connection"] = "keep-alive";
-//         response.headers["Keep-Alive"] = "timeout=60, max=100";
-//     } else {
-//         response.headers["Connection"] = "close";
-//     }
-// }
 
 void handleErrorEvent(const Event& event)
 {
