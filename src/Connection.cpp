@@ -3,35 +3,72 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/10 18:47:05 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/15 11:18:44 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 # include "../includes/HttpServer.hpp"
 
-// Implementation
-Connection::Connection() : client_fd(-1), buffer(""), requestState(READING_HEADERS),
-                         contentLength(0), isChunked(false){
+Connection::Connection() 
+    : client_fd(-1), 
+    lastActivityTime(std::time(0)),
+    keepAlive(false),
+    requestCount(0),
+    requestState(READING_HEADERS),
+    contentLength(0),
+    isChunked(false)
+{
     std::memset(&client_addr, 0, sizeof(client_addr));
 }
 
 Connection::Connection(int fd, const sockaddr_in& addr)
-    : client_fd(fd), client_addr(addr), buffer(""), requestState(READING_HEADERS),
-                         contentLength(0), isChunked(false){}
+    : client_fd(fd),
+    client_addr(addr),
+    lastActivityTime(std::time(0)),
+    keepAlive(false),
+    requestCount(0),
+    requestState(READING_HEADERS),
+    contentLength(0),
+    isChunked(false)
+{
+}
 
-Connection::~Connection() {
+Connection::~Connection()
+{
     closeConnection();
 }
 
-int Connection::getFd() const {
+int Connection::getFd() const
+{
     return client_fd;
 }
 
-void Connection::readData(HttpServer* server) {
+std::string& Connection::getBuffer()
+{
+    return buffer;
+}
+
+void Connection::clearBuffer()
+{
+    buffer.clear();
+}
+/*
+=== readData() reads the HTTP request from the client socket and stores it in a buffer ===
+
+* recv() : a system call that works like read(), but is used for sockets.
+@ Reads up to sizeof(tmp)-1 bytes from client_fd into tmp buffer.
+? Note: the last param in recv is for changing the behavoir of recev in our case 0 mean just default job of read.
+
+@ Appends the read data to 'buffer'.
+@ Checks if HTTP headers have ended by searching for "\r\n\r\n".
+*/
+
+void Connection::readData(HttpServer* server)
+{
     char tmp[4096];
     ssize_t bytesRead = recv(client_fd, tmp, sizeof(tmp), 0);
 
@@ -44,7 +81,8 @@ void Connection::readData(HttpServer* server) {
             // Consider logging the actual errno value for debugging
             throw std::runtime_error("Failed to read from client socket: " + std::string(strerror(errno)));
         }
-    } else if (bytesRead == 0) {
+    } 
+    else if (bytesRead == 0) {
         // Client closed the connection
         throw std::runtime_error("Client disconnected (bytesRead == 0)"); // This should trigger connection cleanup
     }
@@ -95,18 +133,53 @@ void Connection::readData(HttpServer* server) {
     }
 }
 
-void Connection::writeData(const std::string& response) const {
+void Connection::updateLastActivity() {
+    lastActivityTime = std::time(0);
+}
+
+bool Connection::isKeepAlive() const {
+    return keepAlive;
+}
+
+void Connection::setKeepAlive(bool ka) {
+    keepAlive = ka;
+}
+
+bool Connection::isTimedOut() const {
+    return (std::time(0) - lastActivityTime) > KEEP_ALIVE_TIMEOUT;
+}
+
+int Connection::getRequestCount() const {
+    return requestCount;
+}
+
+void Connection::incrementRequestCount() {
+    requestCount++;
+}
+
+void Connection::resetForNextRequest() {
+    buffer.clear();
+    updateLastActivity();
+}
+/*
+=== this function writes data aka response to the client ==
+? send it's like write function but used for socket the last param is  like the recv is flag that twiks the behavior of send
+*/
+void Connection::writeData(const std::string& response) const
+{
     ssize_t bytesSent = send(client_fd, response.c_str(), response.size(), 0);
     if (bytesSent < 0)
         throw std::runtime_error("Failed to write to client");
 }
 
-void Connection::closeConnection() {
+void Connection::closeConnection()
+{
     if (client_fd != -1) {
         close(client_fd);
         client_fd = -1;
     }
 }
+
 
 HttpRequest& Connection::getCurrentRequest() {
     return currentRequest;

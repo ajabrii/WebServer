@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   RouteConfig.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:36:12 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/12 15:02:58 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/15 11:45:22 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/RouteConfig.hpp"
 
-        RouteConfig::RouteConfig()
+RouteConfig::RouteConfig()
             : path(""),
               root(""),
               allowedMethods(),
@@ -20,6 +20,6 @@
               indexFile(""),
               cgi(),
               directory_listing(false),
-              uploadDir("")
+              uploadDir("uploads")
         {
         }

@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:19:20 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/02 11:35:25 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/13 20:57:50 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,20 @@
 
 class DeleteHandler : public IHttpMethodHandler
 {
+    private:
+        std::string buildFilePath(const std::string& root, const std::string& requestPath) const;
+        bool isPathSecure(const std::string& filePath, const std::string& rootPath) const;
+
+        HttpResponse createSuccessResponse(const std::string& filePath) const;
+        HttpResponse createErrorResponse(int statusCode, const std::string& statusText,const ServerConfig& serverConfig) const;
+        HttpResponse createRedirectResponse(const std::string& redirectUrl) const;
+
+        std::string getCurrentTimestamp() const;
+
     public:
         DeleteHandler();
         ~DeleteHandler();
-        virtual HttpResponse handle(const HttpRequest &req, const RouteConfig& route) const;
+
+        // New interface with ServerConfig
+        virtual HttpResponse handle(const HttpRequest &req, const RouteConfig& route, const ServerConfig& serverConfig) const;
 };

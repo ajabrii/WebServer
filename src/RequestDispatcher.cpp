@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestDispatcher.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:14:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 19:09:19 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/14 14:29:33 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,57 +15,57 @@
 #include "../includes/GetHandler.hpp"
 #include "../includes/DeleteHandler.hpp"
 #include "../includes/PostHandler.hpp"
+# include "../includes/Errors.hpp"
+# include "../includes/Utils.hpp"
+
 # include <iostream>
 # include <fcntl.h>
 #include <dirent.h>
 #include <sstream>
 # include <fstream>
-std::string clean_line(std::string line);
 
 
-
-
-HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConfig& route) const
+bool RequestDispatcher::isHttpMethodAllowed(const HttpRequest& req, std::vector<std::string> Imethods)
 {
-    
-    bool allowed = false;
-    for (size_t i = 0; i < route.allowedMethods.size(); ++i) {
-        if (req.method == route.allowedMethods[i]) {
-            allowed = true;
-            break;
+    for (size_t i = 0; i < Imethods.size(); ++i)
+    {
+        if (req.method == Imethods[i]) {
+            return true;
         }
     }
-    if (!allowed) {
-        
-        HttpResponse res;
+    return false;
+}
+
+HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConfig& route, const ServerConfig& serverConfig) const
+{
+    HttpResponse res;
+    if (!RequestDispatcher::isHttpMethodAllowed(req, route.allowedMethods))
+    {
         res.statusCode = 405;
+        res.headers["content-type"] = "text/html; charset=UTF-8";
         res.statusText = "Method Not Allowed";
-        res.body = "HTTP method not allowed for this route.";
-        std::cout << "--2------------------>[*] Redirecting to: " << route.redirect << std::endl;
+        res.body = Error::loadErrorPage(res.statusCode, serverConfig);
 
         return res;
     }
-    if (req.method == "GET")
+    if (req.method == GET_M)
     {
-        // Getha
-        return GetHandler().handle(req, route);
+        return GetHandler().handle(req, route, serverConfig);
     }
-    else if (req.method == "POST")
+    else if (req.method == POST_M)
     {
-        // PostHandler postHandler;
-        return PostHandler().handle(req, route);
+        return PostHandler().handle(req, route, serverConfig);
     }
-    else if (req.method == "DELETE")
+    else if (req.method == DELETE_M)
     {
-        // DeleteHandler deleteHandler;
-        return DeleteHandler().handle(req, route);
+        return DeleteHandler().handle(req, route, serverConfig);
     }
     else
     {
-        HttpResponse res;
-        res.statusCode = 501; // Not Implemented
+        res.statusCode = 501;
+        res.headers["content-type"] = "text/html; charset=UTF-8";
         res.statusText = "Not Implemented";
-        res.body = "HTTP method not implemented.";
+        res.body = Error::loadErrorPage(res.statusCode, serverConfig);
         return res;
     }
 }
