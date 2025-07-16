@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RouteConfig.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:36:12 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 11:45:22 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/16 11:55:31 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,6 @@ RouteConfig::RouteConfig()
               indexFile(""),
               cgi(),
               directory_listing(false),
-              uploadDir("uploads")
+              uploadDir("")
         {
         }

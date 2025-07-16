@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PostHandler.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:00:15 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/16 11:51:12 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,6 +132,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
 
     std::string ct = req.GetHeader("content-type");
     std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower); // transform to lowercase because content-type is case-insensitive in http
+    std::cout << "upload directory: " << route.uploadDir << std::endl; // remove this later
     if (route.uploadDir.empty()) {
         return makeErrorResponse(500, "Upload directory not configured.", serverConfig);
     }

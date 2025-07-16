@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 16:37:43 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/15 18:17:03 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,18 +139,9 @@ int main(int ac, char **av, char **envp)
                     try {
                         conn.readData(server);
                     } catch (const std::exception& e) {
-                        std::string msg = e.what();
-                        if (msg.find("Client disconnected") != std::string::npos) {
-                            // Client disconnected - remove connection from reactor
-                            std::cout << "[Error] Connection read error: " << msg << std::endl;
-                            reactor.removeConnection(event.fd);
-                            continue;
-                        } else {
-                            // Other read errors - also remove connection
-                            std::cerr << "Connection read error: " << msg << std::endl;
-                            reactor.removeConnection(event.fd);
-                            continue;
-                        }
+                        std::cerr << "Connection read error: " << e.what() << std::endl;
+                        reactor.removeConnection(event.fd);
+                        continue;
                     }
 
                    if (conn.isRequestComplete()) {

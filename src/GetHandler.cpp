@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   GetHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 13:59:29 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/15 19:44:38 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
     if (stat(filePath.c_str(), &pathStat) == 0)
     {
         if (S_ISDIR(pathStat.st_mode))
-            return handleDirectory(filePath, req.uri, route.directory_listing, serverConfig);
+            return handleDirectory(filePath, req.uri, route.directory_listing, serverConfig, route.indexFile);
         else if (S_ISREG(pathStat.st_mode))
             return serveStaticFile(filePath, serverConfig);
         else
@@ -75,23 +75,26 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
 }
 
 
-HttpResponse GetHandler::handleDirectory(const std::string& dirPath, const std::string& urlPath, bool listingEnabled, const ServerConfig& serverConfig) const
+HttpResponse GetHandler::handleDirectory(const std::string& dirPath, const std::string& urlPath, bool listingEnabled, const ServerConfig& serverConfig, const std::string& indexFile) const
 {
-    if (listingEnabled)
+    std::cout << "listingEnabled: " << listingEnabled << std::endl;
+    if (indexFile.empty() && listingEnabled)
+    {
+        std::cout << "\033[1;33m[GET Handler]\033[0m Directory listing enabled, serving directory listing" << std::endl;
         return handleDirectoryListing(dirPath, urlPath, serverConfig);
+    }
     else
     {
         std::cout << "\033[1;33m[GET Handler]\033[0m Directory listing disabled, looking for index file" << std::endl;
-
+        
         // Try to serve index.html from the directory //!(here is should add the index file from config file instead of index.html)
-        std::string indexPath = dirPath + "/index.html";
+        std::string indexPath = dirPath + "/" + indexFile;
         struct stat indexStat;
-
+        
         if (stat(indexPath.c_str(), &indexStat) == 0 && S_ISREG(indexStat.st_mode))
             return serveStaticFile(indexPath, serverConfig);
-        else
-            return createForbiddenResponse(serverConfig);
-    }
+        }
+    return createForbiddenResponse(serverConfig);
 }
 
 

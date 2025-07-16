@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 13:09:54 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/16 15:47:30 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -260,7 +260,7 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
         route.root = value;
     else if (key == "directory_listing")
     {
-        if (key == "on")
+        if (value == "on")
             route.directory_listing = true;
         else
             route.directory_listing = false;
@@ -354,19 +354,31 @@ void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string&
     {
         if (value.empty())
             throw std::runtime_error("client_max_body_size cannot be empty");
-        int size = 0;
+        unsigned long long size = 0;
+        if (value[value.size() - 1] == 'K'){
+            std::string num = value.substr(0, value.size()-1);
+            if (!isNum(num))
+                throw std::runtime_error("Invalid client_max_body_size number: " + num);
+            size = std::atoi(num.c_str()) * 1024;
+        }
         if (value[value.size() - 1] == 'M') {
             std::string num = value.substr(0, value.size()-1);
             if (!isNum(num))
                 throw std::runtime_error("Invalid client_max_body_size number: " + num);
             size = std::atoi(num.c_str()) * 1024 * 1024;
-        } else {
+        } else if (value[value.size() - 1] == 'G'){
+            std::string num = value.substr(0, value.size()-1);
+            if (!isNum(num))
+                throw std::runtime_error("Invalid client_max_body_size number: " + num);
+            size = std::atoi(num.c_str()) * 1024 * 1024 * 1024;
+        } 
+        else {
             if (!isNum(value))
                 throw std::runtime_error("Invalid client_max_body_size number: " + value);
             size = std::atoi(value.c_str());
         }
-        if (size <= 0 || size > 10485760)
-            throw std::runtime_error("client_max_body_size must be >0 and ≤10M.");
+        // if (size < 0)
+        //     throw std::runtime_error("client_max_body_size must be positive number.");
         server.clientMaxBodySize = size;
     }
     else if (key.find("error_page") == 0)
