@@ -6,12 +6,13 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/16 15:47:30 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/16 18:53:37 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/ConfigInterpreter.hpp"
 #include <algorithm> 
+#include <climits>
 
 
 
@@ -354,31 +355,49 @@ void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string&
     {
         if (value.empty())
             throw std::runtime_error("client_max_body_size cannot be empty");
+            
         unsigned long long size = 0;
-        if (value[value.size() - 1] == 'K'){
-            std::string num = value.substr(0, value.size()-1);
-            if (!isNum(num))
-                throw std::runtime_error("Invalid client_max_body_size number: " + num);
-            size = std::atoi(num.c_str()) * 1024;
+        std::string numStr = value;
+        unsigned long long multiplier = 1;
+        
+        // Check for suffix and extract number
+        if (!value.empty()) {
+            char lastChar = std::tolower(value[value.size() - 1]);
+            if (lastChar == 'k' || lastChar == 'm' || lastChar == 'g') {
+                if (value.size() == 1) {
+                    throw std::runtime_error("client_max_body_size: suffix without number");
+                }
+                numStr = value.substr(0, value.size() - 1);
+                
+                if (lastChar == 'k') {
+                    multiplier = 1024ULL;
+                } else if (lastChar == 'm') {
+                    multiplier = 1024ULL * 1024ULL;
+                } else if (lastChar == 'g') {
+                    multiplier = 1024ULL * 1024ULL * 1024ULL;
+                }
+            }
         }
-        if (value[value.size() - 1] == 'M') {
-            std::string num = value.substr(0, value.size()-1);
-            if (!isNum(num))
-                throw std::runtime_error("Invalid client_max_body_size number: " + num);
-            size = std::atoi(num.c_str()) * 1024 * 1024;
-        } else if (value[value.size() - 1] == 'G'){
-            std::string num = value.substr(0, value.size()-1);
-            if (!isNum(num))
-                throw std::runtime_error("Invalid client_max_body_size number: " + num);
-            size = std::atoi(num.c_str()) * 1024 * 1024 * 1024;
-        } 
-        else {
-            if (!isNum(value))
-                throw std::runtime_error("Invalid client_max_body_size number: " + value);
-            size = std::atoi(value.c_str());
+        
+        // kolhom numbers
+        if (numStr.empty() || !isNum(numStr)) {
+            throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
         }
-        // if (size < 0)
-        //     throw std::runtime_error("client_max_body_size must be positive number.");
+        
+        // Convert to number (using strtoul for better error handling)
+        char* endptr;
+        unsigned long baseSize = std::strtoul(numStr.c_str(), &endptr, 10);
+        if (*endptr != '\0' || baseSize == 0) {
+            throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
+        }
+        
+        // Check for overflow before multiplication
+        if (baseSize > (ULLONG_MAX / multiplier)) {
+            throw std::runtime_error("client_max_body_size too large: " + value);
+        }
+        
+        size = baseSize * multiplier;
+
         server.clientMaxBodySize = size;
     }
     else if (key.find("error_page") == 0)
@@ -438,7 +457,7 @@ void ConfigInterpreter::checkValues() const
 std::string ConfigInterpreter::getPathForCGI(char **envp) const
 {
     std::string str;
-    
+
     if (!envp || !*envp)
         return "";
     for (size_t i = 0; envp[i] != NULL; i++)
