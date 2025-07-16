@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:00:24 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 09:19:05 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/15 11:44:03 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ class ServerConfig {
         
         ServerConfig();
         ServerConfig(const ServerConfig& other);
+        int getMaxSize();
         ServerConfig& operator=(const ServerConfig& other);
 };
 

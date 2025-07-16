@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/07 15:16:30 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/16 09:26:44 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,141 +15,218 @@
 
 HttpRequest::HttpRequest() : method(""), uri(""), version(""), body("") {}
 
-HttpRequest HttpRequest::parse(const std::string& raw)
+std::string toLower(std::string str) {
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+}
+
+void HttpRequest::parseHeaders(const std::string& rawHeaders)
 {
-    HttpRequest req;
-    std::istringstream stream(raw);
+    std::istringstream stream(rawHeaders);
     std::string line;
     int hostFlag = 0;
 
-    // Parse request line
-    if (!std::getline(stream, line)){
+    if (!std::getline(stream, line) || line.empty()){
         throwHttpError(400, "Invalid HTTP request: empty request line");
     }
 
-    std::istringstream requestLine(line);
-    requestLine >> req.method >> req.uri >> req.version;
-    if ((req.method.empty() || req.uri.empty() || req.version.empty())){
-        throwHttpError(400, "Invalid HTTP request: empty request line");
+    std::istringstream requestLineStream(line);
+    requestLineStream >> this->method >> this->uri >> this->version;
+    if ((this->method.empty() || this->uri.empty() || this->version.empty())){
+        throwHttpError(400, "Invalid HTTP request: info missed in request line");
     }
-    else if (req.version != "HTTP/1.1")
-        throwHttpError(505, "http Version Not Supported"); // 505 http Version Not Supported //!don't forget leaks !!!
-
+    else if (this->version != "HTTP/1.1") {
+        throwHttpError(505, "HTTP Version Not Supported");
+    }
+    else if (this->method != "GET" && this->method != "POST" && this->method != "DELETE") {
+        throwHttpError(501, "Not Implemented: Unsupported HTTP method"); //? kayna f dispatcher method
+    }
+    else if (this->uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
+    {
+        throwHttpError(400, "Invalid HTTP request: URI contains invalid characters");
+    }
+    else if (this->uri.size() > 2048)
+    {
+        throwHttpError(414, "URI Too Long");
+    }
+    
     // Parse headers
     while (std::getline(stream, line)) {
-        if (line == "\r" || line.empty()){ // for no or more then one host
-            if (hostFlag != 1)
-                throwHttpError(400, "bad request, Host");
-          break;
+        std::string trimmed_line = line;
+        // Remove trailing \r from the line read by getline
+        if (!trimmed_line.empty() && trimmed_line[trimmed_line.size() - 1] == '\r') {
+            trimmed_line.erase(trimmed_line.size() - 1);
         }
+
+        if (trimmed_line.empty()) { // end of header line
+            if (hostFlag != 1) {
+                throwHttpError(400, "Bad request: Host header missing or deplicated");
+            }
+            break;
+        }
+
         size_t colon = line.find(":");
-        if (colon == 0)
-            throwHttpError(400, "bad request."); //bad one;
+        if (colon == 0) {
+            throwHttpError(400, "Bad request: Empty header key");
+        }
         if (colon == std::string::npos) {
-            throwHttpError(400, "bad request, Host");
-            // continue;
+            throwHttpError(400, "Bad request: invalid header line (missing colon)");
         }
 
         std::string key = line.substr(0, colon);
         std::string value = line.substr(colon + 1);
-        if (key == "Host")
-        {
-            if (value.empty())
-                throwHttpError(400, "bad request, Host error");
+
+        key.erase(0, key.find_first_not_of(" \t"));
+        key.erase(key.find_last_not_of(" \t\r") + 1); // remove trailing whitespace and \r
+        value.erase(0, value.find_first_not_of(" \t"));
+        value.erase(value.find_last_not_of(" \t\r") + 1); // remove trailing whitespace and \r
+
+        this->headers[key] = value;
+
+        if (toLower(key) == "host") {
+            if (value.empty()) {
+                throwHttpError(400, "Bad request: Host header value empty");
+            }
             hostFlag = 1;
         }
-        // Trim
-        key.erase(0, key.find_first_not_of(" \t"));
-        key.erase(key.find_last_not_of(" \t\r") + 1);
-        value.erase(0, value.find_first_not_of(" \t"));
-        value.erase(value.find_last_not_of(" \t\r") + 1);
-
-        req.headers[key] = value;
     }
 
-    if (!req.headers["Content-Length"].empty() && !req.headers["Transfer-Encoding"].empty())
-    throwHttpError(400, "bad request"); // Both are set → HTTP spec forbids this
-    
-    else if (!req.headers["Content-Length"].empty()){
-        std::string all_body;
+        if (this->uri.find("http://", 0) == 0)
+        {
+            size_t host_start_pos = 7; // length of "http://"
+            size_t path_start_pos = this->uri.find('/', host_start_pos);
+            std::string host_in_uri;
+        
+            if (path_start_pos == std::string::npos) {
+                // URI is like "http://www.example.com" with no path
+                host_in_uri = this->uri.substr(host_start_pos);
+                this->uri = "/"; // The path is just the root
+            } else {
+                // URI is like "http://www.example.com/path"
+                host_in_uri = this->uri.substr(host_start_pos, path_start_pos - host_start_pos);
+                this->uri = this->uri.substr(path_start_pos); // Update URI to just be the path
+            }
+        
+            // l host d request khass tkon bhal host li 
+            std::string host_header = GetHeader("host");
+            if (host_header.find(':') != std::string::npos) {
+                host_header = host_header.substr(0, host_header.find(':'));
+            }
+        
+            if (host_in_uri != host_header) {
+                throwHttpError(400, "Host in request URI does not match Host header");
+            }
+        }
 
-        std::string cl = req.headers["Content-Length"];
-        if (!cl.empty()) {
-            std::stringstream ss(cl);
-            ss >> req.contentLength;
-            if (ss.fail()) {
-                throwHttpError(400, "Invalid Content-Length");
-            }
-        } else {
-            req.contentLength = 0;
+    // After parsing all headers, determine body protocol if content-length or transfer-encoding
+    if (this->method == "POST"){
+        
+        std::string cl_header = GetHeader("content-length");
+        std::string te_header = GetHeader("transfer-encoding");
+
+    if ((!cl_header.empty() && !te_header.empty()) || (cl_header.empty() && te_header.empty())) {
+        throwHttpError(400, "Bad request: not specified body protocol");
+    } else if (!cl_header.empty()) {
+        std::stringstream ss(cl_header);
+        ss >> this->contentLength;
+        if (ss.fail() || this->contentLength < 0) {
+            throwHttpError(400, "Invalid Content-Length header value");
         }
-        std::cout << "size is ::" << req.contentLength << std::endl;
-        std::getline(stream, all_body, '\0');
-        if (all_body.size() < req.contentLength)
-        throwHttpError(400, "bad request, incomplete body"); // incomplete body
-        else {
-            req.bodyReceived = all_body.size();
-            
-            if (req.bodyReceived >= req.contentLength) {
-                req.body = all_body.substr(0, req.contentLength);
-                all_body.erase(0, req.contentLength);
-            }
-        }
+        this->isChunked = false;
+    } else if (!te_header.empty() && te_header == "chunked") {
+        this->isChunked = true;
+        this->contentLength = 0;
     }
-    else if (!req.headers["Transfer-Encoding"].empty()) {
-        std::cout << "heeeeeeeeeeeeeeeeeere" << std::endl;
-        std::string all_body;
-        std::getline(stream, all_body, '\0');
-        req.body = decodeChunked(all_body);
+    else if (!te_header.empty() && te_header != "chunked") {
+        throwHttpError(501, "Not Implemented: Unsupported Transfer-Encoding");
+    }
     }
     else {
-        // no body content?
+    // For methods other than POST, no body is expected
+    this->isChunked = false;
+    this->contentLength = 0;
     }
-    return req;
 }
 
-std::string HttpRequest::decodeChunked(const std::string& chunkedBody) {
-    std::istringstream stream(chunkedBody);
-    std::string decoded;
-    std::string line;
+bool HttpRequest::parseBody(std::string& connectionBuffer, long maxBodySize) {
+    if (!isChunked && contentLength == 0) {
+        // No body expected already done;
+        return true;
+    }
 
-    while (std::getline(stream, line)) {
-        // Remove trailing \r because getline stops at \n only.
-        if (!line.empty() && line[line.size() - 1] == '\r')
-            line.erase(line.size() - 1);
+    if (!isChunked) { // Content-Length body
+        if (contentLength > maxBodySize)
+            throwHttpError(413, "request entity Too Large");
+        if (contentLength > 0 && connectionBuffer.length() >= static_cast<size_t>(contentLength)) {
+            this->body.append(connectionBuffer.substr(0, contentLength));
+            connectionBuffer.erase(0, contentLength);
+            return true; // Body is complete
+        }
+        // Not enough data yet, will return false and wait for more
+        return false;
+    } else { // Chunked body
+        // Call the incremental chunked decoder
+        return decodeChunked(connectionBuffer, this->body);
+    }
+}
 
-        // Convert hex size line to int
-        std::stringstream ss(line);
-        int chunkSize = 0;
+// --- decodeChunkedIncremental implementation ---
+// This function will consume valid chunks from 'buffer' and append to 'decodedOutput'
+// Returns true if the 0-chunk (end of message) is found and consumed.
+bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput) {
+    size_t pos = 0;
+    while (pos < buffer.length()) {
+        size_t newline_pos = buffer.find("\r\n", pos);
+        if (newline_pos == std::string::npos) {
+            // Not enough data for chunk size line or trailing CRLF
+            return false;
+        }
+
+        std::string size_hex_str = buffer.substr(pos, newline_pos - pos);
+        std::istringstream ss(size_hex_str);
+        long chunkSize;
         ss >> std::hex >> chunkSize;
 
-        if (ss.fail()) {
-            throwHttpError(400, "Invalid chunk size");
-        }
-        if (chunkSize == 0) {
-            break; // end
+        if (ss.fail() || !ss.eof()) { // Check for parsing errors or extra characters on size line
+            throwHttpError(400, "Invalid chunk size format");
         }
 
-        // Read chunk data
-        char *buffer = new char[chunkSize];
-        stream.read(buffer, chunkSize);
-        if (stream.gcount() != chunkSize) {
-            delete[] buffer;
-            throwHttpError(400, "Chunk too short");
+        if (chunkSize == 0) { // End of chunked message
+            // Check for the final CRLF after the 0-chunk
+            if (buffer.length() < newline_pos + 4) { // Need "0\r\n\r\n"
+                return false; // Not enough data for final CRLF
+            }
+            if (buffer.substr(newline_pos, 4) != "\r\n\r\n") {
+                if (buffer.substr(newline_pos, 2) != "\r\n") { // Should be 0\r\n
+                    throwHttpError(400, "Expected CRLF after 0-chunk size");
+                }
+            }
+            buffer.erase(0, newline_pos + 4); // Consume "0\r\n\r\n"
+            return true; // Body is complete
         }
 
-        decoded.append(buffer, chunkSize);
-        delete[] buffer;
-
-        // Next 2 bytes must be \r\n
-        char cr, lf;
-        stream.get(cr);
-        stream.get(lf);
-        if (cr != '\r' || lf != '\n') {
-            throwHttpError(400, "Expected CRLF after chunk");
+        // Check if full chunk data + CRLF is available
+        size_t expected_total_chunk_len = (newline_pos - pos) + 2 + chunkSize + 2; // size_hex + \r\n + data + \r\n
+        if (buffer.length() < pos + expected_total_chunk_len) {
+            // Not enough data for the full chunk (size, data, and trailing \r\n)
+            return false;
         }
+
+        // Extract chunk data
+        size_t chunk_data_start = newline_pos + 2;
+        decodedOutput.append(buffer.substr(chunk_data_start, chunkSize));
+
+        // Check for chunk trailing CRLF
+        size_t chunk_crlf_pos = chunk_data_start + chunkSize;
+        if (buffer.substr(chunk_crlf_pos, 2) != "\r\n") {
+            throwHttpError(400, "Expected CRLF after chunk data");
+        }
+
+        // Consume the processed chunk from the buffer
+        buffer.erase(0, chunk_crlf_pos + 2); // Erase up to and including the chunk's trailing CRLF
+        pos = 0; // Reset position as buffer has been modified
     }
-    return decoded;
+    return false; // Not complete yet, or no more full chunks could be processed
 }
 
 
@@ -176,3 +253,4 @@ std::string HttpRequest::GetHeader(std::string target) const
     }
     return (value);
 }
+

@@ -6,12 +6,13 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/15 22:50:10 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/16 09:26:22 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/CgiHandler.hpp"
 # include "../includes/CgiData.hpp"
+#include "../includes/Utils.hpp"
 #include <sstream>
 #include <algorithm>
 #include <cctype> 
@@ -34,7 +35,7 @@ CgiHandler::CgiHandler(const HttpServer &server, const HttpRequest& req , const 
     // _serverSocket = server.getFd();
     _clientSocket = clientSocket;
     _data = check_cgi();
-    _data.DebugPrint();
+    // _data.DebugPrint();
 }
 void printEnvp(char** envp) 
 {
