@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/16 09:26:22 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/16 09:57:01 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -481,9 +481,6 @@ CgiState *CgiHandler::execCgi(void)
             f->input_fd = -1; // No input for GET requests
         f->pid = pid;
         f->script_path = _data.script_path;
-        f->startTime = time(NULL);
-        f->rawOutput.clear();
-        f->headersParsed = false;
         f->headerBuffer.clear();
         f->bodyBuffer.clear();
         delete[] env;

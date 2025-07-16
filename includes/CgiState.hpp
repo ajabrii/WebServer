@@ -10,7 +10,7 @@ class CgiState
     int input_fd; // only for POST
     std::string rawOutput;
     time_t startTime;
-    bool headersParsed = false;
+    bool headersParsed;
         // Optional:
     std::string headerBuffer;
     std::string bodyBuffer;

@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/16 09:26:53 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/16 10:36:26 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,104 @@ static Reactor* g_reactor = NULL;
 void signalHandler(int signum) {
     (void)signum;
     g_shutdown = true;
+}
+
+// Helper: Convert string to lowercase
+std::string toLower(const std::string& s) {
+    std::string result = s;
+    for (size_t i = 0; i < result.size(); ++i)
+        result[i] = std::tolower(result[i]);
+    return result;
+}
+
+// Helper: Trim leading spaces
+void ltrim(std::string& s) {
+    size_t i = 0;
+    while (i < s.size() && std::isspace(static_cast<unsigned char>(s[i]))) ++i;
+    s.erase(0, i);
+}
+
+// HttpResponse structure
+// struct HttpResponse {
+//     int statusCode;
+//     std::string statusText;
+//     std::string body;
+//     std::map<std::string, std::string> headers;
+// };
+
+HttpResponse parseCgiOutput(const std::string& raw) {
+    HttpResponse response;
+
+    size_t headerEnd = raw.find("\r\n\r\n");
+    if (headerEnd == std::string::npos) {
+        response.statusCode = 500;
+        response.statusText = "Internal Server Error";
+        response.body = "CGI script did not return valid headers.";
+        return response;
+    }
+
+    std::string headerPart = raw.substr(0, headerEnd);
+    std::string bodyPart = raw.substr(headerEnd + 4);
+
+    std::istringstream headerStream(headerPart);
+    std::string line;
+    bool statusParsed = false;
+
+    while (std::getline(headerStream, line)) {
+        // Remove trailing \r if present
+        if (!line.empty() && *line.rbegin() == '\r')
+            line.erase(line.size() - 1);
+
+        size_t colon = line.find(':');
+        if (colon != std::string::npos) {
+            std::string key = line.substr(0, colon);
+            std::string value = line.substr(colon + 1);
+            ltrim(value);
+            key = toLower(key);
+
+            if (key == "status") {
+                std::istringstream statusStream(value);
+                statusStream >> response.statusCode;
+                std::getline(statusStream, response.statusText);
+                ltrim(response.statusText);
+                statusParsed = true;
+            } else {
+                response.headers[key] = value;
+            }
+        }
+        // Ignore malformed headers (no colon)
+    }
+
+    if (!statusParsed) {
+        response.statusCode = 200;
+        response.statusText = "OK";
+    }
+
+    response.body = bodyPart;
+
+    if (response.headers.find("content-length") == response.headers.end()) {
+        std::ostringstream oss;
+        oss << response.body.size();
+        response.headers["content-length"] = oss.str();
+    }
+
+    return response;
+}
+
+
+void cleanupCgi(Connection &conn) 
+{
+    if (conn.getCgiState() == NULL)
+        return;
+    CgiState *cgiState = conn.getCgiState();
+    if (!cgiState)
+        return;
+    close(cgiState->output_fd);
+    if (cgiState->input_fd != -1) 
+        close(cgiState->input_fd);
+    waitpid(cgiState->pid, NULL, 0);
+    delete cgiState;
+    cgiState = NULL;
 }
 
 void handleErrorEvent(const Event& event)
@@ -109,8 +207,65 @@ int main(int ac, char **av, char **envp)
                 for (size_t i = 0; i < events.size(); ++i)
             {
                 Event event = events[i];
-
+                
+                // Connection& conn = reactor.getConnection(event.fd);
+                // CgiState *cgiState = conn.getCgiState();
                 // Handle error events FIRST (highest priority)
+                // if (cgiState && (event.fd == cgiState->output_fd || event.fd == cgiState->input_fd))
+                // {
+                //      // DEBUG: Handle CGI output/input print 
+                //         std::cout << "\033[1;34m[CGI]\033[0m Handling CGI for fd: " << event.fd << std::endl;
+
+                //         if (event.fd == cgiState->input_fd && event.isWritable && !cgiState->pendingBody.empty()) 
+                //         {
+                //             std::cout << "\033[1;34m[CGI]\033[0m Writing pending body to CGI input" << std::endl;
+                //             ssize_t written = write(cgiState->input_fd, cgiState->pendingBody.c_str(), cgiState->pendingBody.size());
+                //             if (written > 0)
+                //             {
+                //                 std::cout << "\033[1;34m[CGI]\033[0m Wrote " << written << " bytes to CGI input" << std::endl;
+                //                 cgiState->pendingBody.erase(0, written);
+                //                 if (cgiState->pendingBody.empty()) 
+                //                 {
+                //                     std::cout << "\033[1;34m[CGI]\033[0m Finished writing pending body to CGI input" << std::endl;
+                //                     close(cgiState->input_fd);
+                //                     reactor.removeConnection(cgiState->input_fd);
+                //                 }
+                //             }
+                //         }
+
+                //         if (event.fd == cgiState->output_fd && event.isReadable) 
+                //         {
+                //             std::cout << "\033[1;34m[CGI]\033[0m Reading CGI output" << std::endl;
+                //             char buffer[4096];
+                //             ssize_t n = read(cgiState->output_fd, buffer, sizeof(buffer));
+                //             if (n > 0) 
+                //             {
+                //                 std::cout << "\033[1;34m[CGI]\033[0m Read " << n << " bytes from CGI output" << std::endl;
+                //                 cgiState->rawOutput.append(buffer, n);
+                //             } 
+                //             else if (n == 0) 
+                //             {
+                //                 std::cout << "\033[1;34m[CGI]\033[0m CGI output closed" << std::endl;
+                //                 // CGI finished
+                //                 std::cout << "\033[1;33m[CGI OUTPUT RAW]\033[0m\n" << cgiState->rawOutput << std::endl;
+                //                 HttpResponse resp = parseCgiOutput(cgiState->rawOutput);
+                //                 conn.writeData(resp.toString());
+                //                 reactor.removeConnection(cgiState->output_fd);
+                //                 cleanupCgi(conn);
+                //                 reactor.removeConnection(conn.getFd());
+                //                 std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
+                //             } 
+                //             else
+                //             {
+                //                 std::cerr << "\033[1;31m[CGI ERROR]\033[0m Failed to read CGI output: ";
+                //                 perror("CGI read error");
+                //                 reactor.removeConnection(cgiState->output_fd);
+                //                 cleanupCgi(conn);
+                //                 reactor.removeConnection(conn.getFd());
+                //             }
+                //         }
+                //         continue;
+                // }
                 if (event.isError)
                 {
                     handleErrorEvent(event);
@@ -191,15 +346,43 @@ int main(int ac, char **av, char **envp)
                         // }
                         
                         // exit(0);
-                        if (route) {
+                        if (route) 
+                        {
                             CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
-                            if (cgi.IsCgi()) {
-                                resp = cgi.execCgi();
-                            } else {
+                            if (cgi.IsCgi())
+                            {
+                                conn.setCgiState(cgi.execCgi());
+                                if (conn.getCgiState()->pid > 0) 
+                                {
+                                    // If CGI is running, watch its output
+                                    reactor.watchCgi(&conn);
+                                    std::cout << "\033[1;34m[CGI]\033[0m Executing CGI script: " << conn.getCgiState()->script_path << std::endl;
+                                    continue; // Skip response handling, wait for CGI output
+                                } 
+                                else 
+                                {
+                                    // CGI execution failed
+                                    resp.version = "HTTP/1.1";  // Fix: Set HTTP version
+                                    resp.statusCode = 500;
+                                    resp.statusText = "Internal Server Error";
+                                    resp.headers["content-type"] = "text/html";
+                                    resp.body = Error::loadErrorPage(500, server->getConfig());
+                                    
+                                    // C++98 compatible string conversion
+                                    std::stringstream ss;
+                                    ss << resp.body.size();
+                                    resp.headers["content-length"] = ss.str();
+                                    
+                                    std::cout << "\033[1;31m[CGI ERROR]\033[0m Failed to execute CGI script: " << conn.getCgiState()->script_path << std::endl;
+                                }
+                            }
+                            else
+                            {
                                 RequestDispatcher dispatcher;
                                 resp = dispatcher.dispatch(req, *route, server->getConfig());
                             }
-                        } else {
+                        } 
+                        else {
                             // No route found - return 404
                             std::cout << "::::::::::::::::::::::::::::::::::NOT-FOUND:::::::::::::::::::::::::::::::::::::" << std::endl;
                             resp.version = "HTTP/1.1";  // Fix: Set HTTP version

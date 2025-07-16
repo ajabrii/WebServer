@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/07/16 09:26:38 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/16 10:10:43 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@ Connection::Connection()
     requestCount(0),
     requestState(READING_HEADERS),
     contentLength(0),
-    isChunked(false)
+    isChunked(false),
+    cgiState(NULL)
 {
     std::memset(&client_addr, 0, sizeof(client_addr));
 }
@@ -34,7 +35,8 @@ Connection::Connection(int fd, const sockaddr_in& addr)
     requestCount(0),
     requestState(READING_HEADERS),
     contentLength(0),
-    isChunked(false)
+    isChunked(false),
+    cgiState(NULL)
 {
 }
 
@@ -201,4 +203,19 @@ void Connection::reset() {
 
 bool Connection::isConnectionClosed() const {
     return client_fd == -1;
+}
+
+CgiState* Connection::getCgiState() const
+{
+    return cgiState;
+};
+void Connection::setCgiState(CgiState* cgiState)
+{
+    this->cgiState = cgiState;
+    if (cgiState)
+    {
+        cgiState->startTime = std::time(0);
+        cgiState->headersParsed = false;
+        cgiState->rawOutput.clear();
+    }
 }

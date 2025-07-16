@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/07/16 09:25:28 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/16 09:55:04 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <string>
 #include <netinet/in.h>
 #include <ctime>
+#include "CgiState.hpp"
 # define BUFFER_SIZE 8192
 # define KEEP_ALIVE_TIMEOUT 60  // 60 seconds timeout for keep-alive connections
 
@@ -46,7 +47,8 @@ class Connection
         long contentLength; // Use long to match potential large sizes
         bool isChunked;
         HttpRequest currentRequest;
-        HttpServer* server;
+        CgiState* cgiState;
+        // HttpServer* server;
         
     public:
         Connection();
@@ -73,6 +75,8 @@ class Connection
         bool isRequestComplete() const; // New helper to check state for main loop
         bool isConnectionClosed() const; // Check if connection is closed
         void reset();
+        CgiState* getCgiState() const; // Get CgiState for this connection
+        void setCgiState(CgiState* cgiState); // Set CgiState
 };
 
 #endif

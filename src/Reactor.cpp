@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/16 09:26:57 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/16 10:09:44 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,4 +172,33 @@ HttpServer* Reactor::getServerForClient(int clientFd)
 {
     std::map<int, HttpServer*>::iterator it = clientToServerMap.find(clientFd);
     return (it != clientToServerMap.end()) ? it->second : 0;
+}
+
+void Reactor::watchCgi(Connection* conn) 
+{
+    if (!conn)
+        return;
+    CgiState *cgiState = conn->getCgiState();
+    if (!cgiState)
+        return;
+
+    // Watch CGI output (stdout)
+    pollfd pfdOut;
+    pfdOut.fd = cgiState->output_fd;
+    pfdOut.events = POLLIN;
+    pollFDs.push_back(pfdOut);
+
+    // Watch CGI input (stdin) only for POST
+    if (cgiState->input_fd != -1) 
+    {
+        pollfd pfdIn;
+        pfdIn.fd = cgiState->input_fd;
+        pfdIn.events = POLLOUT;
+        pollFDs.push_back(pfdIn);
+    }
+
+    // Optional: associate CGI fds with connection
+    connectionMap[cgiState->output_fd] = conn;
+    if (cgiState->input_fd != -1)
+        connectionMap[cgiState->input_fd] = conn;
 }

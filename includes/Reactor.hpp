@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/16 09:25:57 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/16 10:07:14 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ class Reactor
         Connection& getConnection(int fd);
         HttpServer* getServerByListeningFd(int fd);
         HttpServer* getServerForClient(int clientFd);
+        void watchCgi(Connection* conn);
         void cleanup();
         void cleanupTimedOutConnections(); // Cleanup connections that have timed out
 };
