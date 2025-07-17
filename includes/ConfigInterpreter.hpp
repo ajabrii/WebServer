@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:03:57 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 11:42:32 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/17 17:50:46 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ class ConfigInterpreter {
         void parseServerLine(ServerConfig& server, const std::string& line);
         std::string extractPathFromRouteLine(const std::string& line);
         std::vector<std::string> readFile(const std::string& filepath);
+        bool hasValidExtension(const std::string& filePath) const;
         std::string trim(const std::string& line);
         std::string clean_line(std::string line);
         bool Isspaces(const std::string& line);

@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 18:59:10 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/17 18:19:47 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,12 +230,8 @@ bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput)
 }
 
 
-
 void HttpRequest::throwHttpError(int statusCode, const std::string& message) {
-    std::ostringstream oss;
-    oss << statusCode;
-    throw std::runtime_error("HTTP error " + oss.str() + ": " + message);
-
+    throw HttpException(statusCode, message);
 }
 
 std::string HttpRequest::GetHeader(std::string target) const
@@ -254,3 +250,18 @@ std::string HttpRequest::GetHeader(std::string target) const
     return (value);
 }
 
+HttpRequest::HttpException::HttpException(int code, const std::string& msg)
+    : statusCode(code), message(msg) {
+}
+
+HttpRequest::HttpException::~HttpException() throw() {
+    // Destructor can be empty, as std::string and int handle their own cleanup
+}
+
+const char* HttpRequest::HttpException::what() const throw() {
+    return message.c_str();
+}
+
+int HttpRequest::HttpException::getStatusCode() const {
+    return statusCode;
+}

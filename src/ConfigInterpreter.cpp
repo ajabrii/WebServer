@@ -6,14 +6,14 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/16 18:53:37 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/17 18:51:44 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/ConfigInterpreter.hpp"
 #include <algorithm> 
 #include <climits>
-
+#include <cstddef>
 
 
 ConfigInterpreter::ConfigInterpreter() : serverFlag(false), routeFlag(false){}
@@ -28,7 +28,10 @@ void ConfigInterpreter::getConfigData(std::string filePath)
     blockKeywords.push_back("route");
     bool matched;
     std::string keyword;
-    // std::cout << filePath << "\n";
+    // Check file extension (.config or .yaml)
+    if (!hasValidExtension(filePath)) {
+        throw std::runtime_error("Config file must have .config or .yaml extension");
+    }
     std::ifstream infile(filePath.c_str());
     if (!infile.is_open())
         throw std::runtime_error("Cannot open config file");
@@ -71,11 +74,16 @@ void ConfigInterpreter::getConfigData(std::string filePath)
             ConfigData.push_back(clean_line(line));
         }
     }
-    // for (size_t i = 0; i < ConfigData.size(); ++i)
-    // {
-    //     std::cout << "std::line :: " << ConfigData[i] << "\n";
-    // }
     infile.close();
+}
+
+bool ConfigInterpreter::hasValidExtension(const std::string& filePath) const
+{
+    size_t dotPos = filePath.rfind('.');
+    if (dotPos == std::string::npos)
+        return false;
+    std::string ext = filePath.substr(dotPos);
+    return (ext == ".config" || ext == ".yaml");
 }
 
 std::string ConfigInterpreter::trim(const std::string& line) {
@@ -444,11 +452,24 @@ void ConfigInterpreter::checkValues() const
             if (serverConfigs[i].routes[j].allowedMethods.empty())
                 throw std::runtime_error("No methods specified for route " + serverConfigs[i].routes[j].path);
         }
-        // Check for duplicate host in other servers
         for (size_t k = i + 1; k < serverConfigs.size(); k++)
         {
             if (serverConfigs[i].host == serverConfigs[k].host)
-                throw std::runtime_error("Duplicate host found in two server blocks: " + serverConfigs[i].host);
+            {
+            for (size_t pi = 0; pi < serverConfigs[i].port.size(); ++pi)
+            {
+                for (size_t pk = 0; pk < serverConfigs[k].port.size(); ++pk)
+                {
+                if (serverConfigs[i].port[pi] == serverConfigs[k].port[pk])
+                {
+                    throw std::runtime_error(
+                    "Duplicate host and port found in two server blocks: "
+                    // + serverConfigs[i].host + ":" + std::to_string(serverConfigs[i].port[pi])
+                    );
+                }
+                }
+            }
+            }
         }
     }
 }

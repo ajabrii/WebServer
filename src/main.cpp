@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 18:17:03 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/17 20:48:29 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,11 +138,36 @@ int main(int ac, char **av, char **envp)
                     
                     try {
                         conn.readData(server);
-                    } catch (const std::exception& e) {
-                        std::cerr << "Connection read error: " << e.what() << std::endl;
-                        reactor.removeConnection(event.fd);
-                        continue;
                     }
+                    
+                    catch (const HttpRequest::HttpException& e) {
+                        std::string msg = e.what();
+                        int code = e.getStatusCode();
+                            std::cerr << "Parse error: " << msg << std::endl;
+                            HttpResponse errorResp;
+                            errorResp.version = "HTTP/1.1";
+                            errorResp.statusCode = code;
+                            if (code == 400)
+                                errorResp.statusText = "Bad Request";
+                            else if (code == 404)
+                                errorResp.statusText = "Not Found";
+                            else
+                                errorResp.statusText = "Error";
+                            errorResp.headers["Content-Type"] = "text/html";
+                            errorResp.body = Error::loadErrorPage(code, server->getConfig());
+                            
+                    //         // C++98 compatible string conversion
+                            std::stringstream ss;
+                            ss << errorResp.body.size();
+                            errorResp.headers["content-length"] = ss.str();
+                            
+                    //         // Always close connection on parse errors
+                            setConnectionHeaders(errorResp, false);
+                            conn.writeData(errorResp.toString());
+                            conn.updateLastActivity(); // Update activity timestamp after error response
+                            reactor.removeConnection(event.fd);
+                            continue;
+                        }
 
                    if (conn.isRequestComplete()) {
                         
@@ -152,45 +177,13 @@ int main(int ac, char **av, char **envp)
 
                         HttpRequest& req = conn.getCurrentRequest();
 
-                            // std::cout << "Method: " << req.method << std::endl;
-                            // std::cout << "URI: " << req.uri << std::endl;
-                            // std::cout << "Version: " << req.version << std::endl;
-                            // if (!req.body.empty()) {
-                            //     std::cout << "Body Length: " << req.body.length() << std::endl;
-                                // std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
-                            // }
                             std::cout << RECEV_COMPLETE << std::endl;
-                            
                     try
                     {
-                        // HttpServer* server = reactor.getServerForClient(event.fd);
-                        // HttpRequest& req = conn.getCurrentRequest();
-                        //  std::cout << "Method: " << req.method << std::endl;
-                        //     std::cout << "URI: " << req.uri << std::endl;
-                        //     std::cout << "Version: " << req.version << std::endl;
-                        //     if (!req.body.empty()) {
-                        //         std::cout << "Body Length: " << req.body.length() << std::endl;
-                        //         std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
-                        //     }
                         Router router;
                         const RouteConfig* route = router.match(req, server->getConfig());
                         HttpResponse resp;
-                            
-                        // Print all request details here
-                        // std::cout << "----- FULL REQUEST DETAILS -----" << std::endl;
-                        // std::cout << "Method: " << req.method << std::endl;
-                        // std::cout << "URI: " << req.uri << std::endl;
-                        // std::cout << "Version: " << req.version << std::endl;
-                        // std::cout << "Headers:" << std::endl;
-                        // for (std::map<std::string, std::string>::const_iterator it = req.headers.begin(); it != req.headers.end(); ++it) {
-                        //     std::cout << "  " << it->first << ": " << it->second << std::endl;
-                        // }
-                        // if (!req.body.empty()) {
-                        //     std::cout << "Body Length: " << req.body.length() << std::endl;
-                        //     std::cout << "Body: " << req.body << std::endl;
-                        // }
-                        
-                        // exit(0);
+
                         if (route) {
                             CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
                             if (cgi.IsCgi()) {
@@ -266,7 +259,8 @@ int main(int ac, char **av, char **envp)
                             conn.updateLastActivity(); // Update activity timestamp after error response
                             reactor.removeConnection(event.fd);
                         }
-                    } catch (const std::exception& e) {
+                    } 
+                    catch (const std::exception& e) {
                         Error::logs("Connection error: " + std::string(e.what()));
                         reactor.removeConnection(event.fd);
                     }
