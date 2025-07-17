@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:13:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 19:01:05 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/17 11:27:30 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 # define GET_M "GET"
 #define POST_M "POST"
 # define DELETE_M "DELETE"
+# define HEAD_M "HEAD"
 
 class RequestDispatcher
 {

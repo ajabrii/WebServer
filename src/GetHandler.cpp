@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   GetHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 19:44:38 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/17 11:21:44 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,11 +42,25 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
     if (!route.redirect.empty())
         return handleRedirect(route.redirect);
 
-    std::string requestPath = req.uri;
+    // Extract path from URI (remove query string and fragment)
+    std::string requestPath = extractPath(req.uri);
+    
+    // URL decode the path
+    requestPath = urlDecode(requestPath);
+    
+    // Normalize the path (remove multiple slashes, resolve . and ..)
+    requestPath = normalizePath(requestPath);
+    
+    // Check for security issues after normalization
+    if (!isPathSecure(requestPath)) {
+        return createForbiddenResponse(serverConfig);
+    }
+
     // Remove the route path prefix from the request URI to get the relative path
     // Example: route.path="/images", req.uri="/images/photo.jpg" -> requestPath="/photo.jpg"
     if (requestPath.find(route.path) == 0)
         requestPath = requestPath.substr(route.path.length());
+    
     std::string cleanRoot = route.root;
     if (!cleanRoot.empty() && cleanRoot[cleanRoot.length() - 1] == '/')
         cleanRoot = cleanRoot.substr(0, cleanRoot.length() - 1);
@@ -64,12 +78,9 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
             return serveStaticFile(filePath, serverConfig);
         else
         {
-            //?i think i should throw an exeption
             std::cout << "\033[1;31m[GET Handler]\033[0m Path exists but is not a file or directory" << std::endl;
         }
     }
-    // else
-    //     throw std::runtime_error("\033[1;31m[GET Handler]\033[0m Path does not exist: " + filePath);
 
     return createNotFoundResponse(serverConfig);
 }
@@ -300,3 +311,123 @@ HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string& 
     return res;
 }
 
+bool GetHandler::isPathSecure(const std::string& filePath) const
+{
+    // Check for directory traversal patterns after normalization
+    if (filePath.find("../") != std::string::npos ||
+        filePath.find("..\\") != std::string::npos ||
+        filePath.find("/..") != std::string::npos ||
+        filePath.find("\\..") != std::string::npos ||
+        filePath.find("..") == 0) {  // Path starting with ..
+        return false;
+    }
+    
+    // Check for null bytes (can be used to truncate paths)
+    if (filePath.find('\0') != std::string::npos) {
+        return false;
+    }
+    
+    return true;
+}
+
+std::string GetHandler::urlDecode(const std::string& str) const
+{
+    std::string decoded;
+    decoded.reserve(str.length());
+    
+    for (size_t i = 0; i < str.length(); ++i) {
+        if (str[i] == '%' && i + 2 < str.length()) {
+            // Get the two hex digits
+            char hex1 = str[i + 1];
+            char hex2 = str[i + 2];
+            
+            // Convert hex digits to values
+            int val1 = -1, val2 = -1;
+            if (hex1 >= '0' && hex1 <= '9') val1 = hex1 - '0';
+            else if (hex1 >= 'A' && hex1 <= 'F') val1 = hex1 - 'A' + 10;
+            else if (hex1 >= 'a' && hex1 <= 'f') val1 = hex1 - 'a' + 10;
+            
+            if (hex2 >= '0' && hex2 <= '9') val2 = hex2 - '0';
+            else if (hex2 >= 'A' && hex2 <= 'F') val2 = hex2 - 'A' + 10;
+            else if (hex2 >= 'a' && hex2 <= 'f') val2 = hex2 - 'a' + 10;
+            
+            if (val1 != -1 && val2 != -1) {
+                decoded += static_cast<char>(val1 * 16 + val2);
+                i += 2; // Skip the two hex digits
+            } else {
+                decoded += str[i]; // Invalid encoding, keep as-is
+            }
+        } else {
+            decoded += str[i];
+        }
+    }
+    
+    return decoded;
+}
+
+std::string GetHandler::extractPath(const std::string& uri) const
+{
+    // Find query string (?) and fragment (#) positions
+    size_t queryPos = uri.find('?');
+    size_t fragmentPos = uri.find('#');
+    
+    // Find the first occurrence of either ? or #
+    size_t endPos = std::string::npos;
+    if (queryPos != std::string::npos && fragmentPos != std::string::npos) {
+        endPos = std::min(queryPos, fragmentPos);
+    } else if (queryPos != std::string::npos) {
+        endPos = queryPos;
+    } else if (fragmentPos != std::string::npos) {
+        endPos = fragmentPos;
+    }
+    
+    if (endPos == std::string::npos) {
+        return uri;  // No query string or fragment
+    }
+    
+    return uri.substr(0, endPos);
+}
+
+std::string GetHandler::normalizePath(const std::string& path) const
+{
+    std::string normalized = path;
+    
+    // Replace multiple consecutive slashes with single slash
+    size_t pos = 0;
+    while ((pos = normalized.find("//", pos)) != std::string::npos) {
+        normalized.replace(pos, 2, "/");
+    }
+    
+    // Handle . and .. components
+    std::vector<std::string> components;
+    std::istringstream stream(normalized);
+    std::string component;
+    
+    // Split by '/'
+    while (std::getline(stream, component, '/')) {
+        if (component.empty() || component == ".") {
+            continue; // Skip empty components and current directory references
+        } else if (component == "..") {
+            if (!components.empty()) {
+                components.pop_back(); // Go up one directory
+            }
+            // If components is empty, we're trying to go above root, ignore
+        } else {
+            components.push_back(component);
+        }
+    }
+    
+    // Rebuild the path
+    std::string result = "/";
+    for (size_t i = 0; i < components.size(); ++i) {
+        if (i > 0) result += "/";
+        result += components[i];
+    }
+    
+    // Handle case where original path was just "/"
+    if (components.empty() && !path.empty() && path[0] == '/') {
+        return "/";
+    }
+    
+    return result;
+}

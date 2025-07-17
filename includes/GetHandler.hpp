@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   GetHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:19:03 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 19:21:12 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/17 11:21:44 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,10 @@ class GetHandler : public IHttpMethodHandler
 
         std::string getMimeType(const std::string& filePath) const;
         std::string buildLinkPath(const std::string& urlPath, const std::string& name) const;
+        bool isPathSecure(const std::string& filePath) const;
+        std::string urlDecode(const std::string& str) const;
+        std::string normalizePath(const std::string& path) const;
+        std::string extractPath(const std::string& uri) const;
 
         HttpResponse createNotFoundResponse(const ServerConfig& serverConfig) const;
         HttpResponse createForbiddenResponse(const ServerConfig& serverConfig) const;

@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 09:14:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:29:33 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/17 11:27:30 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,13 @@ HttpResponse RequestDispatcher::dispatch(const HttpRequest& req, const RouteConf
     if (req.method == GET_M)
     {
         return GetHandler().handle(req, route, serverConfig);
+    }
+    else if (req.method == HEAD_M)
+    {
+        // HEAD should return the same headers as GET but without body
+        HttpResponse response = GetHandler().handle(req, route, serverConfig);
+        response.body.clear(); // Remove body for HEAD requests
+        return response;
     }
     else if (req.method == POST_M)
     {
