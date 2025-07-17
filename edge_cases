@@ -10,8 +10,13 @@ curl -s -o /dev/null -w "Expected: 200 | Got: %{http_code}\n" "http://127.0.0.1:
  Test 9: GET static asset /index.html directly (expect 200)
 curl -s -o /dev/null -w "Expected: 200 | Got: %{http_code}\n" http://127.0.0.1:8080/index.html
 
+handle this:
+server hangs
 Test 10: GET very long URL (expect 400 or 414 URI Too Long)
 curl -s -o /dev/null -w "Expected: 400 or 414 | Got: %{http_code}\n" http://127.0.0.1:8080/$\(printf 'a%.0s' {1..5000}\)
+test
+curl -s -o /dev/null -w "%{http_code}\n" "http://127.0.0.1:8080/!@#$%^&*()[]{}"
+
 
 
 

@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/17 11:21:44 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/17 11:38:27 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -330,6 +330,14 @@ bool GetHandler::isPathSecure(const std::string& filePath) const
     return true;
 }
 
+/*
+====urldecode
+what this function do:
+- Decodes a URL-encoded string
+- Handles percent-encoded characters (%XX) and converts them to their ASCII equivalents
+- If the encoding is invalid, it keeps the original character
+- Returns the decoded string
+*/
 std::string GetHandler::urlDecode(const std::string& str) const
 {
     std::string decoded;
@@ -374,7 +382,7 @@ std::string GetHandler::extractPath(const std::string& uri) const
     // Find the first occurrence of either ? or #
     size_t endPos = std::string::npos;
     if (queryPos != std::string::npos && fragmentPos != std::string::npos) {
-        endPos = std::min(queryPos, fragmentPos);
+        endPos = std::min(queryPos, fragmentPos); // 
     } else if (queryPos != std::string::npos) {
         endPos = queryPos;
     } else if (fragmentPos != std::string::npos) {
