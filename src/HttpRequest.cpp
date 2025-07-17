@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 18:59:10 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/17 16:01:09 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ void HttpRequest::parseHeaders(const std::string& rawHeaders)
     std::istringstream requestLineStream(line);
     requestLineStream >> this->method >> this->uri >> this->version;
     if ((this->method.empty() || this->uri.empty() || this->version.empty())){
+        
         throwHttpError(400, "Invalid HTTP request: info missed in request line");
     }
     else if (this->version != "HTTP/1.1") {

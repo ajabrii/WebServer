@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 18:17:03 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/17 16:02:32 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,14 @@ int main(int ac, char **av, char **envp)
                     try {
                         conn.readData(server);
                     } catch (const std::exception& e) {
+                        HttpResponse erresp;
+                        erresp.version = "HTTP/1.1";
+                        erresp.statusCode = 414; // hna 3la 7sab chno throwat readData() ena code
+                        erresp.statusText = "Request Entity Too Large";
+                        erresp.headers["content-type"] = "text/html";
+                        erresp.body = Error::loadErrorPage(414, server->getConfig()); // the exit status should change 3la 7sab type dyal exeption
                         std::cerr << "Connection read error: " << e.what() << std::endl;
+                        conn.writeData(erresp.toString());
                         reactor.removeConnection(event.fd);
                         continue;
                     }
