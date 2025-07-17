@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/17 15:48:52 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/17 16:08:47 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,6 @@ GetHandler::~GetHandler() { }
 
 HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route, const ServerConfig& serverConfig) const
 {
-    // Log the incoming URI for debugging purposes
     std::cout << URI_PROCESS_LOG << req.uri << std::endl;
 
     // STEP 1: Handle redirects first (highest priority)
@@ -393,15 +392,21 @@ std::string GetHandler::urlDecode(const std::string& str) const
             int val1 = -1, val2 = -1;
             
             // Convert first hex digit
-            if (hex1 >= '0' && hex1 <= '9') val1 = hex1 - '0';           // 0-9
-            else if (hex1 >= 'A' && hex1 <= 'F') val1 = hex1 - 'A' + 10; // A-F
-            else if (hex1 >= 'a' && hex1 <= 'f') val1 = hex1 - 'a' + 10; // a-f
+            if (hex1 >= '0' && hex1 <= '9')
+                val1 = hex1 - '0';           // 0-9
+            else if (hex1 >= 'A' && hex1 <= 'F')
+                val1 = hex1 - 'A' + 10; // A-F
+            else if (hex1 >= 'a' && hex1 <= 'f')
+                val1 = hex1 - 'a' + 10; // a-f
             
             // Convert second hex digit
-            if (hex2 >= '0' && hex2 <= '9') val2 = hex2 - '0';           // 0-9
-            else if (hex2 >= 'A' && hex2 <= 'F') val2 = hex2 - 'A' + 10; // A-F
-            else if (hex2 >= 'a' && hex2 <= 'f') val2 = hex2 - 'a' + 10; // a-f
-            
+            if (hex2 >= '0' && hex2 <= '9')
+                val2 = hex2 - '0';           // 0-9
+            else if (hex2 >= 'A' && hex2 <= 'F')
+                val2 = hex2 - 'A' + 10; // A-F
+            else if (hex2 >= 'a' && hex2 <= 'f')
+                val2 = hex2 - 'a' + 10; // a-f
+
             // If both hex digits are valid, decode the character
             if (val1 != -1 && val2 != -1) {
                 decoded += static_cast<char>(val1 * 16 + val2); // Combine hex digits
