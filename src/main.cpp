@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/16 10:36:26 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/18 19:40:15 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,8 @@ HttpResponse parseCgiOutput(const std::string& raw) {
     HttpResponse response;
 
     size_t headerEnd = raw.find("\r\n\r\n");
-    if (headerEnd == std::string::npos) {
+    if (headerEnd == std::string::npos) 
+    {
         response.statusCode = 500;
         response.statusText = "Internal Server Error";
         response.body = "CGI script did not return valid headers.";
@@ -207,70 +208,7 @@ int main(int ac, char **av, char **envp)
                 for (size_t i = 0; i < events.size(); ++i)
             {
                 Event event = events[i];
-                
-                // Connection& conn = reactor.getConnection(event.fd);
-                // CgiState *cgiState = conn.getCgiState();
-                // Handle error events FIRST (highest priority)
-                // if (cgiState && (event.fd == cgiState->output_fd || event.fd == cgiState->input_fd))
-                // {
-                //      // DEBUG: Handle CGI output/input print 
-                //         std::cout << "\033[1;34m[CGI]\033[0m Handling CGI for fd: " << event.fd << std::endl;
-
-                //         if (event.fd == cgiState->input_fd && event.isWritable && !cgiState->pendingBody.empty()) 
-                //         {
-                //             std::cout << "\033[1;34m[CGI]\033[0m Writing pending body to CGI input" << std::endl;
-                //             ssize_t written = write(cgiState->input_fd, cgiState->pendingBody.c_str(), cgiState->pendingBody.size());
-                //             if (written > 0)
-                //             {
-                //                 std::cout << "\033[1;34m[CGI]\033[0m Wrote " << written << " bytes to CGI input" << std::endl;
-                //                 cgiState->pendingBody.erase(0, written);
-                //                 if (cgiState->pendingBody.empty()) 
-                //                 {
-                //                     std::cout << "\033[1;34m[CGI]\033[0m Finished writing pending body to CGI input" << std::endl;
-                //                     close(cgiState->input_fd);
-                //                     reactor.removeConnection(cgiState->input_fd);
-                //                 }
-                //             }
-                //         }
-
-                //         if (event.fd == cgiState->output_fd && event.isReadable) 
-                //         {
-                //             std::cout << "\033[1;34m[CGI]\033[0m Reading CGI output" << std::endl;
-                //             char buffer[4096];
-                //             ssize_t n = read(cgiState->output_fd, buffer, sizeof(buffer));
-                //             if (n > 0) 
-                //             {
-                //                 std::cout << "\033[1;34m[CGI]\033[0m Read " << n << " bytes from CGI output" << std::endl;
-                //                 cgiState->rawOutput.append(buffer, n);
-                //             } 
-                //             else if (n == 0) 
-                //             {
-                //                 std::cout << "\033[1;34m[CGI]\033[0m CGI output closed" << std::endl;
-                //                 // CGI finished
-                //                 std::cout << "\033[1;33m[CGI OUTPUT RAW]\033[0m\n" << cgiState->rawOutput << std::endl;
-                //                 HttpResponse resp = parseCgiOutput(cgiState->rawOutput);
-                //                 conn.writeData(resp.toString());
-                //                 reactor.removeConnection(cgiState->output_fd);
-                //                 cleanupCgi(conn);
-                //                 reactor.removeConnection(conn.getFd());
-                //                 std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
-                //             } 
-                //             else
-                //             {
-                //                 std::cerr << "\033[1;31m[CGI ERROR]\033[0m Failed to read CGI output: ";
-                //                 perror("CGI read error");
-                //                 reactor.removeConnection(cgiState->output_fd);
-                //                 cleanupCgi(conn);
-                //                 reactor.removeConnection(conn.getFd());
-                //             }
-                //         }
-                //         continue;
-                // }
-                if (event.isError)
-                {
-                    handleErrorEvent(event);
-                }
-                else if (event.isNewConnection)
+                if (event.isNewConnection)
                 {
                     HttpServer* server = reactor.getServerByListeningFd(event.fd); //? hna kanchof ina server t connecta m3ah l client bach nchof ina route khsni nmchi lih mn ber3d
                     if (server)
@@ -281,179 +219,239 @@ int main(int ac, char **av, char **envp)
                         std::cout << NEW_CLIENT_CON << std::endl;
                     }
                 }
-                else if (event.isReadable)
+                else if (event.isReadable || event.isError)
                 {
                     Connection& conn = reactor.getConnection(event.fd);
-                    HttpServer* server = reactor.getServerForClient(event.fd);
-                    if (!server) {
-                        reactor.removeConnection(event.fd);
-                        std::cerr << "Error: No server found for client fd: " << event.fd << std::endl;
-                        continue;
+                    CgiState *cgiState = conn.getCgiState();
+                    if (cgiState)
+                    {
+                        std::cout << "\033[1;34m[CGI]\033[0m Connection fd: " << event.fd << " has CGI state with PID: " << cgiState->pid << std::endl;
                     }
-                    
-                    try {
-                        conn.readData(server);
-                    } catch (const std::exception& e) {
-                        std::cerr << "Connection read error: " << e.what() << std::endl;
-                        reactor.removeConnection(event.fd);
-                        continue;
+                    else
+                    {
+                        std::cout << "\033[1;34m[CGI]\033[0m Connection fd: " << event.fd << " has no CGI state" << std::endl;
                     }
+                    if (cgiState)
+                    {
+                        char buffer[4096];
+                        ssize_t n = read(conn.getCgiState()->output_fd, buffer, sizeof(buffer));
+                        if (n > 0) 
+                        {
+                            conn.getCgiState()->rawOutput.append(buffer, n);
+                        }
+                            else if (n == 0) 
+                        {
+                            std::cout << "\033[1;34m[CGI]\033[0m CGI output EOF detected\n";
+                            HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput);
+                            conn.writeData(resp.toString());
+                            reactor.removeConnection(conn.getCgiState()->output_fd);
+                            cleanupCgi(conn);
+                            reactor.removeConnection(conn.getFd());
+                            std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
+                        } 
+                        else 
+                        {
+                            perror("CGI read error");
+                            reactor.removeConnection(conn.getCgiState()->output_fd);
+                            cleanupCgi(conn);
+                            reactor.removeConnection(conn.getFd());
+                        }
 
-                   if (conn.isRequestComplete()) {
+                    }
+                    else
+                    {
                         
-                        // std::cout << "dekhel" << std::endl;
-                        std::cout << "\033[1;36m[>] Full Request Received and Parsed:\033[0m\n";
+                        HttpServer* server = reactor.getServerForClient(event.fd);
+                        if (!server) {
+                            reactor.removeConnection(event.fd);
+                            std::cerr << "Error: No server found for client fd: " << event.fd << std::endl;
+                            continue;
+                        }
                         
-
-                        HttpRequest& req = conn.getCurrentRequest();
-
+                        try {
+                            conn.readData(server);
+                        } catch (const std::exception& e) {
+                            std::cerr << "Connection read error: " << e.what() << std::endl;
+                            reactor.removeConnection(event.fd);
+                            continue;
+                        }
+    
+                       if (conn.isRequestComplete()) {
+                            
+                            // std::cout << "dekhel" << std::endl;
+                            std::cout << "\033[1;36m[>] Full Request Received and Parsed:\033[0m\n";
+                            
+    
+                            HttpRequest& req = conn.getCurrentRequest();
+    
+                                // std::cout << "Method: " << req.method << std::endl;
+                                // std::cout << "URI: " << req.uri << std::endl;
+                                // std::cout << "Version: " << req.version << std::endl;
+                                // if (!req.body.empty()) {
+                                //     std::cout << "Body Length: " << req.body.length() << std::endl;
+                                    // std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
+                                // }
+                                std::cout << RECEV_COMPLETE << std::endl;
+                                
+                        try
+                        {
+                            // HttpServer* server = reactor.getServerForClient(event.fd);
+                            // HttpRequest& req = conn.getCurrentRequest();
+                            //  std::cout << "Method: " << req.method << std::endl;
+                            //     std::cout << "URI: " << req.uri << std::endl;
+                            //     std::cout << "Version: " << req.version << std::endl;
+                            //     if (!req.body.empty()) {
+                            //         std::cout << "Body Length: " << req.body.length() << std::endl;
+                            //         std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
+                            //     }
+                            Router router;
+                            const RouteConfig* route = router.match(req, server->getConfig());
+                            HttpResponse resp;
+                                
+                            // Print all request details here
+                            // std::cout << "----- FULL REQUEST DETAILS -----" << std::endl;
                             // std::cout << "Method: " << req.method << std::endl;
                             // std::cout << "URI: " << req.uri << std::endl;
                             // std::cout << "Version: " << req.version << std::endl;
+                            // std::cout << "Headers:" << std::endl;
+                            // for (std::map<std::string, std::string>::const_iterator it = req.headers.begin(); it != req.headers.end(); ++it) {
+                            //     std::cout << "  " << it->first << ": " << it->second << std::endl;
+                            // }
                             // if (!req.body.empty()) {
                             //     std::cout << "Body Length: " << req.body.length() << std::endl;
-                                // std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
+                            //     std::cout << "Body: " << req.body << std::endl;
                             // }
-                            std::cout << RECEV_COMPLETE << std::endl;
                             
-                    try
-                    {
-                        // HttpServer* server = reactor.getServerForClient(event.fd);
-                        // HttpRequest& req = conn.getCurrentRequest();
-                        //  std::cout << "Method: " << req.method << std::endl;
-                        //     std::cout << "URI: " << req.uri << std::endl;
-                        //     std::cout << "Version: " << req.version << std::endl;
-                        //     if (!req.body.empty()) {
-                        //         std::cout << "Body Length: " << req.body.length() << std::endl;
-                        //         std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
-                        //     }
-                        Router router;
-                        const RouteConfig* route = router.match(req, server->getConfig());
-                        HttpResponse resp;
-                            
-                        // Print all request details here
-                        // std::cout << "----- FULL REQUEST DETAILS -----" << std::endl;
-                        // std::cout << "Method: " << req.method << std::endl;
-                        // std::cout << "URI: " << req.uri << std::endl;
-                        // std::cout << "Version: " << req.version << std::endl;
-                        // std::cout << "Headers:" << std::endl;
-                        // for (std::map<std::string, std::string>::const_iterator it = req.headers.begin(); it != req.headers.end(); ++it) {
-                        //     std::cout << "  " << it->first << ": " << it->second << std::endl;
-                        // }
-                        // if (!req.body.empty()) {
-                        //     std::cout << "Body Length: " << req.body.length() << std::endl;
-                        //     std::cout << "Body: " << req.body << std::endl;
-                        // }
-                        
-                        // exit(0);
-                        if (route) 
-                        {
-                            CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
-                            if (cgi.IsCgi())
+                            // exit(0);
+                            if (route) 
                             {
-                                conn.setCgiState(cgi.execCgi());
-                                if (conn.getCgiState()->pid > 0) 
+                                CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
+                                if (cgi.IsCgi())
                                 {
-                                    // If CGI is running, watch its output
-                                    reactor.watchCgi(&conn);
-                                    std::cout << "\033[1;34m[CGI]\033[0m Executing CGI script: " << conn.getCgiState()->script_path << std::endl;
-                                    continue; // Skip response handling, wait for CGI output
-                                } 
-                                else 
-                                {
-                                    // CGI execution failed
-                                    resp.version = "HTTP/1.1";  // Fix: Set HTTP version
-                                    resp.statusCode = 500;
-                                    resp.statusText = "Internal Server Error";
-                                    resp.headers["content-type"] = "text/html";
-                                    resp.body = Error::loadErrorPage(500, server->getConfig());
-                                    
-                                    // C++98 compatible string conversion
-                                    std::stringstream ss;
-                                    ss << resp.body.size();
-                                    resp.headers["content-length"] = ss.str();
-                                    
-                                    std::cout << "\033[1;31m[CGI ERROR]\033[0m Failed to execute CGI script: " << conn.getCgiState()->script_path << std::endl;
+                                    conn.setCgiState(cgi.execCgi());
+                                    if (conn.getCgiState()->pid > 0) 
+                                    {
+                                        // If CGI is running, watch its output
+                                        reactor.watchCgi(&conn);
+                                        std::cout << "\033[1;34m[CGI]\033[0m Executing CGI script: " << conn.getCgiState()->script_path << std::endl;
+                                        continue; // Skip response handling, wait for CGI output
+                                    } 
+                                    else 
+                                    {
+                                        // CGI execution failed
+                                        resp.version = "HTTP/1.1";  // Fix: Set HTTP version
+                                        resp.statusCode = 500;
+                                        resp.statusText = "Internal Server Error";
+                                        resp.headers["content-type"] = "text/html";
+                                        resp.body = Error::loadErrorPage(500, server->getConfig());
+                                        
+                                        // C++98 compatible string conversion
+                                        std::stringstream ss;
+                                        ss << resp.body.size();
+                                        resp.headers["content-length"] = ss.str();
+                                        
+                                        std::cout << "\033[1;31m[CGI ERROR]\033[0m Failed to execute CGI script: " << conn.getCgiState()->script_path << std::endl;
+                                    }
                                 }
+                                else
+                                {
+                                    RequestDispatcher dispatcher;
+                                    resp = dispatcher.dispatch(req, *route, server->getConfig());
+                                }
+                            } 
+                            else {
+                                // No route found - return 404
+                                std::cout << "::::::::::::::::::::::::::::::::::NOT-FOUND:::::::::::::::::::::::::::::::::::::" << std::endl;
+                                resp.version = "HTTP/1.1";  // Fix: Set HTTP version
+                                resp.statusCode = 404;
+                                resp.statusText = "Not Found";
+                                resp.headers["content-type"] = "text/html";
+                                resp.body = Error::loadErrorPage(404, server->getConfig());
+                                
+                                // C++98 compatible string conversion
+                                std::stringstream ss;
+                                ss << resp.body.size();
+                                resp.headers["content-length"] = ss.str();
+                                
+                                std::cout << "\033[1;33m[Main]\033[0m No route found for URI: " << req.uri << " - returning 404" << std::endl;
                             }
-                            else
-                            {
-                                RequestDispatcher dispatcher;
-                                resp = dispatcher.dispatch(req, *route, server->getConfig());
+    
+                            // Determine if we should keep the connection alive
+                            bool keepAlive = shouldKeepAlive(req);
+                            
+                            // Limit number of requests per connection to prevent resource exhaustion
+                            if (conn.getRequestCount() >= REQUEST_LIMIT_PER_CONNECTION)
+                                keepAlive = false;
+                            // Set appropriate connection headers
+                            setConnectionHeaders(resp, keepAlive);
+                            
+                            // Send the response
+                            conn.writeData(resp.toString());
+                            conn.reset(); //m7i lkhra mn connection bach nwjdo request lakhra la kant connection keep alive
+                            conn.updateLastActivity(); // Update activity timestamp after sending response
+                            
+                            // Handle connection based on keep-alive decision
+                            if (keepAlive) {
+                                conn.setKeepAlive(true);
+                                conn.incrementRequestCount();
+                                conn.resetForNextRequest();
+                                conn.updateLastActivity(); // Reset timeout for keep-alive connection
+                                std::cout << "\033[1;32m[+]\033[0m Connection kept alive (request #" << conn.getRequestCount() << ")" << std::endl;
+                            } else {
+                                reactor.removeConnection(event.fd);
+                                std::cout << "\033[1;31m[-]\033[0m Connection closed" << std::endl;
                             }
-                        } 
-                        else {
-                            // No route found - return 404
-                            std::cout << "::::::::::::::::::::::::::::::::::NOT-FOUND:::::::::::::::::::::::::::::::::::::" << std::endl;
-                            resp.version = "HTTP/1.1";  // Fix: Set HTTP version
-                            resp.statusCode = 404;
-                            resp.statusText = "Not Found";
-                            resp.headers["content-type"] = "text/html";
-                            resp.body = Error::loadErrorPage(404, server->getConfig());
-                            
-                            // C++98 compatible string conversion
-                            std::stringstream ss;
-                            ss << resp.body.size();
-                            resp.headers["content-length"] = ss.str();
-                            
-                            std::cout << "\033[1;33m[Main]\033[0m No route found for URI: " << req.uri << " - returning 404" << std::endl;
-                        }
-
-                        // Determine if we should keep the connection alive
-                        bool keepAlive = shouldKeepAlive(req);
-                        
-                        // Limit number of requests per connection to prevent resource exhaustion
-                        if (conn.getRequestCount() >= REQUEST_LIMIT_PER_CONNECTION)
-                            keepAlive = false;
-                        // Set appropriate connection headers
-                        setConnectionHeaders(resp, keepAlive);
-                        
-                        // Send the response
-                        conn.writeData(resp.toString());
-                        conn.reset(); //m7i lkhra mn connection bach nwjdo request lakhra la kant connection keep alive
-                        conn.updateLastActivity(); // Update activity timestamp after sending response
-                        
-                        // Handle connection based on keep-alive decision
-                        if (keepAlive) {
-                            conn.setKeepAlive(true);
-                            conn.incrementRequestCount();
-                            conn.resetForNextRequest();
-                            conn.updateLastActivity(); // Reset timeout for keep-alive connection
-                            std::cout << "\033[1;32m[+]\033[0m Connection kept alive (request #" << conn.getRequestCount() << ")" << std::endl;
-                        } else {
-                            reactor.removeConnection(event.fd);
-                            std::cout << "\033[1;31m[-]\033[0m Connection closed" << std::endl;
-                        }
-                        }
-                    catch (const std::runtime_error& e) {
-                        std::string msg = e.what();
-                        if (msg.find("incomplete body") != std::string::npos) {
-                            continue;
-                        } else {
-                            std::cerr << "Parse error: " << msg << std::endl;
-                            HttpResponse errorResp;
-                            errorResp.version = "HTTP/1.1";
-                            errorResp.statusCode = 400;
-                            errorResp.statusText = "Bad Request";
-                            errorResp.headers["content-type"] = "text/html";
-                            errorResp.body = Error::loadErrorPage(400, server->getConfig());
-                            
-                    //         // C++98 compatible string conversion
-                            std::stringstream ss;
-                            ss << errorResp.body.size();
-                            errorResp.headers["content-length"] = ss.str();
-                            
-                    //         // Always close connection on parse errors
-                            setConnectionHeaders(errorResp, false);
-                            conn.writeData(errorResp.toString());
-                            conn.updateLastActivity(); // Update activity timestamp after error response
+                            }
+                        catch (const std::runtime_error& e) {
+                            std::string msg = e.what();
+                            if (msg.find("incomplete body") != std::string::npos) {
+                                continue;
+                            } else {
+                                std::cerr << "Parse error: " << msg << std::endl;
+                                HttpResponse errorResp;
+                                errorResp.version = "HTTP/1.1";
+                                errorResp.statusCode = 400;
+                                errorResp.statusText = "Bad Request";
+                                errorResp.headers["content-type"] = "text/html";
+                                errorResp.body = Error::loadErrorPage(400, server->getConfig());
+                                
+                        //         // C++98 compatible string conversion
+                                std::stringstream ss;
+                                ss << errorResp.body.size();
+                                errorResp.headers["content-length"] = ss.str();
+                                
+                        //         // Always close connection on parse errors
+                                setConnectionHeaders(errorResp, false);
+                                conn.writeData(errorResp.toString());
+                                conn.updateLastActivity(); // Update activity timestamp after error response
+                                reactor.removeConnection(event.fd);
+                            }
+                        } catch (const std::exception& e) {
+                            Error::logs("Connection error: " + std::string(e.what()));
                             reactor.removeConnection(event.fd);
                         }
-                    } catch (const std::exception& e) {
-                        Error::logs("Connection error: " + std::string(e.what()));
-                        reactor.removeConnection(event.fd);
+                        } // End of if (conn.isRequestComplete())
                     }
-                    } // End of if (conn.isRequestComplete())
+                }
+                                if (event.isError)
+                {
+                    // Connection conn = reactor.getConnection(event.fd);
+
+                    // CgiState *cgiState = conn.getCgiState();
+                    // if (cgiState)
+                    // {
+                    //     std::cout << "\033[1;34m[CGI]\033[0m CGI output closed" << std::endl;
+                    //     // CGI finished
+                    //     // std::cout << "\033[1;33m[CGI OUTPUT RAW]\033[0m\n" << conn.getCgiState()->rawOutput << std::endl;
+                    //     HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput);
+                    //     conn.writeData(resp.toString());
+                    //     reactor.removeConnection(conn.getCgiState()->output_fd);
+                    //     cleanupCgi(conn);
+                    //     reactor.removeConnection(conn.getFd());
+                    //     std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
+                    // }
+                    // else
+                    handleErrorEvent(event);
                 }
             } // End of for loop
             } catch (const std::exception& e) {

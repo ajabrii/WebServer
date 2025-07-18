@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/16 10:09:44 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/18 19:33:10 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,8 @@ void Reactor::cleanupTimedOutConnections()
     std::vector<int> timedOutFds;
     
     // Find timed out connections
-    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) {
+    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) 
+    {
         if (it->second->isKeepAlive() && it->second->isTimedOut()) {
             timedOutFds.push_back(it->first);
         }
@@ -97,6 +98,7 @@ void Reactor::removeConnection(int fd)
     if (connIt != connectionMap.end())
     {
         delete connIt->second;
+        // connIt->second = NULL; // bader edit
         connectionMap.erase(connIt);
     }
     clientToServerMap.erase(fd);
