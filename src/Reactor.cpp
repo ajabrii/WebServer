@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/19 18:36:46 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/19 20:12:54 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,12 @@ Event::Event() : fd(-1), isReadable(false), isWritable(false),
 
 void Reactor::cleanup() {
     // Clean up all connections
-    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) {
+    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) 
+    {
+        if (it->second->getCgiState())
+        {
+            delete it->second->getCgiState();
+        }
         delete it->second;
     }
     connectionMap.clear();
@@ -86,22 +91,22 @@ void Reactor::addConnection(Connection* conn, HttpServer* server)
 
 void Reactor::cgiRemover(Connection *conn)
 {
-    int fds[3];
+    int fds[2];
     CgiState *cgi = conn->getCgiState();
 
     // fds[0] = cgi->input_fd;
-    fds[1] = cgi->output_fd;
-    fds[2] = conn->getFd();
+    fds[0] = cgi->output_fd;
+    fds[1] = conn->getFd();
     
     for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it)
     {
-        if (it->fd == fds[2]  || it->fd == fds[1])
+        if (it->fd == fds[0]  || it->fd == fds[1])
         {
             pollFDs.erase(it);
             std::cerr << "Removed fd: " << it->fd << " from pollFDs" << std::endl;
         }
     }
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < 2; ++i)
     {
         std::map<int, Connection*>::iterator connIt = connectionMap.find(fds[i]);
         if (connIt != connectionMap.end())
@@ -110,14 +115,15 @@ void Reactor::cgiRemover(Connection *conn)
             connectionMap.erase(connIt);
         }
     }
-    clientToServerMap.erase(fds[2]);
+    // clientToServerMap.erase(fds[2]);
     // clientToServerMap.erase(fds[0]);
-    clientToServerMap.erase(fds[1]);
+    // clientToServerMap.erase(fds[1]);
     // close(fds[0]);
+    close(fds[0]);
     close(fds[1]);
-    close(fds[2]);
     if (cgi->pid != -1)
         waitpid(cgi->pid, NULL, 0);
+    // delete cgi;
 }
 
 void Reactor::removeConnection(int fd)
@@ -133,7 +139,7 @@ void Reactor::removeConnection(int fd)
             cgiRemover(connIt->second);
             return;
         }
-        delete connIt->second;
+        // delete connIt->second;
         connectionMap.erase(connIt);
     }
     for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it)
@@ -150,7 +156,7 @@ void Reactor::removeConnection(int fd)
 /*
 === this function is where the multiplexing magic happens ===
 
-*(x) poll() : lets the kernel watch multiple fds at once (monitoring for read/write events).
+*(x) poll() : lets the kernel ! multiple fds at once (monitoring for read/write events).
 @ It blocks until at least one fd is ready (here we block forever with -1).
 @ The kernel sets pfd.revents flags to show which events happened (e.g., POLLIN, POLLOUT).
 
@@ -250,6 +256,7 @@ void Reactor::watchCgi(Connection* conn)
 
     // Optional: associate CGI fds with connection
     connectionMap[cgiState->output_fd] = conn;
+    // clienToCgiStateMap[cgiState->output_fd] = cgiState;
     // if (cgiState->input_fd != -1)
     //     connectionMap[cgiState->input_fd] = conn;
 }

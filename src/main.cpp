@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/19 18:36:04 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/19 19:44:13 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -271,7 +271,7 @@ int main(int ac, char **av, char **envp)
                             perror("CGI read error");
                             // reactor.removeConnection(conn.getCgiState()->output_fd);
                             // cleanupCgi(conn);
-                            reactor.removeConnection(conn.getFd());
+                            reactor.removeConnection(event.fd);
                         }
 
                     }

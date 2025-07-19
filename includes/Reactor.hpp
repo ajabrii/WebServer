@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/19 03:16:00 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/19 19:58:52 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ class Reactor
         std::map<int, HttpServer*> serverMap;
         std::map<int, Connection*> connectionMap;
         std::map<int, HttpServer*> clientToServerMap;
+        // std::map<int, CgiState*> clienToCgiStateMap;
         std::vector<Event> readyEvents;
 
 
