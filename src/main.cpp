@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/19 03:34:23 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/19 17:22:19 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,7 +203,7 @@ int main(int ac, char **av, char **envp)
                 std::vector<Event> events = reactor.getReadyEvents(); //? Hna kangeti dik struct li fiha evensts li 3mrathom poll (kernel li 3merhom poll it's system call you for more infos go to reactor.cpp > void Reactor::poll())
 
                 //? hna kanlopi ela ga3 events struct kola wahd o chno khasni ndir lih/bih isnewconnection isReadble (POLLIN) isWritble
-                for (size_t i = 0; i < events.size(); ++i)
+            for (size_t i = 0; i < events.size(); ++i)
             {
                 Event event = events[i];
                 if (event.isNewConnection)
@@ -339,7 +339,7 @@ int main(int ac, char **av, char **envp)
                                     // print fd of conn
                                     std::cerr << "CGI fd: " << conn.getFd() << std::endl;
 
-                                    if (conn.getCgiState()->pid > 0) 
+                                    if (conn.getCgiState()) 
                                     {
                                         // If CGI is running, watch its output
                                         reactor.watchCgi(&conn);
@@ -349,6 +349,8 @@ int main(int ac, char **av, char **envp)
                                     } 
                                     else 
                                     {
+                                        std::cerr << "\033[1;31m[CGI]\033[0m Failed to execute CGI "<< std::endl;
+                                        // Handle CGI execution failure
                                         // CGI execution failed
                                         resp.version = "HTTP/1.1";  // Fix: Set HTTP version
                                         resp.statusCode = 500;
@@ -360,8 +362,6 @@ int main(int ac, char **av, char **envp)
                                         std::stringstream ss;
                                         ss << resp.body.size();
                                         resp.headers["content-length"] = ss.str();
-                                        
-                                        std::cout << "\033[1;31m[CGI ERROR]\033[0m Failed to execute CGI script: " << conn.getCgiState()->script_path << std::endl;
                                     }
                                 }
                                 else

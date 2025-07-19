@@ -11,9 +11,14 @@ class CgiState
         ~CgiState() 
         {
             std::cerr << "\n\033[1;34m[CGI]\033[0m Cleaning up CGI state for PID: " << pid << std::endl;
-            if (output_fd != -1) close(output_fd);
-            if (input_fd != -1) close(input_fd);
-            waitpid(pid, NULL, 0);
+            if (output_fd != -1)
+                close(output_fd);
+            if (input_fd != -1)
+                close(input_fd);
+            std::cerr << "\033[1;34m[CGI]\033[0m CGI WAITS OR NOT: " << pid << std::endl;
+            if (pid != -1)
+                waitpid(pid, NULL, 0);
+            std::cerr << "\033[1;34m[CGI]\033[0m CGI state cleaned up for PID: " << pid << std::endl;
         };
         pid_t pid;
         int output_fd;

@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/18 19:02:14 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/19 17:10:58 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,7 +158,8 @@ std::string full_path(std::string paths, std::string cmd) // /usr/bin/python3
         if (!access((subs[i] + "/" + cmd).c_str(), X_OK))
             return (subs[i] + "/" + cmd);
     }
-
+    std::cerr << "Error: CGI interpreter not found : " << cmd << std::endl;
+    
     return ("");
 }
 
@@ -338,12 +339,13 @@ CgiState *CgiHandler::execCgi(void)
     {
         // Handle error: Interpreter not found (e.g., 500 Internal Server Error)
         // Free env memory
-        // for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
-        // delete[] env;
         // f.statusCode = 500;
         // f.statusText = "Internal Server Error 1";
         // f.body = "CGI Interpreter not found.";
         // return f;
+        std::cerr << "Error: CGI interpreter not found: " << _data.CgiInterp << std::endl;
+        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+            delete[] env;
         delete f;
         return NULL; // Return NULL to indicate error
     }

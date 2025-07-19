@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/19 03:33:05 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/19 17:08:54 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,6 +115,7 @@ void Reactor::cgiRemover(Connection *conn)
     clientToServerMap.erase(fds[1]);
     close(fds[0]);
     close(fds[1]);
+    close(fds[2]);
     waitpid(cgi->pid, NULL, 0);
 }
 
