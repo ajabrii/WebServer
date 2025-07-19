@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/19 17:10:58 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/19 18:43:03 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,8 +120,6 @@ char **CgiHandler::set_env(void)
     // {
     //     std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
     // }
-    
-
 
     return (convert_env(env_map));
 }
@@ -344,8 +342,9 @@ CgiState *CgiHandler::execCgi(void)
         // f.body = "CGI Interpreter not found.";
         // return f;
         std::cerr << "Error: CGI interpreter not found: " << _data.CgiInterp << std::endl;
-        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
-            delete[] env;
+        for (int i = 0; env[i] != NULL; ++i) 
+            delete[] env[i];
+        delete[] env;
         delete f;
         return NULL; // Return NULL to indicate error
     }
@@ -398,7 +397,8 @@ CgiState *CgiHandler::execCgi(void)
             close(pfd_in[1]); 
         }
         // Clean up env
-        for (int i = 0; env[i] != NULL; ++i) delete[] env[i];
+        for (int i = 0; env[i] != NULL; ++i) 
+            delete[] env[i];
         delete[] env;
         // f.statusCode = 500;
         // f.statusText = "Internal Server Error 4";
@@ -472,9 +472,9 @@ CgiState *CgiHandler::execCgi(void)
         if (_req.method == POST)
             close(pfd_in[0]); // Read end, not needed
 
-        // fcntl(pfd[0], F_SETFL, O_NONBLOCK); // protcect
-        // if (_req.method == POST)
-            // fcntl(pfd_in[1], F_SETFL, O_NONBLOCK);
+        fcntl(pfd[0], F_SETFL, O_NONBLOCK); // protcect
+        if (_req.method == POST)
+            fcntl(pfd_in[1], F_SETFL, O_NONBLOCK);
 
         f->output_fd = pfd[0];
         if (_req.method == POST)
@@ -485,6 +485,8 @@ CgiState *CgiHandler::execCgi(void)
         f->script_path = _data.script_path;
         f->headerBuffer.clear();
         f->bodyBuffer.clear();
+        for (int i = 0; env[i] != NULL; ++i) 
+            delete[] env[i];
         delete[] env;
         return f;
     }

@@ -7,7 +7,7 @@
 class CgiState
 {
     public:
-        CgiState() : pid(-1), output_fd(-1), input_fd(-1), startTime(0), headersParsed(false) {};
+        CgiState() : pid(-1), output_fd(-1), input_fd(-1), startTime(0), headersParsed(false), bodySent(false) {};
         ~CgiState() 
         {
             std::cerr << "\n\033[1;34m[CGI]\033[0m Cleaning up CGI state for PID: " << pid << std::endl;
@@ -26,6 +26,7 @@ class CgiState
         std::string rawOutput;
         time_t startTime;
         bool headersParsed;
+        bool bodySent;
             // Optional:
         std::string headerBuffer;
         std::string bodyBuffer;

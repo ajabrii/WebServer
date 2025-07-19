@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/19 17:22:19 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/19 18:36:04 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,7 +145,7 @@ void handleErrorEvent(const Event& event)
         errorMsg += "Invalid file descriptor (POLLNVAL)";
     }
     
-    Error::logs(errorMsg);
+    // Error::logs(errorMsg);
     
     // Remove the connection immediately - this will clean up resources
     if (g_reactor) {
@@ -231,6 +231,17 @@ int main(int ac, char **av, char **envp)
                     }
                     if (cgiState)
                     {
+                        if (!cgiState->bodySent && conn.getCurrentRequest().method == POST && cgiState->input_fd != -1)
+                        {
+                            ssize_t written = write(cgiState->input_fd, conn.getCurrentRequest().body.c_str(), conn.getCurrentRequest().body.size());
+                            if (written == -1)
+                                perror("write to CGI stdin failed");
+                            close(cgiState->input_fd);
+                            cgiState->input_fd = -1;
+                            cgiState->bodySent = true;
+                            std::cout << "\033[1;34m[CGI]\033[0m Body sent to CGI script for fd: " << event.fd << std::endl;
+                            // exit(1);
+                        }
                         char buffer[4096];
                         ssize_t n = read(conn.getCgiState()->output_fd, buffer, sizeof(buffer));
                         if (n > 0) 

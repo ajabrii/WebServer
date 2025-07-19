@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/19 17:08:54 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/19 18:36:46 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,13 +89,13 @@ void Reactor::cgiRemover(Connection *conn)
     int fds[3];
     CgiState *cgi = conn->getCgiState();
 
-    fds[0] = cgi->input_fd;
+    // fds[0] = cgi->input_fd;
     fds[1] = cgi->output_fd;
     fds[2] = conn->getFd();
     
     for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it)
     {
-        if (it->fd == fds[2] || it->fd == fds[0] || it->fd == fds[1])
+        if (it->fd == fds[2]  || it->fd == fds[1])
         {
             pollFDs.erase(it);
             std::cerr << "Removed fd: " << it->fd << " from pollFDs" << std::endl;
@@ -111,17 +111,18 @@ void Reactor::cgiRemover(Connection *conn)
         }
     }
     clientToServerMap.erase(fds[2]);
-    clientToServerMap.erase(fds[0]);
+    // clientToServerMap.erase(fds[0]);
     clientToServerMap.erase(fds[1]);
-    close(fds[0]);
+    // close(fds[0]);
     close(fds[1]);
     close(fds[2]);
-    waitpid(cgi->pid, NULL, 0);
+    if (cgi->pid != -1)
+        waitpid(cgi->pid, NULL, 0);
 }
 
 void Reactor::removeConnection(int fd)
 {
-    std::cerr << "for fd: " << fd << std::endl;
+    // std::cerr << "for fd: " << fd << std::endl;
     if (fd == -1)
         return;
     std::map<int, Connection*>::iterator connIt = connectionMap.find(fd);
@@ -238,19 +239,19 @@ void Reactor::watchCgi(Connection* conn)
     pollFDs.push_back(pfdOut);
 
     // Watch CGI input (stdin) only for POST
-    if (cgiState->input_fd != -1) 
-    {
-        pollfd pfdIn;
-        pfdIn.fd = cgiState->input_fd;
-        pfdIn.events = POLLOUT;
-        pollFDs.push_back(pfdIn);
-    }
+    // if (cgiState->input_fd != -1) 
+    // {
+    //     pollfd pfdIn;
+    //     pfdIn.fd = cgiState->input_fd;
+    //     pfdIn.events = POLLOUT;
+    //     pollFDs.push_back(pfdIn);
+    // }
     
 
     // Optional: associate CGI fds with connection
     connectionMap[cgiState->output_fd] = conn;
-    if (cgiState->input_fd != -1)
-        connectionMap[cgiState->input_fd] = conn;
+    // if (cgiState->input_fd != -1)
+    //     connectionMap[cgiState->input_fd] = conn;
 }
 
 // geter that return connectionMap
