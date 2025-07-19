@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/16 10:07:14 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/19 03:16:00 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ struct Event {
     bool isReadable;
     bool isWritable;
     bool isNewConnection;
+    bool isPullHUP;
     bool isError;
     short errorType;
     Event();
@@ -39,6 +40,7 @@ class Reactor
         std::map<int, HttpServer*> clientToServerMap;
         std::vector<Event> readyEvents;
 
+
     public:
         Reactor();
         ~Reactor();
@@ -50,7 +52,9 @@ class Reactor
         Connection& getConnection(int fd);
         HttpServer* getServerByListeningFd(int fd);
         HttpServer* getServerForClient(int clientFd);
+        std::map<int, Connection*> getConnectionMap(void) const;
         void watchCgi(Connection* conn);
+        void cgiRemover(Connection *conn);
         void cleanup();
         void cleanupTimedOutConnections(); // Cleanup connections that have timed out
 };

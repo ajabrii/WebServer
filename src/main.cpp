@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/18 19:40:15 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/19 03:34:23 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,8 +123,6 @@ void cleanupCgi(Connection &conn)
     if (conn.getCgiState() == NULL)
         return;
     CgiState *cgiState = conn.getCgiState();
-    if (!cgiState)
-        return;
     close(cgiState->output_fd);
     if (cgiState->input_fd != -1) 
         close(cgiState->input_fd);
@@ -219,9 +217,9 @@ int main(int ac, char **av, char **envp)
                         std::cout << NEW_CLIENT_CON << std::endl;
                     }
                 }
-                else if (event.isReadable || event.isError)
+                else if (event.isReadable || event.isPullHUP)
                 {
-                    Connection& conn = reactor.getConnection(event.fd);
+                    Connection &conn = reactor.getConnection(event.fd);
                     CgiState *cgiState = conn.getCgiState();
                     if (cgiState)
                     {
@@ -242,18 +240,26 @@ int main(int ac, char **av, char **envp)
                             else if (n == 0) 
                         {
                             std::cout << "\033[1;34m[CGI]\033[0m CGI output EOF detected\n";
+                            // for (std::map<int, Connection*>::iterator it = reactor.getConnectionMap().begin(); it != reactor.getConnectionMap().end(); ++it) 
+                            // {
+                            //     std::cerr << "Connection fd: " << it->first << " at address: " << it->second << std::endl;
+                            // }
+
                             HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput);
                             conn.writeData(resp.toString());
-                            reactor.removeConnection(conn.getCgiState()->output_fd);
-                            cleanupCgi(conn);
-                            reactor.removeConnection(conn.getFd());
+                            // print all connectionMap of reactor <int, Connection *>  , id and address \n in c++98, using iterator
+                             std::cerr << "CONN FD is : " << conn.getFd() << ", cgi state address is : " << conn.getCgiState() << "\n";
+
+                            reactor.removeConnection(event.fd); // 8 
+                            // reactor.removeConnection(conn.getCgiState()->output_fd);
+                            // cleanupCgi(conn);
                             std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
                         } 
                         else 
                         {
                             perror("CGI read error");
-                            reactor.removeConnection(conn.getCgiState()->output_fd);
-                            cleanupCgi(conn);
+                            // reactor.removeConnection(conn.getCgiState()->output_fd);
+                            // cleanupCgi(conn);
                             reactor.removeConnection(conn.getFd());
                         }
 
@@ -276,7 +282,8 @@ int main(int ac, char **av, char **envp)
                             continue;
                         }
     
-                       if (conn.isRequestComplete()) {
+                       if (conn.isRequestComplete()) 
+                       {
                             
                             // std::cout << "dekhel" << std::endl;
                             std::cout << "\033[1;36m[>] Full Request Received and Parsed:\033[0m\n";
@@ -329,10 +336,14 @@ int main(int ac, char **av, char **envp)
                                 if (cgi.IsCgi())
                                 {
                                     conn.setCgiState(cgi.execCgi());
+                                    // print fd of conn
+                                    std::cerr << "CGI fd: " << conn.getFd() << std::endl;
+
                                     if (conn.getCgiState()->pid > 0) 
                                     {
                                         // If CGI is running, watch its output
                                         reactor.watchCgi(&conn);
+                                        std::cerr << "CONN FD is : " << conn.getFd() << ", cgi state address is : " << conn.getCgiState() << "\n";
                                         std::cout << "\033[1;34m[CGI]\033[0m Executing CGI script: " << conn.getCgiState()->script_path << std::endl;
                                         continue; // Skip response handling, wait for CGI output
                                     } 
@@ -433,7 +444,7 @@ int main(int ac, char **av, char **envp)
                         } // End of if (conn.isRequestComplete())
                     }
                 }
-                                if (event.isError)
+                if (event.isError)
                 {
                     // Connection conn = reactor.getConnection(event.fd);
 
