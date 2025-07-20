@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/14 14:38:08 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/19 18:43:03 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,10 @@
 #include <sstream>
 #include <algorithm>
 #include <cctype> 
+#include <signal.h>
+#include <unistd.h> 
+#include <sys/epoll.h>
+#include <ctime>
 
 
 CgiHandler::CgiHandler() {}
@@ -28,7 +32,7 @@ CgiHandler::CgiHandler(const HttpServer &server, const HttpRequest& req , const 
     _route = route;
     _req = req;
     _env_paths = env_paths;
-    // _serverSocket = server.getFd(); // it should be a vector later on
+    // _serverSocket = server.getFd();
     _clientSocket = clientSocket;
     _data = check_cgi();
     // _data.DebugPrint();
@@ -50,7 +54,6 @@ char **convert_env(std::map<std::string, std::string> env)
     {
         std::string entry = it->first + "=" + it->second;
         envp[i] = new char[entry.size() + 1];
-        // std::copy(entry.begin(), entry.end(), envp[i]);
         std::strcpy(envp[i], entry.c_str());
         envp[i][entry.size()] = '\0';
 
@@ -62,56 +65,40 @@ char **convert_env(std::map<std::string, std::string> env)
 }
 
 
-
-// char **set_env(const HttpRequest &req,CgiData& data)
-// {
-
-//     std::string query;
-
-//     // query = req.path.find("?");
-//     std::cout << query << "\n";
-//     std::map<std::string, std::string> env;
-//     if (req.method == GET)
-//     {
-//         env["REQUEST_METHOD"] = GET;
-//         env["QUERY_STRING"] = data.query; // for GET
-//         env["CONTENT_LENGTH"] = "0"; // GET and POST
-//     }
-//     else if (req.method == POST)
-//     {
-//         env["REQUEST_METHOD"] = POST;
-//         env["CONTENT_LENGTH"] = req.body.length();
-//         // env["CONTENT_TYPE"] = "application/x-www-form-urlencoded";
-//     }
-//     env["SCRIPT_NAME"] = data.script_path;
-//     env["SCRIPT_FILENAME"] = "." + data.script_path;
-//     env["GATEWAY_INTERFACE"] = "CGI/1.1";
-//     env["SERVER_PROTOCOL"] = "HTTP/1.1";
-//     env["SERVER_NAME"] = "localhost";
-//     env["REDIRECT_STATUS"] = "200";
-//     // env["SERVER_PORT"] = "8080"; // port of server
-//     // env["REMOTE_ADDR"] = "127.0.0.1"; // addrss of remote
-//     env["HTTP_USER_AGENT"] = "curl/7.68.0";
-//     return (convert_env(env));
-// }
-
-// In CgiHandler.cpp
-
 char **CgiHandler::set_env(void)
 {
     std::map<std::string, std::string> env_map; // Use env_map for clarity
+    std::string host;
+    
+    for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it) 
+    {
+        std::string header_name = it->first;
+        std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::toupper); // Convert to uppercase
+        std::replace(header_name.begin(), header_name.end(), '-', '_'); // Replace hyphens with underscores
+        env_map[header_name] = it->second;
+    }
+    host = _req.GetHeader("host");
 
     env_map["REQUEST_METHOD"] = _req.method;
+    env_map["PATH_INFO"] = _data.PathInfo;
     env_map["SCRIPT_NAME"] = _data.script_path;
-    env_map["SCRIPT_FILENAME"] = "." + _data.script_path; // Assuming server root is current dir
+    // Set SCRIPT_FILENAME to just the script filename after chdir
+    std::string script_filename = _data.script_path;
+    size_t last_slash = script_filename.rfind('/');
+    if (last_slash != std::string::npos)
+        script_filename = script_filename.substr(last_slash + 1);
+    env_map["SCRIPT_FILENAME"] = script_filename;
     env_map["QUERY_STRING"] = _data.query;
-    env_map["SERVER_PORT"] = Utils::toString(_serverData.port[0]); // ! port[0]
-    env_map["REMOTE_ADDR"] = Utils::toString(_clientSocket); // Get client IP address
-    
+    if (host.find(':') != std::string::npos)
+    {
+        env_map["SERVER_PORT"] = host.substr(host.find(":") + 1);
+        env_map["SERVER_NAME"] = host.substr(0, host.find(":"));
+    }
+        
+    // env_map["REMOTE_ADDR"] =; // Get client IP address // 
     env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
     env_map["SERVER_PROTOCOL"] = "HTTP/1.1";
-    env_map["SERVER_NAME"] = ""; // Get from server config
-    std::cout << "Holaaaaaaaaaaaaa " << _req.GetHeader("host") << std::endl;
+    // std::cout << "SERVER NAME: " << host.substr(0, host.find(":")) << ", PORT: " << host.substr(host.find(":") + 1) << std::endl; // REMOVE
     env_map["REDIRECT_STATUS"] = "200"; // Common for web servers using CGI
     
     if (_req.method == GET) 
@@ -121,28 +108,17 @@ char **CgiHandler::set_env(void)
     else if (_req.method == POST) 
     {
         std::ostringstream oss_cl;
-        oss_cl << _req.body.length();
+        oss_cl << _req.body.size();
         env_map["CONTENT_LENGTH"] = oss_cl.str();
         env_map["CONTENT_TYPE"] = _req.GetHeader("Content-Type");;
     }
-    else if (_req.method == DELETE)
-    {
-        ;
-    }
-
-    for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it)
-    {
-        std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
-    }
-    
-
-    // // --- Convert ALL client HTTP headers to HTTP_UPPERCASE_VAR ---
-    // for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it) 
+    // for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it)
     // {
-    //     std::string header_name = it->first;
-    //     std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::toupper); // Convert to uppercase
-    //     std::replace(header_name.begin(), header_name.end(), '-', '_'); // Replace hyphens with underscores
-    //     env_map["HTTP_" + header_name] = it->second;
+    //     std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
+    // }
+    // for (std::map<std::string, std::string>::const_iterator it = env_map.begin(); it != env_map.end(); ++it)
+    // {
+    //     std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
     // }
 
     return (convert_env(env_map));
@@ -162,146 +138,356 @@ std::vector<std::string> split_string(const std::string& path, char c) // string
         current_pos = path.find(c, prev_pos);
     }
     subs.push_back(path.substr(prev_pos));
-
-    // for (size_t i = 0; i < subs.size(); i++)
-    // {
-    //     std::cout << subs[i] << std::endl;
-    // }
     return subs;
 }
 
-std::string full_path(std::string paths, std::string cmd)
+std::string full_path(std::string paths, std::string cmd) // /usr/bin/python3
 {
+    if (!access(cmd.c_str(), X_OK))
+            return (cmd);
     std::vector<std::string> subs =  split_string(paths, ':'); // bash
-    subs[0] = subs[0].substr(subs[0].find('=') + 1);
+    
+    if (subs[0].find('=') != std::string::npos)
+        subs[0] = subs[0].substr(subs[0].find('=') + 1);
+    
     for (size_t i = 0; i < subs.size(); i++)
     {
         std::cout << "tetsing for -> \'" << (subs[i] + "/" + cmd) <<"\'" << std::endl;
         if (!access((subs[i] + "/" + cmd).c_str(), X_OK))
             return (subs[i] + "/" + cmd);
     }
-
+    std::cerr << "Error: CGI interpreter not found : " << cmd << std::endl;
+    
     return ("");
 }
 
-CgiData CgiHandler::check_cgi(void)
+CgiData CgiHandler::check_cgi(void) // cgi-bin/file.extns/path/path?var=value
 {
     CgiData data;
-    size_t pos;
+    size_t exten_pose;
     std::string founded_extns;
     bool is_query = false;
-    std::string exts[3] = {".py", ".php", ".sh"}; // Config
+    bool is_pathInfo = false;
+    size_t query_pose;
 
-    for (size_t i = 0; i < 3; i++)
+    query_pose =  _req.uri.find('?');
+    if (query_pose != std::string::npos)
+        is_query = true;
+    for (std::map<std::string, std::string>::const_iterator it = this->_route.cgi.begin(); it != this->_route.cgi.end(); ++it) // 
     {
-        
-        pos = _req.uri.find(exts[i]);
-        if (pos == std::string::npos)
+        exten_pose = _req.uri.find(it->first);
+        if (exten_pose == std::string::npos)
             continue;
-        founded_extns = _req.uri.substr(pos);
-        std::cout << "-------------------------founded_extns---------------> `" << founded_extns << "'\n";  
-        std::cout << "------------------------ ORGGG ---------------> `" << _req.uri << "'\n";
-        // std::cout << "------------------founded_extns.substr(0, exts[i].size())----------------------> `" << founded_extns.substr(0, exts[i].size()) << "'\n";
-        // std::cout << "-----------------------founded_extns.c_str()[exts[i].size()]-----------------> `" << founded_extns.c_str()[exts[i].size()] << "'\n";
 
-        if (founded_extns == exts[i] || (is_query = (founded_extns.substr(0, exts[i].size()) == exts[i] && founded_extns.c_str()[exts[i].size()] == '?')))
+        founded_extns = _req.uri.substr(exten_pose, it->first.size() + 1);
+
+        if (founded_extns[it->first.size()] != '?' && founded_extns[it->first.size()] != '\0' && founded_extns[it->first.size()] != '/')
+            continue;
+        else if (founded_extns[it->first.size()] == '?')
         {
-            std::cout << "-------------------------is_query---------------> `" << is_query << "'\n";  
-            if (is_query)
-            {
-                std::cout << "||||||||||||||| --------> "<< _req.uri << std::endl;
-                data.query = founded_extns.substr(exts[i].size() + 1); //
-                data.script_path = _req.uri.substr(0, _req.uri.find('?'));
-            }
+            founded_extns = founded_extns.substr(0, founded_extns.size() - 1);
+            is_query = true;
+        }
+        else if (founded_extns[it->first.size()] == '/')
+        {
+            founded_extns = founded_extns.substr(0, founded_extns.size() - 1);
+            if (query_pose == std::string::npos)
+                data.PathInfo = _req.uri.substr(exten_pose + it->first.size(), query_pose - (exten_pose + it->first.size()));
             else
-               data.script_path = _req.uri;
+                data.PathInfo =  _req.uri.substr(exten_pose + founded_extns.size());
+            is_pathInfo = true;
+        }
+        if (founded_extns == it->first || is_query || is_pathInfo)
+        {
             data.hasCgi = true;
-            data.cgi_extn = founded_extns.substr(0, exts[i].size());
+            data.CgiInterp = it->second;
+            data.cgi_extn = founded_extns.substr(0, it->first.size()); 
+            
+            if (is_query)
+                data.query = _req.uri.substr(query_pose);
+            data.script_path =_req.uri.substr(0, exten_pose + data.cgi_extn.size());
         }
     }
     return (data);
 }
+
 
 bool CgiHandler::IsCgi(void)
 {
     return (_data.hasCgi);
 }
 
-HttpResponse CgiHandler::execCgi(void)
+// HttpResponse CgiHandler::execCgi(void)
+// {
+//     HttpResponse f;//
+//     std::string cmd;
+//     std::string fp;
+//     std::string str;
+//     pid_t pid;
+//     char **env;
+//     env = set_env();
+//     if (_data.CgiInterp.find("/") != std::string::npos)
+//         cmd = _data.CgiInterp.substr(_data.CgiInterp.find_last_of("/") + 1);
+//     else
+//         cmd = _data.CgiInterp;
+//     std::cout << "CMD: " << cmd << std::endl;
+//     fp  = full_path(_env_paths, _data.CgiInterp); // TO DO HANDLE ERROR
+//     std::cout << "FULL PATH: " << fp << std::endl;
+//     // if (fp.empty())
+//     //     return;
+//     str = _data.script_path.substr(1);
+//     char *argv[] = { (char *)cmd.c_str(), (char *)str.c_str() ,NULL };
+//     int pfd[2];
+//     if (pipe(pfd))
+//         exit(1);
+//     pid = fork();
+//     if (!pid)
+//     {
+//         dup2(pfd[1], 1);
+//         close(pfd[1]);
+//         close(pfd[0]);
+    
+//         execve(fp.c_str(), argv, env);
+//         perror("execve failed");
+//         _exit(1);
+//     }
+//     // listen to the output and store it to pipe
+//     else if (pid < 0)
+//     {
+//         std::cerr << "Fork failed" << std::endl;
+//         close(pfd[0]);
+//         close(pfd[1]);
+//         // return;
+//     }
+//     close(pfd[1]);
+    
+//     std::string cgi_output_str;
+//     char buffer[4096];
+//     ssize_t bytes_read;
+//     while ((bytes_read = read(pfd[0], buffer, 4096 - 1)) > 0) 
+//     {
+//         buffer[bytes_read] = '\0'; // Null-terminate the chunk
+//         cgi_output_str.append(buffer); // Append to the output string
+//     }
+//     if (bytes_read == -1)
+//     {
+//         perror("read from pipe_stdout failed");
+//     }
+//     close(pfd[0]);
+//     std::cout << "--------------------> " << cgi_output_str << std::endl;
+//     f.version = "HTTP/1.1";
+//     // f.headers["Content-Type"] = "text/html";
+//     f.statusCode = 200;
+//     f.body = cgi_output_str;
+//     wait(NULL);
+//     return f;   
+// }
+
+std::string GetKey(std::map<std::string, std::string> map ,std::string target)
 {
-    HttpResponse f;//
+    std::string value;
+        
+    for (std::map<std::string, std::string>::const_iterator it = map.begin(); it != map.end(); ++it) 
+    {
+        std::cerr << "KEY: " << it->first << " , Value: " << it->second << std::endl;
+        std::string current_key = it->first;
+        std::transform(current_key.begin(), current_key.end(), current_key.begin(), ::tolower);
+        if (current_key == target) 
+        {
+            value = it->second;
+            break;
+        }
+    }
+    return (value);
+}
+
+
+CgiState *CgiHandler::execCgi(void)
+{
+    CgiState *f = new CgiState();
     std::string cmd;
-    std::string fp;
-    std::string str;
+    std::string fp; // Full path to interpreter
+    std::string str; // Script path to pass as argv[1]
     pid_t pid;
     char **env;
 
-    // data = check_cgi();
-    // if (!data.hasCgi)
-    //     ;
-        // NO Cgi;
-    env = set_env();
+    std::string check_existing;
+
+    check_existing = _data.script_path.substr(1);
+    if (access((char *)check_existing.c_str(), F_OK) < 0)
+    {
+        // f.statusCode = 404;
+        // f.statusText = "Internal Server Error";
+        // f.body = "CGI : Script file not found, path: {" + check_existing + "}" ;
+        // return f;
+        delete f; // Clean up before returning
+        return NULL;
+    }
+    env = set_env(); // Environment variables prepared
+
+    // Determine command to pass to execve
+    if (_data.CgiInterp.find("/") != std::string::npos)
+        cmd = _data.CgiInterp.substr(_data.CgiInterp.find_last_of("/") + 1); // e.g., "php-cgi" from "/usr/bin/php-cgi"
+    else
+        cmd = _data.CgiInterp; // e.g., "python3"
+
+    fp  = full_path(_env_paths, _data.CgiInterp); // Get absolute path to interpreter
+    // IMPORTANT: Handle fp.empty() case - it means interpreter not found
+    if (fp.empty())
+    {
+        // Handle error: Interpreter not found (e.g., 500 Internal Server Error)
+        // Free env memory
+        // f.statusCode = 500;
+        // f.statusText = "Internal Server Error 1";
+        // f.body = "CGI Interpreter not found.";
+        // return f;
+        std::cerr << "Error: CGI interpreter not found: " << _data.CgiInterp << std::endl;
+        for (int i = 0; env[i] != NULL; ++i) 
+            delete[] env[i];
+        delete[] env;
+        delete f;
+        return NULL; // Return NULL to indicate error
+    }
     
-    // cmd = route.cgiExtension;
-    // std::cout << "----------------CMD----------------->: " << cmd << std::endl;
-    if (_data.cgi_extn == ".py")
-        cmd = "python3"; // inter // Config
-    else if (_data.cgi_extn == ".php")
-        cmd = "php-cgi";
-    else if (_data.cgi_extn == ".sh")
-        cmd = "bash";
-
-    fp  = full_path(_env_paths, cmd); // TO DO HANDLE ERROR
-
-    std::cout << "FULL PATH" << fp << std::endl;
-    // if (fp.empty())
-    //     return;
     str = _data.script_path.substr(1);
-    char *argv[] = { (char *)cmd.c_str(), (char *)str.c_str() ,NULL };
-    // std::cout << "7777777777777777777777777->>> " << (char *)cmd.c_str() << "    " <<(char *)str.c_str() << std::endl;
 
-    int pfd[2];
-    if (pipe(pfd))
-        exit(1);
+    int pfd[2]; // Pipe for CGI output
+    int pfd_in[2]; // Pipe for CGI input (for POST requests)
+
+    if (pipe(pfd) == -1) // Pipe for stdout from CGI
+    {
+        perror("pipe stdout failed");
+        // Clean up env
+        for (int i = 0; env[i] != NULL; ++i) 
+            delete[] env[i];
+        delete[] env;
+        // f.statusCode = 500;
+        // f.statusText = "Internal Server Error 2";
+        // f.body = "Server pipe creation failed.";
+        // return f;
+        delete f;
+        return NULL; // Return NULL to indicate error
+    }
+
+    if (_req.method == POST && pipe(pfd_in) == -1) // Pipe for stdin to CGI (only for POST)
+    {
+        perror("pipe stdin failed");
+        close(pfd[0]);
+        close(pfd[1]);
+        // Clean up env
+        for (int i = 0; env[i] != NULL; ++i) 
+            delete[] env[i];
+        delete[] env;
+        // f.statusCode = 500;
+        // f.statusText = "Internal Server Error 3";
+        // f.body = "Server pipe creation failed.";
+        // return f;
+        delete f;
+        return NULL; // Return NULL to indicate error
+    }
+
     pid = fork();
-    if (!pid)
+    if (pid == -1) // Fork failed
     {
-        dup2(pfd[1], 1);
-        close(pfd[1]);
-        close(pfd[0]);
-    
-        execve(fp.c_str(), argv, env);
-        perror("execve failed");
-        _exit(1);
+        perror("fork failed");
+        close(pfd[0]); close(pfd[1]);
+        if (_req.method == POST) 
+        {
+            close(pfd_in[0]); 
+            close(pfd_in[1]); 
+        }
+        // Clean up env
+        for (int i = 0; env[i] != NULL; ++i) 
+            delete[] env[i];
+        delete[] env;
+        // f.statusCode = 500;
+        // f.statusText = "Internal Server Error 4";
+        // f.body = "Server fork failed.";
+        // return f;
+        delete f;
+        return NULL; // Return NULL to indicate error
     }
-    // listen to the output and store it to pipe
-    else if (pid < 0)
+    else if (pid == 0) // Child process (CGI)
     {
-        std::cerr << "Fork failed" << std::endl;
-        close(pfd[0]);
-        close(pfd[1]);
-        // return;
+        std::cerr << "HELLO FROM CHILD PID: " << getpid() << std::endl;
+        // Redirect stdout to parent
+        dup2(pfd[1], STDOUT_FILENO);
+        close(pfd[0]); // Close read end in child
+        close(pfd[1]); // Close write end after duping
+
+        // Redirect stdin from parent for POST requests
+        if (_req.method == POST)
+        {
+            dup2(pfd_in[0], STDIN_FILENO);
+            close(pfd_in[0]); // Close read end in child
+            close(pfd_in[1]); // Close write end in child
+        }
+        
+        // **CRITICAL: Set up proper working directory and script path**
+        // Convert URI path to filesystem path
+        std::string filesystem_script_path = _data.script_path;
+        std::cerr << "Full script path: " << filesystem_script_path << std::endl;
+        
+        // Get the directory containing the script
+        size_t last_slash = filesystem_script_path.rfind('/');
+        std::string script_dir_path = ".";
+        std::string script_filename = filesystem_script_path;
+        
+        if (last_slash != std::string::npos) {
+            script_dir_path = filesystem_script_path.substr(0, last_slash);
+            script_filename = filesystem_script_path.substr(last_slash + 1);
+        }
+        
+        script_dir_path = "." + script_dir_path; // Make it relative to current working directory 
+        std::cerr << "script_dir_path: " << script_dir_path << std::endl;
+        std::cerr << "script_filename: " << script_filename << std::endl;
+
+        if (chdir(script_dir_path.c_str()) == -1) 
+        {
+            perror("chdir failed");
+            exit(1); // Exit child process on chdir failure
+        }
+        // Execute the CGI script
+        // argv[0] should be the interpreter name, argv[1] is the script filename
+        char *final_argv[3];
+        final_argv[0] = (char *)cmd.c_str(); // Just the interpreter name
+        final_argv[1] = (char *)script_filename.c_str(); // Script filename relative to CWD
+        final_argv[2] = NULL;
+
+        // for (size_t i = 0; i < 3; i++)
+        // {
+        //     std::cerr << "-------->FINAL ARGV[" << i << "]" << " " <<  final_argv[i] << std::endl;
+        // }
+        
+        
+        execve(fp.c_str(), final_argv, env);
+        perror("execve failed"); // Only reached if execve fails
+        if (_req.method == POST)
+            close(pfd_in[1]);
+        exit(1); // Child must exit on execve failure
     }
-    close(pfd[1]);
-    
-    std::string cgi_output_str;
-    char buffer[4096];
-    ssize_t bytes_read;
-    while ((bytes_read = read(pfd[0], buffer, 4096 - 1)) > 0) 
+    else // Parent process
     {
-        buffer[bytes_read] = '\0'; // Null-terminate the chunk
-        cgi_output_str.append(buffer); // Append to the output string
+       close(pfd[1]); // Write end, not needed
+        if (_req.method == POST)
+            close(pfd_in[0]); // Read end, not needed
+
+        fcntl(pfd[0], F_SETFL, O_NONBLOCK); // protcect
+        if (_req.method == POST)
+            fcntl(pfd_in[1], F_SETFL, O_NONBLOCK);
+
+        f->output_fd = pfd[0];
+        if (_req.method == POST)
+            f->input_fd = pfd_in[1]; // Only for POST requests
+        else
+            f->input_fd = -1; // No input for GET requests
+        f->pid = pid;
+        f->script_path = _data.script_path;
+        f->headerBuffer.clear();
+        f->bodyBuffer.clear();
+        for (int i = 0; env[i] != NULL; ++i) 
+            delete[] env[i];
+        delete[] env;
+        return f;
     }
-    if (bytes_read == -1)
-    {
-        perror("read from pipe_stdout failed");
-    }
-    close(pfd[0]);
-    std::cout << "--------------------> " << cgi_output_str << std::endl;
-    f.version = "HTTP/1.1";
-    // f.headers["Content-Type"] = "text/html";
-    f.statusCode = 200;
-    f.body = cgi_output_str;
-    wait(NULL);
-    return f;   
 }

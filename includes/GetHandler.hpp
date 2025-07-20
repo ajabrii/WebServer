@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   GetHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:19:03 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/13 19:46:35 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/15 19:21:12 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@
 class GetHandler : public IHttpMethodHandler
 {
     private:
-        HttpResponse handleDirectory(const std::string& dirPath, const std::string& urlPath, bool listingEnabled, const ServerConfig& serverConfig) const;
+        HttpResponse handleDirectory(const std::string& dirPath, const std::string& urlPath, bool listingEnabled, const ServerConfig& serverConfig, const std::string& indexFile) const;
         HttpResponse serveStaticFile(const std::string& filepath, const ServerConfig& serverConfig) const;
         HttpResponse handleDirectoryListing(const std::string& path, const std::string& urlPath, const ServerConfig& serverConfig) const;
         HttpResponse handleRedirect(const std::string& redirectUri) const;

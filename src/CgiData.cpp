@@ -12,5 +12,6 @@ void CgiData::DebugPrint(void)
     << "hasCgi: " << this->hasCgi  << std::endl
     << "PathInfo: " << this->PathInfo  << std::endl
     << "query: " << this->query  << std::endl
-    << "script_path: " << this->script_path  << std::endl;
+    << "script_path: " << this->script_path << std::endl
+    << "Cgi interp: " << this->CgiInterp << std::endl;
 }

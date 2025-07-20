@@ -3,12 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 11:18:44 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/20 14:27:51 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 
 # include "../includes/HttpServer.hpp"
@@ -20,7 +21,8 @@ Connection::Connection()
     requestCount(0),
     requestState(READING_HEADERS),
     contentLength(0),
-    isChunked(false)
+    isChunked(false),
+    cgiState(NULL)
 {
     std::memset(&client_addr, 0, sizeof(client_addr));
 }
@@ -33,7 +35,8 @@ Connection::Connection(int fd, const sockaddr_in& addr)
     requestCount(0),
     requestState(READING_HEADERS),
     contentLength(0),
-    isChunked(false)
+    isChunked(false),
+    cgiState(NULL)
 {
 }
 
@@ -73,7 +76,7 @@ void Connection::readData(HttpServer* server)
     ssize_t bytesRead = recv(client_fd, tmp, sizeof(tmp), 0);
 
     if (bytesRead < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) { // fcheck wakha machi forbidden hit khdamin b poll
             // No data available right now. Not an error.
             return;
         } else {
@@ -83,7 +86,8 @@ void Connection::readData(HttpServer* server)
         }
     } 
     else if (bytesRead == 0) {
-        // Client closed the connection
+        // Client closed the connection gracefully
+        // For keep-alive connections, this is normal when client closes
         throw std::runtime_error("Client disconnected (bytesRead == 0)"); // This should trigger connection cleanup
     }
 
@@ -112,7 +116,6 @@ void Connection::readData(HttpServer* server)
                     requestState = REQUEST_COMPLETE;
                 }
                 std::cout << "Debug: Headers parsed. State changed to: " << requestState << std::endl;
-
         }
     }
     
@@ -196,4 +199,23 @@ void Connection::reset() {
     isChunked = false;
     requestState = READING_HEADERS;
     std::cout << "Debug: Connection " << client_fd << " reset for next request." << std::endl;
+}
+
+bool Connection::isConnectionClosed() const {
+    return client_fd == -1;
+}
+
+CgiState* Connection::getCgiState() const
+{
+    return cgiState;
+};
+void Connection::setCgiState(CgiState* cgiState)
+{
+    this->cgiState = cgiState;
+    if (cgiState)
+    {
+        cgiState->startTime = std::time(0);
+        cgiState->headersParsed = false;
+        cgiState->rawOutput.clear();
+    }
 }

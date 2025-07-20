@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:00:24 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 11:44:03 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/16 18:48:04 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ class ServerConfig {
         // int port;
         std::vector<std::string> serverName;
         std::map<int, std::string> error_pages;
-        size_t clientMaxBodySize;
+        unsigned long long clientMaxBodySize;
         std::vector<RouteConfig> routes;
         
         ServerConfig();

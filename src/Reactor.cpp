@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Reactor.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:56:46 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/19 20:12:54 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,12 @@ Event::Event() : fd(-1), isReadable(false), isWritable(false),
 
 void Reactor::cleanup() {
     // Clean up all connections
-    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) {
+    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) 
+    {
+        if (it->second->getCgiState())
+        {
+            delete it->second->getCgiState();
+        }
         delete it->second;
     }
     connectionMap.clear();
@@ -40,7 +45,8 @@ void Reactor::cleanupTimedOutConnections()
     std::vector<int> timedOutFds;
     
     // Find timed out connections
-    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) {
+    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) 
+    {
         if (it->second->isKeepAlive() && it->second->isTimedOut()) {
             timedOutFds.push_back(it->first);
         }
@@ -83,8 +89,59 @@ void Reactor::addConnection(Connection* conn, HttpServer* server)
     clientToServerMap[conn->getFd()] = server;
 }
 
+void Reactor::cgiRemover(Connection *conn)
+{
+    int fds[2];
+    CgiState *cgi = conn->getCgiState();
+
+    // fds[0] = cgi->input_fd;
+    fds[0] = cgi->output_fd;
+    fds[1] = conn->getFd();
+    
+    for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it)
+    {
+        if (it->fd == fds[0]  || it->fd == fds[1])
+        {
+            pollFDs.erase(it);
+            std::cerr << "Removed fd: " << it->fd << " from pollFDs" << std::endl;
+        }
+    }
+    for (int i = 0; i < 2; ++i)
+    {
+        std::map<int, Connection*>::iterator connIt = connectionMap.find(fds[i]);
+        if (connIt != connectionMap.end())
+        {
+            std::cerr << "Removing connection for fd: " << fds[i] << std::endl;
+            connectionMap.erase(connIt);
+        }
+    }
+    // clientToServerMap.erase(fds[2]);
+    // clientToServerMap.erase(fds[0]);
+    // clientToServerMap.erase(fds[1]);
+    // close(fds[0]);
+    close(fds[0]);
+    close(fds[1]);
+    if (cgi->pid != -1)
+        waitpid(cgi->pid, NULL, 0);
+    // delete cgi;
+}
+
 void Reactor::removeConnection(int fd)
 {
+    // std::cerr << "for fd: " << fd << std::endl;
+    if (fd == -1)
+        return;
+    std::map<int, Connection*>::iterator connIt = connectionMap.find(fd);
+    if (connIt != connectionMap.end())
+    {
+        if (connIt->second->getCgiState())
+        {
+            cgiRemover(connIt->second);
+            return;
+        }
+        // delete connIt->second;
+        connectionMap.erase(connIt);
+    }
     for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it)
     {
         if (it->fd == fd)
@@ -93,19 +150,13 @@ void Reactor::removeConnection(int fd)
             break;
         }
     }
-    std::map<int, Connection*>::iterator connIt = connectionMap.find(fd);
-    if (connIt != connectionMap.end())
-    {
-        delete connIt->second;
-        connectionMap.erase(connIt);
-    }
     clientToServerMap.erase(fd);
 }
 
 /*
 === this function is where the multiplexing magic happens ===
 
-*(x) poll() : lets the kernel watch multiple fds at once (monitoring for read/write events).
+*(x) poll() : lets the kernel ! multiple fds at once (monitoring for read/write events).
 @ It blocks until at least one fd is ready (here we block forever with -1).
 @ The kernel sets pfd.revents flags to show which events happened (e.g., POLLIN, POLLOUT).
 
@@ -129,7 +180,7 @@ void Reactor::poll()
         evt.fd = pfd.fd;
         
         // Check for error conditions FIRST (highest priority)
-        if (pfd.revents & (POLLERR | POLLHUP | POLLNVAL))
+        if (pfd.revents & (POLLERR | POLLNVAL))
         {
             evt.isError = true;
             evt.errorType = pfd.revents;
@@ -143,6 +194,11 @@ void Reactor::poll()
             evt.isReadable = (pfd.revents & POLLIN);
             evt.isWritable = (pfd.revents & POLLOUT);
             evt.isNewConnection = (serverMap.find(pfd.fd) != serverMap.end());
+            readyEvents.push_back(evt);
+        }
+        if (pfd.revents & POLLHUP)
+        {
+            evt.isPullHUP = true;
             readyEvents.push_back(evt);
         }
     }
@@ -172,4 +228,41 @@ HttpServer* Reactor::getServerForClient(int clientFd)
 {
     std::map<int, HttpServer*>::iterator it = clientToServerMap.find(clientFd);
     return (it != clientToServerMap.end()) ? it->second : 0;
+}
+
+void Reactor::watchCgi(Connection* conn) 
+{
+    if (!conn)
+        return;
+    CgiState *cgiState = conn->getCgiState();
+    if (!cgiState)
+        return;
+
+    // Watch CGI output (stdout)
+    pollfd pfdOut;
+    pfdOut.fd = cgiState->output_fd;
+    pfdOut.events = POLLIN;
+    pollFDs.push_back(pfdOut);
+
+    // Watch CGI input (stdin) only for POST
+    // if (cgiState->input_fd != -1) 
+    // {
+    //     pollfd pfdIn;
+    //     pfdIn.fd = cgiState->input_fd;
+    //     pfdIn.events = POLLOUT;
+    //     pollFDs.push_back(pfdIn);
+    // }
+    
+
+    // Optional: associate CGI fds with connection
+    connectionMap[cgiState->output_fd] = conn;
+    // clienToCgiStateMap[cgiState->output_fd] = cgiState;
+    // if (cgiState->input_fd != -1)
+    //     connectionMap[cgiState->input_fd] = conn;
+}
+
+// geter that return connectionMap
+std::map<int, Connection*> Reactor::getConnectionMap(void) const
+{
+    return connectionMap;
 }

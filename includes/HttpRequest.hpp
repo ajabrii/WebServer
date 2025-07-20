@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 11:07:54 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/17 18:53:40 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,18 @@ public:
     bool decodeChunked(std::string& buffer, std::string& decodedOutput);
     void throwHttpError(int statusCode, const std::string& message);
     std::string GetHeader(std::string target) const;
+
+    class HttpException : public std::exception {
+        private:
+        int         statusCode;
+        std::string message;
+
+        public:
+            HttpException(int code, const std::string& msg);
+            virtual ~HttpException() throw();
+            virtual const char* what() const throw();
+            int getStatusCode() const;
+    };
 };
 
 #endif

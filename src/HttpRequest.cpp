@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 11:08:50 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/20 14:27:38 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,18 @@ void HttpRequest::parseHeaders(const std::string& rawHeaders)
     else if (this->version != "HTTP/1.1") {
         throwHttpError(505, "HTTP Version Not Supported");
     }
-
+    else if (this->method != "GET" && this->method != "POST" && this->method != "DELETE") {
+        throwHttpError(501, "Not Implemented: Unsupported HTTP method"); //? kayna f dispatcher method
+    }
+    else if (this->uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
+    {
+        throwHttpError(400, "Invalid HTTP request: URI contains invalid characters");
+    }
+    else if (this->uri.size() > 2048)
+    {
+        throwHttpError(414, "URI Too Long");
+    }
+    
     // Parse headers
     while (std::getline(stream, line)) {
         std::string trimmed_line = line;
@@ -108,11 +119,13 @@ void HttpRequest::parseHeaders(const std::string& rawHeaders)
         }
 
     // After parsing all headers, determine body protocol if content-length or transfer-encoding
-    std::string cl_header = GetHeader("content-length");
-    std::string te_header = GetHeader("transfer-encoding");
+    if (this->method == "POST"){
+        
+        std::string cl_header = GetHeader("content-length");
+        std::string te_header = GetHeader("transfer-encoding");
 
-    if (!cl_header.empty() && !te_header.empty()) {
-        throwHttpError(400, "Bad request: Both Content-Length and Transfer-Encoding headers are present");
+    if ((!cl_header.empty() && !te_header.empty()) || (cl_header.empty() && te_header.empty())) {
+        throwHttpError(400, "Bad request: not specified body protocol");
     } else if (!cl_header.empty()) {
         std::stringstream ss(cl_header);
         ss >> this->contentLength;
@@ -123,10 +136,15 @@ void HttpRequest::parseHeaders(const std::string& rawHeaders)
     } else if (!te_header.empty() && te_header == "chunked") {
         this->isChunked = true;
         this->contentLength = 0;
-    } else {
-        // No body expected
-        this->contentLength = 0;
-        this->isChunked = false;
+    }
+    else if (!te_header.empty() && te_header != "chunked") {
+        throwHttpError(501, "Not Implemented: Unsupported Transfer-Encoding");
+    }
+    }
+    else {
+    // For methods other than POST, no body is expected
+    this->isChunked = false;
+    this->contentLength = 0;
     }
 }
 
@@ -138,7 +156,7 @@ bool HttpRequest::parseBody(std::string& connectionBuffer, long maxBodySize) {
 
     if (!isChunked) { // Content-Length body
         if (contentLength > maxBodySize)
-            throwHttpError(413, "Payload Too Large");
+            throwHttpError(413, "request entity Too Large");
         if (contentLength > 0 && connectionBuffer.length() >= static_cast<size_t>(contentLength)) {
             this->body.append(connectionBuffer.substr(0, contentLength));
             connectionBuffer.erase(0, contentLength);
@@ -212,12 +230,8 @@ bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput)
 }
 
 
-
 void HttpRequest::throwHttpError(int statusCode, const std::string& message) {
-    std::ostringstream oss;
-    oss << statusCode;
-    throw std::runtime_error("HTTP error " + oss.str() + ": " + message);
-
+    throw HttpException(statusCode, message);
 }
 
 std::string HttpRequest::GetHeader(std::string target) const
@@ -236,3 +250,18 @@ std::string HttpRequest::GetHeader(std::string target) const
     return (value);
 }
 
+HttpRequest::HttpException::HttpException(int code, const std::string& msg)
+    : statusCode(code), message(msg) {
+}
+
+HttpRequest::HttpException::~HttpException() throw() {
+    // Destructor can be empty, as std::string and int handle their own cleanup
+}
+
+const char* HttpRequest::HttpException::what() const throw() {
+    return message.c_str();
+}
+
+int HttpRequest::HttpException::getStatusCode() const {
+    return statusCode;
+}
