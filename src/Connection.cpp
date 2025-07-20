@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 17:11:06 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/20 17:30:31 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ void Connection::readData(HttpServer* server)
 
     // Append the received data to the connection's buffer
     buffer.append(tmp, bytesRead);
-    std::cout << "Debug: Read " << bytesRead << " bytes. Buffer size: " << buffer.length() << std::endl;
+    // std::cout << "Debug: Read " << bytesRead << " bytes. Buffer size: " << buffer.length() << std::endl;
 
     if (requestState == READING_HEADERS) {
         size_t headerEndPos = buffer.find("\r\n\r\n");
@@ -115,7 +115,7 @@ void Connection::readData(HttpServer* server)
                     // No body expected
                     requestState = REQUEST_COMPLETE;
                 }
-                std::cout << "Debug: Headers parsed. State changed to: " << requestState << std::endl;
+                // std::cout << "Debug: Headers parsed. State changed to: " << requestState << std::endl;
         }
     }
     
@@ -124,7 +124,7 @@ void Connection::readData(HttpServer* server)
             bool bodyComplete = currentRequest.parseBody(buffer, server->getConfig().clientMaxBodySize); // Pass buffer by reference
             if (bodyComplete) {
                 requestState = REQUEST_COMPLETE;
-                std::cout << "Debug: Body parsed. State changed to: " << requestState << std::endl;
+                // std::cout << "Debug: Body parsed. State changed to: " << requestState << std::endl;
             }
     }
 
@@ -132,7 +132,8 @@ void Connection::readData(HttpServer* server)
     // and then call Connection::reset() for the next request on keep-alive
     // Connection::reset() should clear currentRequest and set requestState to READING_HEADERS
     if (requestState == REQUEST_COMPLETE) {
-        std::cout << "Debug: Request fully received and parsed for fd " << client_fd << std::endl;
+        ;
+        // std::cout << "Debug: Request fully received and parsed for fd " << client_fd << std::endl;
     }
 }
 
@@ -198,7 +199,7 @@ void Connection::reset() {
     contentLength = 0;
     isChunked = false;
     requestState = READING_HEADERS;
-    std::cout << "Debug: Connection " << client_fd << " reset for next request." << std::endl;
+    // std::cout << "Debug: Connection " << client_fd << " reset for next request." << std::endl;
 }
 
 bool Connection::isConnectionClosed() const {

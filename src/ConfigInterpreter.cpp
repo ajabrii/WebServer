@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 16:53:03 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/20 17:22:44 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -264,10 +264,6 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
     {
         route.indexFile = value;
     }
-    else if (key == "indexfile")
-    {
-        route.indexFile = value;
-    }
     else if (key == "redirect")
         route.redirect = value;
     else if (key == "root")
@@ -282,12 +278,7 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
     else if (key == "upload_path") {
         if (!route.uploadDir.empty()) {
             throw std::runtime_error("Duplicate 'upload_path' entry in route block.");
-    }
-    else if (key == "upload_path") {
-        if (!route.uploadDir.empty()) {
-            throw std::runtime_error("Duplicate 'upload_path' entry in route block.");
         }
-        route.uploadDir = value;
         route.uploadDir = value;
     }
     else if (key == "cgi")
@@ -449,8 +440,6 @@ void ConfigInterpreter::checkValues() const
     {
         if (serverConfigs[i].host.empty())
             throw std::runtime_error("Host is not set for a server block.");
-        if (serverConfigs[i].port.size() == 0)
-            throw std::runtime_error("Port is not set for a server block.");
         if (serverConfigs[i].port.size() == 0)
             throw std::runtime_error("Port is not set for a server block.");
         if (serverConfigs[i].clientMaxBodySize <= 0)

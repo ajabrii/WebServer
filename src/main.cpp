@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 17:12:13 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/20 17:29:21 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,14 +209,14 @@ int main(int ac, char **av, char **envp)
                 {
                     Connection &conn = reactor.getConnection(event.fd);
                     CgiState *cgiState = conn.getCgiState();
-                    if (cgiState)
-                    {
-                        std::cout << "\033[1;34m[CGI]\033[0m Connection fd: " << event.fd << " has CGI state with PID: " << cgiState->pid << std::endl;
-                    }
-                    else
-                    {
-                        std::cout << "\033[1;34m[CGI]\033[0m Connection fd: " << event.fd << " has no CGI state" << std::endl;
-                    }
+                    // if (cgiState)
+                    // {
+                    //     std::cout << "\033[1;34m[CGI]\033[0m Connection fd: " << event.fd << " has CGI state with PID: " << cgiState->pid << std::endl;
+                    // }
+                    // else
+                    // {
+                    //     std::cout << "\033[1;34m[CGI]\033[0m Connection fd: " << event.fd << " has no CGI state" << std::endl;
+                    // }
                     if (cgiState)
                     {
                         if (!cgiState->bodySent && conn.getCurrentRequest().method == POST && cgiState->input_fd != -1)
