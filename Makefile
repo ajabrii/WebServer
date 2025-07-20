@@ -33,6 +33,24 @@ SRC = \
 	$(SRCDIR)/ServerConfig.cpp \
 	$(SRCDIR)/Utils.cpp
 
+HEADERS = \
+	$(INCDIR)/CgiHandler.hpp \
+	$(INCDIR)/CgiData.hpp \
+	$(INCDIR)/ConfigInterpreter.hpp \
+	$(INCDIR)/Connection.hpp \
+	$(INCDIR)/HttpRequest.hpp \
+	$(INCDIR)/HttpResponse.hpp \
+	$(INCDIR)/DeleteHandler.hpp \
+	$(INCDIR)/PostHandler.hpp \
+	$(INCDIR)/GetHandler.hpp \
+	$(INCDIR)/Errors.hpp \
+	$(INCDIR)/HttpServer.hpp \
+	$(INCDIR)/Reactor.hpp \
+	$(INCDIR)/Router.hpp \
+	$(INCDIR)/RequestDispatcher.hpp \
+	$(INCDIR)/RouteConfig.hpp \
+	$(INCDIR)/ServerConfig.hpp \
+	$(INCDIR)/Utils.hpp
 # Object files
 OBJ = $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
@@ -40,7 +58,7 @@ OBJ = $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 all: $(NAME)
 
 # Link objects into binary
-$(NAME): $(OBJ)
+$(NAME): $(OBJ) $(HEADERS)
 	@echo "\033[1;32mLinking $(NAME)...\033[0m"
 	@$(CXX) $(CPPFLAGS) $(OBJ) -o $(NAME)
 
