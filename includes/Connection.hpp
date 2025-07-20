@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/07/16 09:55:04 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/20 17:10:02 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
+#include "../includes/HttpRequest.hpp"
 #include "../includes/HttpRequest.hpp"
 #include <string>
 #include <netinet/in.h>
@@ -48,7 +49,7 @@ class Connection
         bool isChunked;
         HttpRequest currentRequest;
         CgiState* cgiState;
-        // HttpServer* server;
+        HttpServer* server;
         
     public:
         Connection();
