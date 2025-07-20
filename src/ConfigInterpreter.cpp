@@ -3,16 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/16 15:47:30 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/20 17:22:44 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+
 # include "../includes/ConfigInterpreter.hpp"
 #include <algorithm> 
-
+#include <climits>
+#include <cstddef>
 
 
 ConfigInterpreter::ConfigInterpreter() : serverFlag(false), routeFlag(false){}
@@ -27,7 +29,10 @@ void ConfigInterpreter::getConfigData(std::string filePath)
     blockKeywords.push_back("route");
     bool matched;
     std::string keyword;
-    // std::cout << filePath << "\n";
+    // Check file extension (.config or .yaml)
+    if (!hasValidExtension(filePath)) {
+        throw std::runtime_error("Config file must have .config or .yaml extension");
+    }
     std::ifstream infile(filePath.c_str());
     if (!infile.is_open())
         throw std::runtime_error("Cannot open config file");
@@ -70,11 +75,16 @@ void ConfigInterpreter::getConfigData(std::string filePath)
             ConfigData.push_back(clean_line(line));
         }
     }
-    // for (size_t i = 0; i < ConfigData.size(); ++i)
-    // {
-    //     std::cout << "std::line :: " << ConfigData[i] << "\n";
-    // }
     infile.close();
+}
+
+bool ConfigInterpreter::hasValidExtension(const std::string& filePath) const
+{
+    size_t dotPos = filePath.rfind('.');
+    if (dotPos == std::string::npos)
+        return false;
+    std::string ext = filePath.substr(dotPos);
+    return (ext == ".config" || ext == ".yaml");
 }
 
 std::string ConfigInterpreter::trim(const std::string& line) {
@@ -285,8 +295,8 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
         std::string path;
         line >> ext;
         line >> path;
-        if (ext != ".py" && ext != ".php")
-            throw std::runtime_error("unsupported extension ");
+        // if (ext != ".py" && ext != ".php")
+        //     throw std::runtime_error("unsupported extension ");
         route.cgi[ext] = path;
     }
     else
@@ -354,31 +364,49 @@ void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string&
     {
         if (value.empty())
             throw std::runtime_error("client_max_body_size cannot be empty");
+            
         unsigned long long size = 0;
-        if (value[value.size() - 1] == 'K'){
-            std::string num = value.substr(0, value.size()-1);
-            if (!isNum(num))
-                throw std::runtime_error("Invalid client_max_body_size number: " + num);
-            size = std::atoi(num.c_str()) * 1024;
+        std::string numStr = value;
+        unsigned long long multiplier = 1;
+        
+        // Check for suffix and extract number
+        if (!value.empty()) {
+            char lastChar = std::tolower(value[value.size() - 1]);
+            if (lastChar == 'k' || lastChar == 'm' || lastChar == 'g') {
+                if (value.size() == 1) {
+                    throw std::runtime_error("client_max_body_size: suffix without number");
+                }
+                numStr = value.substr(0, value.size() - 1);
+                
+                if (lastChar == 'k') {
+                    multiplier = 1024ULL;
+                } else if (lastChar == 'm') {
+                    multiplier = 1024ULL * 1024ULL;
+                } else if (lastChar == 'g') {
+                    multiplier = 1024ULL * 1024ULL * 1024ULL;
+                }
+            }
         }
-        if (value[value.size() - 1] == 'M') {
-            std::string num = value.substr(0, value.size()-1);
-            if (!isNum(num))
-                throw std::runtime_error("Invalid client_max_body_size number: " + num);
-            size = std::atoi(num.c_str()) * 1024 * 1024;
-        } else if (value[value.size() - 1] == 'G'){
-            std::string num = value.substr(0, value.size()-1);
-            if (!isNum(num))
-                throw std::runtime_error("Invalid client_max_body_size number: " + num);
-            size = std::atoi(num.c_str()) * 1024 * 1024 * 1024;
-        } 
-        else {
-            if (!isNum(value))
-                throw std::runtime_error("Invalid client_max_body_size number: " + value);
-            size = std::atoi(value.c_str());
+        
+        // kolhom numbers
+        if (numStr.empty() || !isNum(numStr)) {
+            throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
         }
-        // if (size < 0)
-        //     throw std::runtime_error("client_max_body_size must be positive number.");
+        
+        // Convert to number (using strtoul for better error handling)
+        char* endptr;
+        unsigned long baseSize = std::strtoul(numStr.c_str(), &endptr, 10);
+        if (*endptr != '\0' || baseSize == 0) {
+            throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
+        }
+        
+        // Check for overflow before multiplication
+        if (baseSize > (ULLONG_MAX / multiplier)) {
+            throw std::runtime_error("client_max_body_size too large: " + value);
+        }
+        
+        size = baseSize * multiplier;
+
         server.clientMaxBodySize = size;
     }
     else if (key.find("error_page") == 0)
@@ -425,11 +453,24 @@ void ConfigInterpreter::checkValues() const
             if (serverConfigs[i].routes[j].allowedMethods.empty())
                 throw std::runtime_error("No methods specified for route " + serverConfigs[i].routes[j].path);
         }
-        // Check for duplicate host in other servers
         for (size_t k = i + 1; k < serverConfigs.size(); k++)
         {
             if (serverConfigs[i].host == serverConfigs[k].host)
-                throw std::runtime_error("Duplicate host found in two server blocks: " + serverConfigs[i].host);
+            {
+            for (size_t pi = 0; pi < serverConfigs[i].port.size(); ++pi)
+            {
+                for (size_t pk = 0; pk < serverConfigs[k].port.size(); ++pk)
+                {
+                if (serverConfigs[i].port[pi] == serverConfigs[k].port[pk])
+                {
+                    throw std::runtime_error(
+                    "Duplicate host and port found in two server blocks: "
+                    // + serverConfigs[i].host + ":" + std::to_string(serverConfigs[i].port[pi])
+                    );
+                }
+                }
+            }
+            }
         }
     }
 }
@@ -438,7 +479,7 @@ void ConfigInterpreter::checkValues() const
 std::string ConfigInterpreter::getPathForCGI(char **envp) const
 {
     std::string str;
-    
+
     if (!envp || !*envp)
         return "";
     for (size_t i = 0; envp[i] != NULL; i++)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:56:52 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/13 16:52:10 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/16 09:24:56 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include "ServerConfig.hpp"
 # include "HttpServer.hpp"
 # include "CgiData.hpp"
+# include "CgiState.hpp"
 
 #include <sys/wait.h>
 # include <iostream>
@@ -41,7 +42,7 @@ class CgiHandler
         CgiHandler();
         CgiHandler(const HttpServer &server, const HttpRequest& req , const RouteConfig& route ,int clientSocket, std::string env_paths);
         ~CgiHandler();
-        HttpResponse execCgi(void);
+        CgiState* execCgi(void);
         CgiData check_cgi(void);
         char **set_env(void);
         bool IsCgi();

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   GetHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/17 16:08:47 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/20 17:11:14 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,6 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
     {
         // Path exists - check if it's a directory or regular file
         if (S_ISDIR(pathStat.st_mode))
-            // It's a directory - handle directory listing or serve index file
             return handleDirectory(filePath, req.uri, route.directory_listing, serverConfig, route.indexFile);
         else if (S_ISREG(pathStat.st_mode))
             // It's a regular file - serve it directly

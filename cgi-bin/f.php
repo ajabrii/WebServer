@@ -1,5 +1,6 @@
+
 <?php
 $name = $_GET['name'] ?? 'Guest';
-echo "Content-Type: text/html\n\n";
+header('Content-Type: text/html');
 echo "<h1>Hello, $name!</h1>";
 ?>

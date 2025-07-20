@@ -7,7 +7,9 @@ HEADER = includes/*.hpp
 
 all: $(NAME)
 
+
 $(NAME): $(OBJ) $(HEADER)
+	@echo "Compiling Webserv..."
 	@$(CXX) $(CPPFLAGS) $(SRC) -o $(NAME)
 clean: $(OBJ)
 	@rm -rf $(OBJ)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/17 16:01:09 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/20 17:11:53 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ void HttpRequest::parseHeaders(const std::string& rawHeaders)
     std::istringstream requestLineStream(line);
     requestLineStream >> this->method >> this->uri >> this->version;
     if ((this->method.empty() || this->uri.empty() || this->version.empty())){
-        
         throwHttpError(400, "Invalid HTTP request: info missed in request line");
     }
     else if (this->version != "HTTP/1.1") {
@@ -231,12 +230,8 @@ bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput)
 }
 
 
-
 void HttpRequest::throwHttpError(int statusCode, const std::string& message) {
-    std::ostringstream oss;
-    oss << statusCode;
-    throw std::runtime_error("HTTP error " + oss.str() + ": " + message);
-
+    throw HttpException(statusCode, message);
 }
 
 std::string HttpRequest::GetHeader(std::string target) const
@@ -255,3 +250,18 @@ std::string HttpRequest::GetHeader(std::string target) const
     return (value);
 }
 
+HttpRequest::HttpException::HttpException(int code, const std::string& msg)
+    : statusCode(code), message(msg) {
+}
+
+HttpRequest::HttpException::~HttpException() throw() {
+    // Destructor can be empty, as std::string and int handle their own cleanup
+}
+
+const char* HttpRequest::HttpException::what() const throw() {
+    return message.c_str();
+}
+
+int HttpRequest::HttpException::getStatusCode() const {
+    return statusCode;
+}

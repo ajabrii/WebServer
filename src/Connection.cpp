@@ -3,12 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/17 15:43:41 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/20 17:30:31 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 
 # include "../includes/HttpServer.hpp"
@@ -20,7 +21,8 @@ Connection::Connection()
     requestCount(0),
     requestState(READING_HEADERS),
     contentLength(0),
-    isChunked(false)
+    isChunked(false),
+    cgiState(NULL)
 {
     std::memset(&client_addr, 0, sizeof(client_addr));
 }
@@ -33,7 +35,8 @@ Connection::Connection(int fd, const sockaddr_in& addr)
     requestCount(0),
     requestState(READING_HEADERS),
     contentLength(0),
-    isChunked(false)
+    isChunked(false),
+    cgiState(NULL)
 {
 }
 
@@ -73,7 +76,7 @@ void Connection::readData(HttpServer* server)
     ssize_t bytesRead = recv(client_fd, tmp, sizeof(tmp), 0);
 
     if (bytesRead < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) { // fcheck wakha machi forbidden hit khdamin b poll
             // No data available right now. Not an error.
             return;
         } else {
@@ -90,7 +93,7 @@ void Connection::readData(HttpServer* server)
 
     // Append the received data to the connection's buffer
     buffer.append(tmp, bytesRead);
-    std::cout << "Debug: Read " << bytesRead << " bytes. Buffer size: " << buffer.length() << std::endl;
+    // std::cout << "Debug: Read " << bytesRead << " bytes. Buffer size: " << buffer.length() << std::endl;
 
     if (requestState == READING_HEADERS) {
         size_t headerEndPos = buffer.find("\r\n\r\n");
@@ -112,7 +115,7 @@ void Connection::readData(HttpServer* server)
                     // No body expected
                     requestState = REQUEST_COMPLETE;
                 }
-                std::cout << "Debug: Headers parsed. State changed to: " << requestState << std::endl;
+                // std::cout << "Debug: Headers parsed. State changed to: " << requestState << std::endl;
         }
     }
     
@@ -121,7 +124,7 @@ void Connection::readData(HttpServer* server)
             bool bodyComplete = currentRequest.parseBody(buffer, server->getConfig().clientMaxBodySize); // Pass buffer by reference
             if (bodyComplete) {
                 requestState = REQUEST_COMPLETE;
-                std::cout << "Debug: Body parsed. State changed to: " << requestState << std::endl;
+                // std::cout << "Debug: Body parsed. State changed to: " << requestState << std::endl;
             }
     }
 
@@ -129,7 +132,8 @@ void Connection::readData(HttpServer* server)
     // and then call Connection::reset() for the next request on keep-alive
     // Connection::reset() should clear currentRequest and set requestState to READING_HEADERS
     if (requestState == REQUEST_COMPLETE) {
-        std::cout << "Debug: Request fully received and parsed for fd " << client_fd << std::endl;
+        ;
+        // std::cout << "Debug: Request fully received and parsed for fd " << client_fd << std::endl;
     }
 }
 
@@ -195,9 +199,24 @@ void Connection::reset() {
     contentLength = 0;
     isChunked = false;
     requestState = READING_HEADERS;
-    std::cout << "Debug: Connection " << client_fd << " reset for next request." << std::endl;
+    // std::cout << "Debug: Connection " << client_fd << " reset for next request." << std::endl;
 }
 
 bool Connection::isConnectionClosed() const {
     return client_fd == -1;
+}
+
+CgiState* Connection::getCgiState() const
+{
+    return cgiState;
+};
+void Connection::setCgiState(CgiState* cgiState)
+{
+    this->cgiState = cgiState;
+    if (cgiState)
+    {
+        cgiState->startTime = std::time(0);
+        cgiState->headersParsed = false;
+        cgiState->rawOutput.clear();
+    }
 }
