@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 18:13:26 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/18 17:53:58 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ void Connection::readData(HttpServer* server)
     ssize_t bytesRead = recv(client_fd, tmp, sizeof(tmp), 0);
 
     if (bytesRead < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) { // fcheck wakha machi forbidden hit khdamin b poll
             // No data available right now. Not an error.
             return;
         } else {
