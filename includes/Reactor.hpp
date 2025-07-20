@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Reactor.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:57:23 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/19 19:58:52 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ struct Event {
     bool isReadable;
     bool isWritable;
     bool isNewConnection;
+    bool isPullHUP;
     bool isError;
     short errorType;
     Event();
@@ -37,7 +38,9 @@ class Reactor
         std::map<int, HttpServer*> serverMap;
         std::map<int, Connection*> connectionMap;
         std::map<int, HttpServer*> clientToServerMap;
+        // std::map<int, CgiState*> clienToCgiStateMap;
         std::vector<Event> readyEvents;
+
 
     public:
         Reactor();
@@ -50,9 +53,11 @@ class Reactor
         Connection& getConnection(int fd);
         HttpServer* getServerByListeningFd(int fd);
         HttpServer* getServerForClient(int clientFd);
+        std::map<int, Connection*> getConnectionMap(void) const;
+        void watchCgi(Connection* conn);
+        void cgiRemover(Connection *conn);
         void cleanup();
         void cleanupTimedOutConnections(); // Cleanup connections that have timed out
 };
-
 
 #endif

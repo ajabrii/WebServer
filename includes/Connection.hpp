@@ -3,12 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/26 16:21:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 16:37:47 by youness          ###   ########.fr       */
+/*   Created: Invalid date        by                   #+#    #+#             */
+/*   Updated: 2025/07/16 09:55:04 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 
 #ifndef CONNECTION_HPP
@@ -18,6 +19,7 @@
 #include <string>
 #include <netinet/in.h>
 #include <ctime>
+#include "CgiState.hpp"
 # define BUFFER_SIZE 8192
 # define KEEP_ALIVE_TIMEOUT 60  // 60 seconds timeout for keep-alive connections
 
@@ -45,7 +47,8 @@ class Connection
         long contentLength; // Use long to match potential large sizes
         bool isChunked;
         HttpRequest currentRequest;
-        HttpServer* server;
+        CgiState* cgiState;
+        // HttpServer* server;
         
     public:
         Connection();
@@ -72,6 +75,8 @@ class Connection
         bool isRequestComplete() const; // New helper to check state for main loop
         bool isConnectionClosed() const; // Check if connection is closed
         void reset();
+        CgiState* getCgiState() const; // Get CgiState for this connection
+        void setCgiState(CgiState* cgiState); // Set CgiState
 };
 
 #endif

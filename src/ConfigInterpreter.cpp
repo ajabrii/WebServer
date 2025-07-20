@@ -6,9 +6,10 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/17 18:51:44 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/20 14:27:20 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 # include "../includes/ConfigInterpreter.hpp"
 #include <algorithm> 
@@ -294,8 +295,8 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
         std::string path;
         line >> ext;
         line >> path;
-        if (ext != ".py" && ext != ".php")
-            throw std::runtime_error("unsupported extension ");
+        // if (ext != ".py" && ext != ".php")
+        //     throw std::runtime_error("unsupported extension ");
         route.cgi[ext] = path;
     }
     else

@@ -6,9 +6,10 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/18 17:53:58 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/20 14:27:51 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 
 # include "../includes/HttpServer.hpp"
@@ -20,7 +21,8 @@ Connection::Connection()
     requestCount(0),
     requestState(READING_HEADERS),
     contentLength(0),
-    isChunked(false)
+    isChunked(false),
+    cgiState(NULL)
 {
     std::memset(&client_addr, 0, sizeof(client_addr));
 }
@@ -33,7 +35,8 @@ Connection::Connection(int fd, const sockaddr_in& addr)
     requestCount(0),
     requestState(READING_HEADERS),
     contentLength(0),
-    isChunked(false)
+    isChunked(false),
+    cgiState(NULL)
 {
 }
 
@@ -200,4 +203,19 @@ void Connection::reset() {
 
 bool Connection::isConnectionClosed() const {
     return client_fd == -1;
+}
+
+CgiState* Connection::getCgiState() const
+{
+    return cgiState;
+};
+void Connection::setCgiState(CgiState* cgiState)
+{
+    this->cgiState = cgiState;
+    if (cgiState)
+    {
+        cgiState->startTime = std::time(0);
+        cgiState->headersParsed = false;
+        cgiState->rawOutput.clear();
+    }
 }

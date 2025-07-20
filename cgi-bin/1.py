@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-#!/usr/bin/env python3
-# print("Content-Type: text/html\n")
+
+
+# Output required CGI header and blank line (MUST be CRLF CRLF)
+print("Content-Type: text/html\r\n\r\n")
 
 html = """
 <!DOCTYPE html>
