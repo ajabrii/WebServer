@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Reactor.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/19 19:58:52 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 11:41:47 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,6 @@ class Reactor
         std::map<int, HttpServer*> serverMap;
         std::map<int, Connection*> connectionMap;
         std::map<int, HttpServer*> clientToServerMap;
-        // std::map<int, CgiState*> clienToCgiStateMap;
         std::vector<Event> readyEvents;
 
 
@@ -57,7 +56,7 @@ class Reactor
         void watchCgi(Connection* conn);
         void cgiRemover(Connection *conn);
         void cleanup();
-        void cleanupTimedOutConnections(); // Cleanup connections that have timed out
+        void cleanupTimedOutConnections();
 };
 
 #endif
