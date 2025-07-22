@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:11:07 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/12 10:19:26 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 12:48:13 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,11 +23,8 @@
 
 class IHttpMethodHandler
 {
-    
+
     public:
         virtual ~IHttpMethodHandler(){};
-        // Legacy interface for backward compatibility
-        // virtual HttpResponse handle(const HttpRequest& req, const RouteConfig& route) const = 0;
-        // New interface with ServerConfig for error page support
         virtual HttpResponse handle(const HttpRequest& req, const RouteConfig& route, const ServerConfig& serverConfig) const = 0;
 };

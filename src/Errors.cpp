@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Errors.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/07 11:31:49 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 13:10:20 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/22 12:46:15 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@
 
 std::map<int, std::string> Error::defaultErrResponses;
 
-// Initialize the static map in a C++98 compatible way
 static void initDefaultErrorResponses() {
     static bool initialized = false;
     if (!initialized) {
@@ -37,10 +36,9 @@ static void initDefaultErrorResponses() {
 
 
 
-//todo add a static map that holds status codes for errors and appropriete string response or map it to defualt html string
 std::string Error::loadErrorPage(int statusCode, const ServerConfig& config)
 {
-    initDefaultErrorResponses(); // Ensure the map is initialized
+    initDefaultErrorResponses();
     std::map<int, std::string>::const_iterator it = config.error_pages.find(statusCode);
     if (it != config.error_pages.end())
     {
