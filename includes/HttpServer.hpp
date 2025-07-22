@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:14:39 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/16 09:25:48 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 10:30:31 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,6 @@
 # include <fcntl.h>
 
 # define NEW_CLIENT_CON "\033[1;32m[+]\033[0m New client connected\n"
-#define RECEV_COMPLETE "\033[1;36m[>] Received complete request:\033[0m\n"
 
 class HttpServer
 {

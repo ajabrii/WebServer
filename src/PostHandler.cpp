@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 07:30:22 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 10:14:48 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,6 @@ void writeKeyValuesToFile(const std::string& path, const std::map<std::string,st
     std::ofstream out(path.c_str());
     if (!out)
     {
-        std::cout << "throw here\n"; //! remove
         throw std::runtime_error("Error: Failed to write file: " + path);
     }
     for (std::map<std::string,std::string>::const_iterator it=fields.begin(); it!=fields.end(); ++it)
