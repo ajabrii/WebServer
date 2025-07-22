@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/19 18:43:03 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 16:24:02 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,18 +65,24 @@ char **convert_env(std::map<std::string, std::string> env)
 }
 
 
-char **CgiHandler::set_env(void)
+char **CgiHandler::set_env(Connection &conn)
 {
     std::map<std::string, std::string> env_map; // Use env_map for clarity
     std::string host;
     
     for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it) 
     {
-        std::string header_name = it->first;
-        std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::toupper); // Convert to uppercase
-        std::replace(header_name.begin(), header_name.end(), '-', '_'); // Replace hyphens with underscores
-        env_map[header_name] = it->second;
+        std::string key = it->first;
+        std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+        std::replace(key.begin(), key.end(), '-', '_');
+        
+        if (key != "CONTENT_TYPE" && key != "CONTENT_LENGTH") {
+            key = "HTTP_" + key;
+        }
+        
+        env_map[key] = it->second;
     }
+
     host = _req.GetHeader("host");
 
     env_map["REQUEST_METHOD"] = _req.method;
@@ -95,7 +101,7 @@ char **CgiHandler::set_env(void)
         env_map["SERVER_NAME"] = host.substr(0, host.find(":"));
     }
         
-    // env_map["REMOTE_ADDR"] =; // Get client IP address // 
+    env_map["REMOTE_ADDR"] = conn.getClientIP();
     env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
     env_map["SERVER_PROTOCOL"] = "HTTP/1.1";
     // std::cout << "SERVER NAME: " << host.substr(0, host.find(":")) << ", PORT: " << host.substr(host.find(":") + 1) << std::endl; // REMOVE
@@ -302,7 +308,7 @@ std::string GetKey(std::map<std::string, std::string> map ,std::string target)
 }
 
 
-CgiState *CgiHandler::execCgi(void)
+CgiState *CgiHandler::execCgi(Connection &conn)
 {
     CgiState *f = new CgiState();
     std::string cmd;
@@ -323,7 +329,7 @@ CgiState *CgiHandler::execCgi(void)
         delete f; // Clean up before returning
         return NULL;
     }
-    env = set_env(); // Environment variables prepared
+    env = set_env(conn); // Environment variables prepared
 
     // Determine command to pass to execve
     if (_data.CgiInterp.find("/") != std::string::npos)
@@ -483,8 +489,7 @@ CgiState *CgiHandler::execCgi(void)
             f->input_fd = -1; // No input for GET requests
         f->pid = pid;
         f->script_path = _data.script_path;
-        f->headerBuffer.clear();
-        f->bodyBuffer.clear();
+        f->startTime = std::time(0);
         for (int i = 0; env[i] != NULL; ++i) 
             delete[] env[i];
         delete[] env;

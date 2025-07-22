@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/07/16 09:55:04 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 16:10:33 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ class Connection
         int getFd() const;
         void readData(HttpServer* server);
         void writeData(const std::string& response) const;
+        std::string getClientIP() const;
         void closeConnection();
         std::string& getBuffer();
         void clearBuffer();// ! remove later on

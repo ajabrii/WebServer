@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 14:43:20 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 16:14:51 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,6 @@ void ltrim(std::string& s) {
     while (i < s.size() && std::isspace(static_cast<unsigned char>(s[i]))) ++i;
     s.erase(0, i);
 }
-
 HttpResponse parseCgiOutput(const std::string& raw) 
 {
     HttpResponse response;
@@ -69,9 +68,32 @@ HttpResponse parseCgiOutput(const std::string& raw)
     std::string line;
     bool statusParsed = false;
 
+    // Read first line
+    if (std::getline(headerStream, line)) 
+    {
+        if (!line.empty() && *line.rbegin() == '\r')
+            line.erase(line.size() - 1);
+
+        if (line.compare(0, 5, "HTTP/") == 0) 
+        {
+            std::istringstream statusStream(line);
+            std::string httpVersion;
+            statusStream >> httpVersion >> response.statusCode;
+            std::getline(statusStream, response.statusText);
+            ltrim(response.statusText);
+            statusParsed = true;
+        } 
+        else 
+        {
+            // Reset headerStream to re-parse first line
+            headerStream.clear(); // Reset error flags
+            headerStream.str(headerPart); // Rewind to start
+        }
+    }
+
+    // Parse headers
     while (std::getline(headerStream, line)) 
     {
-        // Remove trailing \r if present
         if (!line.empty() && *line.rbegin() == '\r')
             line.erase(line.size() - 1);
 
@@ -81,9 +103,10 @@ HttpResponse parseCgiOutput(const std::string& raw)
             std::string key = line.substr(0, colon);
             std::string value = line.substr(colon + 1);
             ltrim(value);
-            key = toLower(key);
 
-            if (key == "status") 
+            // Lowercase for lookup only
+            std::string lowerKey = toLower(key);
+            if (lowerKey == "status") 
             {
                 std::istringstream statusStream(value);
                 statusStream >> response.statusCode;
@@ -96,7 +119,6 @@ HttpResponse parseCgiOutput(const std::string& raw)
                 response.headers[key] = value;
             }
         }
-        // Ignore malformed headers (no colon)
     }
 
     if (!statusParsed) 
@@ -107,11 +129,16 @@ HttpResponse parseCgiOutput(const std::string& raw)
 
     response.body = bodyPart;
 
-    if (response.headers.find("content-length") == response.headers.end()) 
+    if (response.headers.find("Content-Length") == response.headers.end()) 
     {
         std::ostringstream oss;
         oss << response.body.size();
-        response.headers["content-length"] = oss.str();
+        response.headers["Content-Length"] = oss.str();
+    }
+
+    if (response.headers.find("Content-Type") == response.headers.end()) 
+    {
+        response.headers["Content-Type"] = "text/html";
     }
 
     return response;
@@ -211,25 +238,32 @@ int main(int ac, char **av, char **envp)
                     CgiState *cgiState = conn.getCgiState();
                     if (cgiState)
                     {
-                        std::cout << "\033[1;34m[CGI]\033[0m Connection fd: " << event.fd << " has CGI state with PID: " << cgiState->pid << std::endl;
-                    }
-                    else
-                    {
-                        std::cout << "\033[1;34m[CGI]\033[0m Connection fd: " << event.fd << " has no CGI state" << std::endl;
-                    }
-                    if (cgiState)
-                    {
-                        if (!cgiState->bodySent && conn.getCurrentRequest().method == POST && cgiState->input_fd != -1)
+                        if (!cgiState->bodySent && cgiState->input_fd != -1)
                         {
-                            ssize_t written = write(cgiState->input_fd, conn.getCurrentRequest().body.c_str(), conn.getCurrentRequest().body.size());
-                            if (written == -1)
-                                perror("write to CGI stdin failed");
-                            close(cgiState->input_fd);
-                            cgiState->input_fd = -1;
-                            cgiState->bodySent = true;
-                            std::cout << "\033[1;34m[CGI]\033[0m Body sent to CGI script for fd: " << event.fd << std::endl;
-                            // exit(1);
+                            const std::string& body = conn.getCurrentRequest().body;
+                            size_t totalSize = body.size();
+                            size_t remaining = totalSize - cgiState->bytesWritten;
+
+                            if (remaining > 0)
+                            {
+                                ssize_t written = write(
+                                    cgiState->input_fd,
+                                    body.c_str() + cgiState->bytesWritten,
+                                    remaining
+                                );
+
+                                if (written > 0)
+                                    cgiState->bytesWritten += written;
+                                if (cgiState->bytesWritten >= totalSize)
+                                {
+                                    close(cgiState->input_fd);
+                                    cgiState->input_fd = -1;
+                                    cgiState->bodySent = true;
+                                    std::cout << "\033[1;34m[CGI]\033[0m Body fully sent to CGI script for fd: " << event.fd << std::endl;
+                                }
+                            }
                         }
+
                         char buffer[4096];
                         ssize_t n = read(conn.getCgiState()->output_fd, buffer, sizeof(buffer));
                         if (n > 0) 
@@ -334,7 +368,7 @@ int main(int ac, char **av, char **envp)
                                 CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
                                 if (cgi.IsCgi())
                                 {
-                                    conn.setCgiState(cgi.execCgi());
+                                    conn.setCgiState(cgi.execCgi(conn));
                                     // print fd of conn
                                     std::cerr << "CGI fd: " << conn.getFd() << std::endl;
 

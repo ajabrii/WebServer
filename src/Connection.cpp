@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 14:27:51 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/22 16:13:03 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -218,4 +218,22 @@ void Connection::setCgiState(CgiState* cgiState)
         cgiState->headersParsed = false;
         cgiState->rawOutput.clear();
     }
+}
+std::string ipToString(uint32_t ip_net_order)
+{
+    unsigned char bytes[4];
+    bytes[0] = (ip_net_order >> 24) & 0xFF;
+    bytes[1] = (ip_net_order >> 16) & 0xFF;
+    bytes[2] = (ip_net_order >> 8) & 0xFF;
+    bytes[3] = ip_net_order & 0xFF;
+
+    std::ostringstream oss;
+    oss << (int)bytes[0] << "." << (int)bytes[1] << "." << (int)bytes[2] << "." << (int)bytes[3];
+    return oss.str();
+}
+
+
+std::string Connection::getClientIP() const
+{
+    return ipToString(client_addr.sin_addr.s_addr);
 }
