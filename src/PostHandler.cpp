@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PostHandler.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/16 11:51:12 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/22 07:30:22 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,22 @@
 std::string extractBoundary(const std::string& ct)
 {
     size_t pos = ct.find("boundary=");
-    if (pos != std::string::npos)
-        return ct.substr(pos + 9);
+    if (pos != std::string::npos) {
+        std::string boundary = ct.substr(pos + 9);
+        // Remove any trailing semicolon or whitespace
+        size_t end = boundary.find(';');
+        if (end != std::string::npos) {
+            boundary = boundary.substr(0, end);
+        }
+        // Trim whitespace from the end
+        while (!boundary.empty() && (boundary[boundary.size()-1] == ' ' ||
+                                   boundary[boundary.size()-1] == '\t' ||
+                                   boundary[boundary.size()-1] == '\r' ||
+                                   boundary[boundary.size()-1] == '\n')) {
+            boundary = boundary.substr(0, boundary.size()-1);
+        }
+        return boundary;
+    }
     return "";
 }
 
@@ -39,9 +53,13 @@ void writeFile(const std::string& path, const std::string& content)
 
 void writeKeyValuesToFile(const std::string& path, const std::map<std::string,std::string>& fields)
 {
+    std::cout <<"file path: `"<< path <<"'" <<std::endl;
     std::ofstream out(path.c_str());
     if (!out)
+    {
+        std::cout << "throw here\n"; //! remove
         throw std::runtime_error("Error: Failed to write file: " + path);
+    }
     for (std::map<std::string,std::string>::const_iterator it=fields.begin(); it!=fields.end(); ++it)
         out << it->first << "=" << it->second << "\n";
 }
@@ -50,45 +68,92 @@ void writeKeyValuesToFile(const std::string& path, const std::map<std::string,st
 std::vector<Part> parseMultipart(const std::string& body, const std::string& boundary)
 {
     std::vector<Part> parts;
-    std::string sep = "--" + boundary;  // i added -- because mulipart boundaries are prefixed with -- acording to RFC 2046 (for more data check https://datatracker.ietf.org/doc/html/rfc2046#section-5.1.1)
-    std::cout << "line 123 :sep: " << sep << std::endl; // remove this later
+    std::string sep = "--" + boundary;  // boundaries are prefixed with -- according to RFC 2046
+
     size_t pos = 0;
 
-    while ((pos = body.find(sep, pos)) != std::string::npos)
+    // Find the first boundary
+    pos = body.find(sep, pos);
+    if (pos == std::string::npos) {
+        return parts; // No boundary found
+    }
+
+    while (pos != std::string::npos)
     {
         pos += sep.size();
-        if (body.substr(pos,2) == "--")
-            break; // end
-        if (body.substr(pos,2) == "\r\n")
+
+        // Check for end boundary (boundary followed by --)
+        if (pos + 2 <= body.size() && body.substr(pos, 2) == "--") {
+            break; // End of multipart data
+        }
+
+        // Skip line ending after boundary
+        if (pos + 2 <= body.size() && body.substr(pos, 2) == "\r\n") {
             pos += 2;
+        } else if (pos + 1 <= body.size() && body.substr(pos, 1) == "\n") {
+            pos += 1;
+        }
+
+        // Find where headers end (double line break)
         size_t headerEnd = body.find("\r\n\r\n", pos);
-        if (headerEnd == std::string::npos)
-            break;
+        size_t headerLength = 4; // length of "\r\n\r\n"
+
+        if (headerEnd == std::string::npos) {
+            headerEnd = body.find("\n\n", pos);
+            headerLength = 2; // length of "\n\n"
+            if (headerEnd == std::string::npos) {
+                break; // Invalid format
+            }
+        }
+
+        // Extract headers
         std::string header = body.substr(pos, headerEnd - pos);
-        pos = headerEnd + 4;
 
+        // Move past the header end
+        pos = headerEnd + headerLength;
+
+        // Find next boundary
         size_t nextSep = body.find(sep, pos);
-        if (nextSep == std::string::npos)
-            break;
+        if (nextSep == std::string::npos) {
+            nextSep = body.size(); // Use end of body if no next boundary
+        }
 
+        // Extract content between current position and next boundary
         std::string content = body.substr(pos, nextSep - pos);
-        if (!content.empty() && content[content.size()-2]=='\r' && content[content.size()-1]=='\n')
+
+        // Remove trailing line ending from content (usually there's a \r\n before the next boundary)
+        if (content.size() >= 2 && content.substr(content.size()-2) == "\r\n") {
             content = content.substr(0, content.size()-2);
+        } else if (content.size() >= 1 && content.substr(content.size()-1) == "\n") {
+            content = content.substr(0, content.size()-1);
+        }
 
         Part part;
+
+        // Parse filename from header
         size_t fnPos = header.find("filename=\"");
         if (fnPos != std::string::npos) {
             size_t fnEnd = header.find("\"", fnPos+10);
-            part.filename = header.substr(fnPos+10, fnEnd - (fnPos+10));
+            if (fnEnd != std::string::npos) {
+                part.filename = header.substr(fnPos+10, fnEnd - (fnPos+10));
+            }
         }
+
+        // Parse name from header
         size_t namePos = header.find("name=\"");
         if (namePos != std::string::npos) {
             size_t nameEnd = header.find("\"", namePos+6);
-            part.name = header.substr(namePos+6, nameEnd - (namePos+6));
+            if (nameEnd != std::string::npos) {
+                part.name = header.substr(namePos+6, nameEnd - (namePos+6));
+            }
         }
+
         part.content = content;
         parts.push_back(part);
+
+        // Move to the next boundary
         pos = nextSep;
+        if (pos >= body.size()) break;
     }
     return parts;
 }
@@ -130,7 +195,8 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
     HttpResponse resp;
     resp.version = req.version;
 
-    std::string ct = req.GetHeader("content-type");
+    std::string originalCt = req.GetHeader("content-type"); // Keep original case for boundary extraction
+    std::string ct = originalCt;
     std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower); // transform to lowercase because content-type is case-insensitive in http
     std::cout << "upload directory: " << route.uploadDir << std::endl; // remove this later
     if (route.uploadDir.empty()) {
@@ -140,19 +206,21 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
     {
         if (ct.find("multipart/form-data") != std::string::npos)
         {
-            std::string boundary = extractBoundary(ct);
+            // Extract boundary from ORIGINAL header (case sensitive!)
+            std::string boundary = extractBoundary(originalCt);
             if (boundary.empty())
                 return makeErrorResponse(400, "Missing boundary in multipart data.", serverConfig);
 
             std::vector<Part> parts = parseMultipart(req.body, boundary);
+
             bool saved = false; // this is for the case where no file is found in the multipart data
-            for (size_t i=0; i<parts.size(); ++i)
+            for (size_t i = 0; i < parts.size(); ++i)
             {
                 if (!parts[i].filename.empty())
                 {
                     std::string filepath = route.uploadDir + "/" + parts[i].filename;
                     writeFile(filepath, parts[i].content);
-                    resp.body = "File uploaded: " + filepath;
+                    resp.body = "<html><head><title>Uploads</title></head><body><h1>File uploaded: " + filepath +"</h1></body></html>";
                     saved = true;
                     break;
                 }
@@ -162,11 +230,11 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
         }
         else if (ct.find("application/x-www-form-urlencoded") != std::string::npos)
         {
-            std::map<std::string,std::string> fields = parseFormUrlEncoded(req.body);
+            std::map<std::string, std::string> fields = parseFormUrlEncoded(req.body);
             std::string filepath = route.uploadDir + "/form_" + Utils::toString(std::time(0)) + ".txt";
             writeKeyValuesToFile(filepath, fields);
             resp.version = "HTTP/1.1";
-            resp.body = "Form data saved to: " + filepath;
+            resp.body = "<html><head><title>Uploads</title></head><body><h1>File uploaded: " + filepath +"</h1></body></html>";
         }
         else if (ct.find("application/json") != std::string::npos)
         {

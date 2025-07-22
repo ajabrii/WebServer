@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/07/20 17:10:02 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 06:46:59 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,14 +43,14 @@ class Connection
         time_t lastActivityTime;
         bool keepAlive;
         int requestCount;
-        
+
         RequestState requestState;
         long contentLength; // Use long to match potential large sizes
         bool isChunked;
         HttpRequest currentRequest;
         CgiState* cgiState;
-        HttpServer* server;
-        
+        // HttpServer* server;
+
     public:
         Connection();
         Connection(int fd, const sockaddr_in& addr);
@@ -62,7 +62,7 @@ class Connection
         void closeConnection();
         std::string& getBuffer();
         void clearBuffer();// ! remove later on
-        
+
         // Keep-alive related methods
         void updateLastActivity();
         bool isKeepAlive() const;
