@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 11:22:58 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 11:43:26 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
     if (!route.redirect.empty())
         return handleRedirect(route.redirect);
     std::string requestPath = extractPath(req.uri);
-    requestPath = urlDecode(requestPath); // !mybe i'll remove this one
+    requestPath = urlDecode(requestPath);
     requestPath = normalizePath(requestPath);
     if (!isPathSecure(requestPath)) {
         return createForbiddenResponse(serverConfig);
