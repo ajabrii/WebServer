@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:29:35 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 13:56:42 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 12:39:35 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,6 @@ DeleteHandler::~DeleteHandler() { }
 
 HttpResponse DeleteHandler::handle(const HttpRequest &req, const RouteConfig& route, const ServerConfig& serverConfig) const
 {
-    // !check if redirect can be with delete === STEP 1: Handle redirects (if configured) ===
-    if (!route.redirect.empty())
-        return createRedirectResponse(route.redirect);
     std::string requestPath = req.uri;
     if (requestPath.find(route.path) == 0)
         requestPath = requestPath.substr(route.path.length());
