@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 07:12:40 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 11:37:29 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,6 @@ void Connection::readData(HttpServer* server)
     // Append the received data to the connection's buffer
     buffer.append(tmp, bytesRead);
     // std::cout << "Debug: Read " << bytesRead << " bytes. Buffer size: " << buffer.length() << std::endl;
-    std::cout << "`" << buffer << "'\n";
 
     if (requestState == READING_HEADERS) {
         size_t headerEndPos = buffer.find("\r\n\r\n");

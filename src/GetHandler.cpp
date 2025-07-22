@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   GetHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 17:11:14 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 11:22:58 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,110 +26,49 @@ GetHandler::GetHandler() { }
 
 GetHandler::~GetHandler() { }
 
-/**
- * Main handler for GET requests
- * Processes the request according to this priority:
- * 1. Redirects (highest priority)
- * 2. File serving or directory listing based on path
- * 3. Error responses for not found/forbidden
- */
-
 
 HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route, const ServerConfig& serverConfig) const
 {
     std::cout << URI_PROCESS_LOG << req.uri << std::endl;
-
-    // STEP 1: Handle redirects first (highest priority)
-    // If a redirect is configured for this route, return redirect response immediately
     if (!route.redirect.empty())
         return handleRedirect(route.redirect);
-
-    // STEP 2: Extract clean path from URI 
-    // Remove query parameters (?foo=bar) and fragments (#section) from the URI
-    // Example: "/path/file.html?param=value#section" -> "/path/file.html"
     std::string requestPath = extractPath(req.uri);
-    
-    // STEP 3: URL decode the path
-    // Convert percent-encoded characters (%20 -> space, %2F -> /, etc.)
-    // This is crucial for security - we need to decode BEFORE security checks
-    requestPath = urlDecode(requestPath);
-    
-    // STEP 4: Normalize the path for security and consistency
-    // Remove multiple slashes (// -> /), resolve . and .. components
-    // Example: "/path//./file/../other.html" -> "/path/other.html"
+    requestPath = urlDecode(requestPath); // !mybe i'll remove this one
     requestPath = normalizePath(requestPath);
-    
-    // STEP 5: Security validation after normalization
-    // Check for directory traversal attempts and malicious patterns
-    // This MUST happen after normalization to catch encoded attacks
     if (!isPathSecure(requestPath)) {
         return createForbiddenResponse(serverConfig);
     }
-
-    // STEP 6: Remove route prefix to get relative path within the route
-    // If route.path="/api" and request is "/api/users", we want "/users"
-    // This allows the same handler to work for different route prefixes
     if (requestPath.find(route.path) == 0)
         requestPath = requestPath.substr(route.path.length());
-    
-    // STEP 7: Clean up the document root path
-    // Remove trailing slash from root to avoid double slashes in final path
     std::string cleanRoot = route.root;
     if (!cleanRoot.empty() && cleanRoot[cleanRoot.length() - 1] == '/')
         cleanRoot = cleanRoot.substr(0, cleanRoot.length() - 1);
-
-    // STEP 8: Ensure path starts with / for consistency
-    // Convert relative paths to absolute paths within the document root
     if (!requestPath.empty() && requestPath[0] != '/')
         requestPath = "/" + requestPath;
-    
-    // STEP 9: Build final filesystem path
-    // Combine document root with the cleaned request path
-    // STEP 9: Build final filesystem path
-    // Combine document root with the cleaned request path
     std::string filePath = cleanRoot + requestPath;
-
-    // STEP 10: Check if the path exists and determine its type
     struct stat pathStat;
     if (stat(filePath.c_str(), &pathStat) == 0)
     {
-        // Path exists - check if it's a directory or regular file
         if (S_ISDIR(pathStat.st_mode))
             return handleDirectory(filePath, req.uri, route.directory_listing, serverConfig, route.indexFile);
         else if (S_ISREG(pathStat.st_mode))
-            // It's a regular file - serve it directly
             return serveStaticFile(filePath, serverConfig);
-        else
-        {
-            // Path exists but is neither file nor directory (symlink, device, etc.)
-            // Log the unusual case for debugging
-            std::cout << "\033[1;31m[GET Handler]\033[0m Path exists but is not a file or directory" << std::endl;
-        }
     }
-    // Path doesn't exist - return 404 Not Found
     return createNotFoundResponse(serverConfig);
 }
 
 
 HttpResponse GetHandler::handleDirectory(const std::string& dirPath, const std::string& urlPath, bool listingEnabled, const ServerConfig& serverConfig, const std::string& indexFile) const
 {
-    std::cout << "listingEnabled: " << listingEnabled << std::endl;
     if (indexFile.empty() && listingEnabled)
-    {
-        std::cout << "\033[1;33m[GET Handler]\033[0m Directory listing enabled, serving directory listing" << std::endl;
         return handleDirectoryListing(dirPath, urlPath, serverConfig);
-    }
     else
     {
-        std::cout << "\033[1;33m[GET Handler]\033[0m Directory listing disabled, looking for index file" << std::endl;
-        
-        // Try to serve index.html from the directory //!(here is should add the index file from config file instead of index.html)
         std::string indexPath = dirPath + "/" + indexFile;
         struct stat indexStat;
-        
         if (stat(indexPath.c_str(), &indexStat) == 0 && S_ISREG(indexStat.st_mode))
             return serveStaticFile(indexPath, serverConfig);
-        }
+    }
     return createForbiddenResponse(serverConfig);
 }
 
@@ -171,11 +110,6 @@ HttpResponse GetHandler::serveStaticFile(const std::string& filePath, const Serv
     return res;
 }
 
-/**
- * Generates HTML directory listing
- * Creates a table with file names and types
- * Includes parent directory navigation
- */
 HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, const std::string& urlPath, const ServerConfig& serverConfig) const
 {
     std::cout << DIRECTORY_LISTING_LOG << dirPath << std::endl;
@@ -208,8 +142,6 @@ HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, cons
             continue;
         std::string fullPath = dirPath + "/" + name;
         std::string linkPath = buildLinkPath(urlPath, name);
-
-        // Determine file type and icon
         struct stat entryStat;
         std::string type = "File";
         std::string icon = "📄";
@@ -326,7 +258,7 @@ HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string& 
 {
     std::cout << "\033[1;31m[GET Handler]\033[0m Creating " << statusCode << " error response" << std::endl;
     std::cout << "\033[1;33m[GET Handler]\033[0m Using default error page" << std::endl;
-    
+
     HttpResponse res;
     res.statusCode = statusCode;
     res.statusText = statusText;
@@ -338,120 +270,79 @@ HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string& 
 
 bool GetHandler::isPathSecure(const std::string& filePath) const
 {
-    // SECURITY CHECK: Directory traversal attack prevention
-    // This function prevents attackers from accessing files outside the web root
-    // using techniques like "../../../etc/passwd"
-    
-    // Check for directory traversal patterns after normalization
-    // These patterns indicate attempts to navigate outside the allowed directory
-    if (filePath.find("../") != std::string::npos ||     // Unix-style parent directory
-        filePath.find("..\\") != std::string::npos ||    // Windows-style parent directory  
+
+
+
+    if (filePath.find("../") != std::string::npos ||    // Windows-style parent directory
         filePath.find("/..") != std::string::npos ||     // Parent at end of path component
-        filePath.find("\\..") != std::string::npos ||    // Windows parent at end
         filePath.find("..") == 0) {                      // Path starting with .. (relative)
         return false;
     }
-    
-    // Check for null bytes (can be used to truncate paths)
-    // Some systems might interpret a null byte as end of string
+
     // This could bypass security checks: "/allowed/path\0../../../etc/passwd"
     if (filePath.find('\0') != std::string::npos) {
         return false;
     }
-    
-    // Path passed all security checks
     return true;
 }
 
-/*
-====urldecode
-what this function do:
-- Decodes a URL-encoded string
-- Handles percent-encoded characters (%XX) and converts them to their ASCII equivalents
-- If the encoding is invalid, it keeps the original character
-- Returns the decoded string
-*/
+
 std::string GetHandler::urlDecode(const std::string& str) const
 {
-    // URL DECODING: Convert percent-encoded characters back to original form
-    // URLs encode special characters as %XX where XX is hexadecimal
     // Examples: %20 -> space, %2F -> /, %3C -> <, %3E -> >
-    
     std::string decoded;
     decoded.reserve(str.length()); // Reserve space for efficiency
-    
-    // Process each character in the input string
+
     for (size_t i = 0; i < str.length(); ++i) {
         if (str[i] == '%' && i + 2 < str.length()) {
-            // Found percent-encoding pattern: %XX
-            char hex1 = str[i + 1]; // First hex digit
-            char hex2 = str[i + 2]; // Second hex digit
-            
-            // Convert hex characters to numeric values
+            char hex1 = str[i + 1];
+            char hex2 = str[i + 2];
             int val1 = -1, val2 = -1;
-            
-            // Convert first hex digit
             if (hex1 >= '0' && hex1 <= '9')
-                val1 = hex1 - '0';           // 0-9
+                val1 = hex1 - '0';
             else if (hex1 >= 'A' && hex1 <= 'F')
                 val1 = hex1 - 'A' + 10; // A-F
             else if (hex1 >= 'a' && hex1 <= 'f')
                 val1 = hex1 - 'a' + 10; // a-f
-            
-            // Convert second hex digit
             if (hex2 >= '0' && hex2 <= '9')
-                val2 = hex2 - '0';           // 0-9
+                val2 = hex2 - '0';
             else if (hex2 >= 'A' && hex2 <= 'F')
-                val2 = hex2 - 'A' + 10; // A-F
+                val2 = hex2 - 'A' + 10;
             else if (hex2 >= 'a' && hex2 <= 'f')
-                val2 = hex2 - 'a' + 10; // a-f
+                val2 = hex2 - 'a' + 10;
 
-            // If both hex digits are valid, decode the character
             if (val1 != -1 && val2 != -1) {
-                decoded += static_cast<char>(val1 * 16 + val2); // Combine hex digits
-                i += 2; // Skip the two hex digits we just processed
+                decoded += static_cast<char>(val1 * 16 + val2);
+                i += 2;
             } else {
-                // Invalid hex encoding - keep the % character as-is
                 decoded += str[i];
             }
         } else {
-            // Regular character (not percent-encoded) - copy as-is
             decoded += str[i];
         }
     }
-    
+
     return decoded;
 }
 
 std::string GetHandler::extractPath(const std::string& uri) const
 {
-    // URI PARSING: Extract the path component from a full URI
-    // A full URI can contain: scheme://host/path?query#fragment
-    // We only want the path part for file serving
-    
-    // Find positions of query string (?) and fragment (#) markers
-    size_t queryPos = uri.find('?');    // Position of query string start
-    size_t fragmentPos = uri.find('#'); // Position of fragment start
-    
-    // Find the first occurrence of either ? or # to determine where path ends
+
+    size_t queryPos = uri.find('?');
+    size_t fragmentPos = uri.find('#');
+
     size_t endPos = std::string::npos;
     if (queryPos != std::string::npos && fragmentPos != std::string::npos) {
-        // Both query and fragment exist - use the earlier one
         endPos = std::min(queryPos, fragmentPos);
     } else if (queryPos != std::string::npos) {
-        // Only query string exists
         endPos = queryPos;
     } else if (fragmentPos != std::string::npos) {
-        // Only fragment exists
         endPos = fragmentPos;
     }
-    
+
     if (endPos == std::string::npos) {
-        // No query string or fragment found - return entire URI as path
         return uri;
     }
-    
-    // Extract path portion (everything before ? or #)
     return uri.substr(0, endPos);
 }
 
@@ -459,27 +350,26 @@ std::string GetHandler::normalizePath(const std::string& path) const
 {
     // PATH NORMALIZATION: Clean up the path for security and consistency
     // This function resolves relative path components and removes redundancies
-    // Examples: 
+    // Examples:
     //   "/path//to/./file" -> "/path/to/file"
     //   "/path/to/../other/file" -> "/path/other/file"
     //   "/path/to/../../.." -> "/"
-    
+
     std::string normalized = path;
-    
+
     // STEP 1: Replace multiple consecutive slashes with single slash
     // This handles cases like "///" or "/path//to//file"
     size_t pos = 0;
     while ((pos = normalized.find("//", pos)) != std::string::npos) {
         normalized.replace(pos, 2, "/");
-        // Don't increment pos - we might have more consecutive slashes
     }
-    
+
     // STEP 2: Handle . and .. path components
     // Split the path into components and process each one
     std::vector<std::string> components;
     std::istringstream stream(normalized);
     std::string component;
-    
+
     // Split by '/' delimiter
     while (std::getline(stream, component, '/')) {
         if (component.empty() || component == ".") {
@@ -498,18 +388,18 @@ std::string GetHandler::normalizePath(const std::string& path) const
             components.push_back(component);
         }
     }
-    
+
     // STEP 3: Rebuild the normalized path
     std::string result = "/"; // Always start with root
     for (size_t i = 0; i < components.size(); ++i) {
         if (i > 0) result += "/"; // Add separator between components
         result += components[i];
     }
-    
+
     // STEP 4: Handle special case where original path was just "/"
     if (components.empty() && !path.empty() && path[0] == '/') {
         return "/";
     }
-    
+
     return result;
 }

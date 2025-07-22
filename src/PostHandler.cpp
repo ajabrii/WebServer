@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 10:14:48 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 11:35:26 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,8 @@ std::string extractBoundary(const std::string& ct)
 void writeFile(const std::string& path, const std::string& content)
 {
     std::ofstream out(path.c_str(), std::ios::binary);
-    if (!out) throw std::runtime_error("Error: Failed to write file: " + path);
+    if (!out)
+        throw std::runtime_error("Error: Failed to write file: " + path);
     out << content;
 }
 
@@ -117,6 +118,7 @@ std::vector<Part> parseMultipart(const std::string& body, const std::string& bou
             nextSep = body.size(); // Use end of body if no next boundary
         }
 
+        // STEP 2: Handle . and .. path components
         // Extract content between current position and next boundary
         std::string content = body.substr(pos, nextSep - pos);
 
@@ -197,7 +199,6 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
     std::string originalCt = req.GetHeader("content-type"); // Keep original case for boundary extraction
     std::string ct = originalCt;
     std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower); // transform to lowercase because content-type is case-insensitive in http
-    std::cout << "upload directory: " << route.uploadDir << std::endl; // remove this later
     if (route.uploadDir.empty()) {
         return makeErrorResponse(500, "Upload directory not configured.", serverConfig);
     }
@@ -212,7 +213,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
 
             std::vector<Part> parts = parseMultipart(req.body, boundary);
 
-            bool saved = false; // this is for the case where no file is found in the multipart data
+            bool saved = false;
             for (size_t i = 0; i < parts.size(); ++i)
             {
                 if (!parts[i].filename.empty())
