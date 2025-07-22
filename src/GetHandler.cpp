@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 12:05:26 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 12:15:42 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,7 +175,7 @@ std::string GetHandler::getMimeType(const std::string& filePath) const
 {
     size_t dotPos = filePath.find_last_of('.');
     if (dotPos == std::string::npos) {
-        return "application/octet-stream"; // ?Default for files without extension
+        return "application/octet-stream";
     }
 
     std::string extension = filePath.substr(dotPos + 1);
@@ -311,13 +311,10 @@ std::string GetHandler::normalizePath(const std::string& path) const
     // Split by '/' delimiter
     while (std::getline(stream, component, '/')) {
         if (component.empty() || component == ".") {
-            // Skip empty components (from leading/trailing slashes)
-            // Skip "." components (current directory - no effect)
             continue;
         } else if (component == "..") {
-            // ".." means go up one directory level
             if (!components.empty()) {
-                components.pop_back(); // Remove the last component (go up)
+                components.pop_back();
             }
             // If components is empty, we're trying to go above root
             // Ignore this (can't go above root directory)
