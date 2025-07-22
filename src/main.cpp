@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 16:14:51 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 17:44:05 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@
 #include <signal.h>
 #include <cstdlib>
 # define REQUEST_LIMIT_PER_CONNECTION 100 
+# define CGI_TIMEOUT_MINUTES 3
 
 static volatile bool g_shutdown = false;
 static std::vector<HttpServer*>* g_servers = NULL;
@@ -238,32 +239,59 @@ int main(int ac, char **av, char **envp)
                     CgiState *cgiState = conn.getCgiState();
                     if (cgiState)
                     {
+                        std::cerr << "in fd  : " << cgiState->input_fd << " bodySent: " << cgiState->bodySent << " bytesWritten: " << cgiState->bytesWritten << std::endl;
                         if (!cgiState->bodySent && cgiState->input_fd != -1)
                         {
-                            const std::string& body = conn.getCurrentRequest().body;
-                            size_t totalSize = body.size();
-                            size_t remaining = totalSize - cgiState->bytesWritten;
-
-                            if (remaining > 0)
-                            {
-                                ssize_t written = write(
-                                    cgiState->input_fd,
-                                    body.c_str() + cgiState->bytesWritten,
-                                    remaining
-                                );
-
-                                if (written > 0)
-                                    cgiState->bytesWritten += written;
-                                if (cgiState->bytesWritten >= totalSize)
+                                const std::string& body = conn.getCurrentRequest().body;
+                                size_t totalSize = body.size();
+                                size_t remaining = totalSize - cgiState->bytesWritten;
+                                std::cerr << ", remaining bytes: " << remaining << std::endl;
+                                if (remaining > 0)
                                 {
+                                    ssize_t written = write(
+                                        cgiState->input_fd,
+                                        body.c_str() + cgiState->bytesWritten,
+                                        remaining
+                                    );
+
+                                    if (written > 0)
+                                    {
+                                        cgiState->bytesWritten += written;
+
+                                        if (cgiState->bytesWritten >= totalSize)
+                                        {
+                                            close(cgiState->input_fd);
+                                            cgiState->input_fd = -1;
+                                            cgiState->bodySent = true;
+                                            std::cout << "\033[1;34m[CGI]\033[0m Body fully sent to CGI script for fd: " << event.fd << std::endl;
+                                        }
+                                    }
+                                    else if (written == 0)
+                                    {
+                                        // Write returned 0 bytes — unexpected on pipes
+                                        std::cerr << "[CGI] write() returned 0 bytes (unexpected)\n";
+                                        close(cgiState->input_fd);
+                                        cgiState->input_fd = -1;
+                                        cgiState->bodySent = true;
+                                    }
+                                    else // written == -1
+                                    {
+                                        // Don't know errno (can't check EAGAIN), assume fatal
+                                        std::cerr << "[CGI] write() failed while sending body to CGI (fatal)\n";
+                                        close(cgiState->input_fd);
+                                        cgiState->input_fd = -1;
+                                        cgiState->bodySent = true;
+                                    }
+                                }
+                                else
+                                {
+                                    // Empty body case — Content-Length: 0
                                     close(cgiState->input_fd);
                                     cgiState->input_fd = -1;
                                     cgiState->bodySent = true;
-                                    std::cout << "\033[1;34m[CGI]\033[0m Body fully sent to CGI script for fd: " << event.fd << std::endl;
+                                    std::cout << "\033[1;34m[CGI]\033[0m Empty body (0 bytes) sent to CGI script for fd: " << event.fd << std::endl;
                                 }
-                            }
                         }
-
                         char buffer[4096];
                         ssize_t n = read(conn.getCgiState()->output_fd, buffer, sizeof(buffer));
                         if (n > 0) 
@@ -295,6 +323,31 @@ int main(int ac, char **av, char **envp)
                             // cleanupCgi(conn);
                             reactor.removeConnection(event.fd);
                         }
+                        std::cerr << "\033[1;34m[CGI]\033[0m CGI check timeout "<< std::endl;
+                        time_t now = time(NULL);
+                        if (difftime(now, cgiState->startTime) > 3) 
+                        {
+                            std::cerr << "[CGI] Timeout expired for CGI script, killing process and closing connection\n";
+                            
+                            // kill the CGI process (you need to save its pid when you start it)
+                            if (cgiState->pid > 0) 
+                            {
+                                kill(cgiState->pid, SIGKILL);
+                            }
+
+                            // Clean up and close connection
+                            //send 504 Gateway Timeout response before closing
+                            HttpResponse timeoutResponse;
+                            timeoutResponse.statusCode = 504;
+                            timeoutResponse.statusText = "Gateway Timeout";
+                            timeoutResponse.body = "CGI script execution timed out.";
+                            timeoutResponse.headers["Content-Type"] = "text/plain";
+                            timeoutResponse.headers["Content-Length"] = Utils::toString(timeoutResponse.body.size());
+                            conn.writeData(timeoutResponse.toString());
+                            std::cout << "\033[1;34m[CGI]\033[0m CGI script timed out, closing connection for fd: " << event.fd << std::endl;
+                            reactor.removeConnection(conn.getFd());
+                        }
+                        std::cerr << "\033[1;34m[CGI]\033[0m CGI  DONE check timeout "<< std::endl;
 
                     }
                     else
@@ -366,6 +419,18 @@ int main(int ac, char **av, char **envp)
                             if (route) 
                             {
                                 CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
+                                // try {
+                                //     if (cgi.IsCgi())
+                                //         handleCgi(conn);
+                                // }
+                                // catch (const std::runtime_error& e) {
+                                //     HttpResponse errResp;
+                                //     errResp.statusCode = e.statusCode();
+                                //     errResp.statusText = getStatusText(e.statusCode()); // e.g. 403 -> "Forbidden"
+                                //     errResp.body = e.what();
+                                //     conn.writeData(errResp.toString());
+                                //     return;
+                                // }
                                 if (cgi.IsCgi())
                                 {
                                     conn.setCgiState(cgi.execCgi(conn));

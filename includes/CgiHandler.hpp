@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:56:52 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/22 16:20:09 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 17:44:28 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ class CgiHandler
         CgiData _data;
         // int _serverSocket;
         int _clientSocket;
+        HttpResponse _errResponse;
     public:
         CgiHandler();
         CgiHandler(const HttpServer &server, const HttpRequest& req , const RouteConfig& route ,int clientSocket, std::string env_paths);
@@ -46,4 +47,15 @@ class CgiHandler
         CgiData check_cgi(void);
         char **set_env(Connection &conn);
         bool IsCgi();
+    //     class HttpException : public std::exception {
+    //     private:
+    //     int         statusCode;
+    //     std::string message;
+
+    //     public:
+    //         HttpException(int code, const std::string& msg);
+    //         virtual ~HttpException() throw();
+    //         virtual const char* what() const throw();
+    //         int getStatusCode() const;
+    // };
 };

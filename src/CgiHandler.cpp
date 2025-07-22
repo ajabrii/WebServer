@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/22 16:24:02 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 17:45:01 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include <unistd.h> 
 #include <sys/epoll.h>
 #include <ctime>
+// # include <Errors.hpp>
 
 
 CgiHandler::CgiHandler() {}
@@ -175,6 +176,21 @@ CgiData CgiHandler::check_cgi(void) // cgi-bin/file.extns/path/path?var=value
     bool is_query = false;
     bool is_pathInfo = false;
     size_t query_pose;
+
+    // loop for Methods and check if the method is allowed from config
+    if (std::find(_route.allowedMethods.begin(), _route.allowedMethods.end(), _req.method) == _route.allowedMethods.end())
+    {
+        std::cerr << "Method not allowed: " << _req.method << std::endl;
+        _errResponse.statusCode = 405;
+        _errResponse.statusText = "Method Not Allowed";
+        _errResponse.headers["Content-Type"] = "text/html";
+        // _errResponse.body = Error::loadErrorPage(405, _serverData);
+        std::stringstream ss;
+        ss << _errResponse.body.size();
+        _errResponse.headers["Content-Length"] = ss.str();
+        return (data);
+        throw HttpRequest::HttpException(405, "Method Not Allowed");
+    }
 
     query_pose =  _req.uri.find('?');
     if (query_pose != std::string::npos)
@@ -488,6 +504,7 @@ CgiState *CgiHandler::execCgi(Connection &conn)
         else
             f->input_fd = -1; // No input for GET requests
         f->pid = pid;
+        f->bodySent = false;
         f->script_path = _data.script_path;
         f->startTime = std::time(0);
         for (int i = 0; env[i] != NULL; ++i) 
