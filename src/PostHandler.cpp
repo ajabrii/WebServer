@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 11:35:26 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 12:42:09 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,9 +196,9 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
     HttpResponse resp;
     resp.version = req.version;
 
-    std::string originalCt = req.GetHeader("content-type"); // Keep original case for boundary extraction
+    std::string originalCt = req.GetHeader("content-type");
     std::string ct = originalCt;
-    std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower); // transform to lowercase because content-type is case-insensitive in http
+    std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower);
     if (route.uploadDir.empty()) {
         return makeErrorResponse(500, "Upload directory not configured.", serverConfig);
     }
@@ -206,7 +206,6 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
     {
         if (ct.find("multipart/form-data") != std::string::npos)
         {
-            // Extract boundary from ORIGINAL header (case sensitive!)
             std::string boundary = extractBoundary(originalCt);
             if (boundary.empty())
                 return makeErrorResponse(400, "Missing boundary in multipart data.", serverConfig);
