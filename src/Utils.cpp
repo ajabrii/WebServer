@@ -3,20 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 13:10:43 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/22 12:47:46 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Utils.hpp"
-
-
-
-/*
- **** helper functions ***
-*/
 
 std::string clean_line(std::string line)
 {
@@ -34,8 +28,8 @@ bool shouldKeepAlive(const HttpRequest& request)
 {
     std::string connection = request.GetHeader("connection");
     std::transform(connection.begin(), connection.end(), connection.begin(), ::tolower); // http is case-insensitive
-    
-    if (connection == "close") 
+
+    if (connection == "close")
         return false;
     return true;
 }
