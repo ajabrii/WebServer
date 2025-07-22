@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 11:43:26 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 12:05:26 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <cctype>
 # include "../includes/Errors.hpp"
+
 GetHandler::GetHandler() { }
 
 GetHandler::~GetHandler() { }
@@ -33,11 +34,7 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
     if (!route.redirect.empty())
         return handleRedirect(route.redirect);
     std::string requestPath = extractPath(req.uri);
-    requestPath = urlDecode(requestPath);
     requestPath = normalizePath(requestPath);
-    if (!isPathSecure(requestPath)) {
-        return createForbiddenResponse(serverConfig);
-    }
     if (requestPath.find(route.path) == 0)
         requestPath = requestPath.substr(route.path.length());
     std::string cleanRoot = route.root;
@@ -162,7 +159,7 @@ HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, cons
         html << "<td>" << type << "</td></tr>";
     }
 
-    html << "</table></div><p>return to the <a href=\"/\">homepage</a>.</p></body></html>";
+    html << "</table></div><p style=\"text-align:center;\">return to the <a href=\"/\">homepage</a>.</p></body></html>";
     closedir(dir);
 
     HttpResponse res;
@@ -268,63 +265,6 @@ HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string& 
     return res;
 }
 
-bool GetHandler::isPathSecure(const std::string& filePath) const
-{
-
-
-
-    if (filePath.find("../") != std::string::npos ||    // Windows-style parent directory
-        filePath.find("/..") != std::string::npos ||     // Parent at end of path component
-        filePath.find("..") == 0) {                      // Path starting with .. (relative)
-        return false;
-    }
-
-    // This could bypass security checks: "/allowed/path\0../../../etc/passwd"
-    if (filePath.find('\0') != std::string::npos) {
-        return false;
-    }
-    return true;
-}
-
-
-std::string GetHandler::urlDecode(const std::string& str) const
-{
-    // Examples: %20 -> space, %2F -> /, %3C -> <, %3E -> >
-    std::string decoded;
-    decoded.reserve(str.length()); // Reserve space for efficiency
-
-    for (size_t i = 0; i < str.length(); ++i) {
-        if (str[i] == '%' && i + 2 < str.length()) {
-            char hex1 = str[i + 1];
-            char hex2 = str[i + 2];
-            int val1 = -1, val2 = -1;
-            if (hex1 >= '0' && hex1 <= '9')
-                val1 = hex1 - '0';
-            else if (hex1 >= 'A' && hex1 <= 'F')
-                val1 = hex1 - 'A' + 10; // A-F
-            else if (hex1 >= 'a' && hex1 <= 'f')
-                val1 = hex1 - 'a' + 10; // a-f
-            if (hex2 >= '0' && hex2 <= '9')
-                val2 = hex2 - '0';
-            else if (hex2 >= 'A' && hex2 <= 'F')
-                val2 = hex2 - 'A' + 10;
-            else if (hex2 >= 'a' && hex2 <= 'f')
-                val2 = hex2 - 'a' + 10;
-
-            if (val1 != -1 && val2 != -1) {
-                decoded += static_cast<char>(val1 * 16 + val2);
-                i += 2;
-            } else {
-                decoded += str[i];
-            }
-        } else {
-            decoded += str[i];
-        }
-    }
-
-    return decoded;
-}
-
 std::string GetHandler::extractPath(const std::string& uri) const
 {
 
@@ -332,17 +272,15 @@ std::string GetHandler::extractPath(const std::string& uri) const
     size_t fragmentPos = uri.find('#');
 
     size_t endPos = std::string::npos;
-    if (queryPos != std::string::npos && fragmentPos != std::string::npos) {
+    if (queryPos != std::string::npos && fragmentPos != std::string::npos)
         endPos = std::min(queryPos, fragmentPos);
-    } else if (queryPos != std::string::npos) {
+    else if (queryPos != std::string::npos)
         endPos = queryPos;
-    } else if (fragmentPos != std::string::npos) {
+    else if (fragmentPos != std::string::npos)
         endPos = fragmentPos;
-    }
 
-    if (endPos == std::string::npos) {
+    if (endPos == std::string::npos)
         return uri;
-    }
     return uri.substr(0, endPos);
 }
 
