@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 11:11:43 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 19:42:44 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <cctype>
 #include <signal.h>
 #include <cstdlib>
+
 # define REQUEST_LIMIT_PER_CONNECTION 100
 
 static volatile bool g_shutdown = false;
@@ -117,9 +118,6 @@ void handleErrorEvent(const Event& event)
 {
     std::string errorMsg = "Connection error on fd " + Utils::toString(event.fd) + ": ";
 
-    if (event.errorType & POLLHUP) {
-        errorMsg += "Client disconnected (POLLHUP)";
-    }
     if (event.errorType & POLLERR) {
         errorMsg += "Socket error (POLLERR)";
     }
@@ -143,37 +141,37 @@ void handleNewConnection(Reactor &reactor, const Event &event)
     }
 }
 
-// void handleCgiState(Reactor& reactor, Connection& conn, CgiState* cgiState, const Event& event)
-// {
-//     if (!cgiState->bodySent && conn.getCurrentRequest().method == POST && cgiState->input_fd != -1)
-//     {
-//         ssize_t written = write(cgiState->input_fd, conn.getCurrentRequest().body.c_str(), conn.getCurrentRequest().body.size());
-//         if (written == -1)
-//             perror("write to CGI stdin failed");
-//         close(cgiState->input_fd);
-//         cgiState->input_fd = -1;
-//         cgiState->bodySent = true;
-//         std::cout << "\033[1;34m[CGI]\033[0m Body sent to CGI script for fd: " << event.fd << std::endl;
-//     }
-//     char buffer[4096];
-//     ssize_t n = read(conn.getCgiState()->output_fd, buffer, sizeof(buffer));
-//     if (n > 0)
-//     {
-//         conn.getCgiState()->rawOutput.append(buffer, n);
-//     }
-//     else if (n == 0)
-//     {
-//         HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput);
-//         conn.writeData(resp.toString());
-//         reactor.removeConnection(event.fd);
-//         std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
-//     }
-//     else
-//     {
-//         Error::logs("CGI read error on fd " + Utils::toString(event.fd));
-//         reactor.removeConnection(event.fd);
-//     }
-// }
+void handleCgiState(Reactor& reactor, Connection& conn, CgiState* cgiState, const Event& event)
+{
+    if (!cgiState->bodySent && conn.getCurrentRequest().method == POST && cgiState->input_fd != -1)
+    {
+        ssize_t written = write(cgiState->input_fd, conn.getCurrentRequest().body.c_str(), conn.getCurrentRequest().body.size());
+        if (written == -1)
+            perror("write to CGI stdin failed");
+        close(cgiState->input_fd);
+        cgiState->input_fd = -1;
+        cgiState->bodySent = true;
+        std::cout << "\033[1;34m[CGI]\033[0m Body sent to CGI script for fd: " << event.fd << std::endl;
+    }
+    char buffer[4096];
+    ssize_t n = read(conn.getCgiState()->output_fd, buffer, sizeof(buffer));
+    if (n > 0)
+    {
+        conn.getCgiState()->rawOutput.append(buffer, n);
+    }
+    else if (n == 0)
+    {
+        HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput);
+        conn.writeData(resp.toString());
+        reactor.removeConnection(event.fd);
+        std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
+    }
+    else
+    {
+        Error::logs("CGI read error on fd " + Utils::toString(event.fd));
+        reactor.removeConnection(event.fd);
+    }
+}
 
 int main(int ac, char **av, char **envp)
 {
@@ -221,45 +219,15 @@ int main(int ac, char **av, char **envp)
                 {
                     Event event = events[i];
 
-                    if (event.isNewConnection){
-
+                    if (event.isNewConnection)
                         handleNewConnection(reactor, event);
-                    }
                     else if (event.isReadable || event.isPullHUP)
                     {
                         Connection &conn = reactor.getConnection(event.fd);
                         CgiState *cgiState = conn.getCgiState();
                         if (cgiState)
                         {
-                            if (!cgiState->bodySent && conn.getCurrentRequest().method == POST && cgiState->input_fd != -1)
-                            {
-                                ssize_t written = write(cgiState->input_fd, conn.getCurrentRequest().body.c_str(), conn.getCurrentRequest().body.size());
-                                if (written == -1)
-                                    Error::logs("write to CGI stdin failed for fd " + Utils::toString(event.fd));
-                                close(cgiState->input_fd);
-                                cgiState->input_fd = -1;
-                                cgiState->bodySent = true;
-                                std::cout << "\033[1;34m[CGI]\033[0m Body sent to CGI script for fd: " << event.fd << std::endl;
-                            }
-                            char buffer[4096];
-                            ssize_t n = read(conn.getCgiState()->output_fd, buffer, sizeof(buffer));
-                            if (n > 0)
-                            {
-                                conn.getCgiState()->rawOutput.append(buffer, n);
-                            }
-                            else if (n == 0)
-                            {
-                                HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput);
-                                conn.writeData(resp.toString());
-                                reactor.removeConnection(event.fd);
-                                std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
-                            }
-                            else
-                            {
-                                Error::logs("CGI read error on fd " + Utils::toString(event.fd));
-                                reactor.removeConnection(event.fd);
-                            }
-
+                            handleCgiState(reactor, conn, cgiState, event);
                         }
                         else
                         {

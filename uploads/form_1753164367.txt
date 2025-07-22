@@ -1,2 +1,0 @@
-email=abdokataki%40gmail.com
-name=Neox
