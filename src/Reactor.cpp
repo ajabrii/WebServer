@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 10:07:39 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/23 16:42:57 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,25 +94,24 @@ void Reactor::addConnection(Connection* conn, HttpServer* server)
 
 void Reactor::cgiRemover(Connection *conn)
 {
-    int fds[3];
+    int fds[2];
     CgiState *cgi = conn->getCgiState();
     if (cgi == NULL) 
     {
         return;
     }
-    fds[0] = cgi->input_fd;
-    fds[1] = cgi->output_fd;
-    fds[2] = conn->getFd();
+    fds[0] = cgi->output_fd;
+    fds[1] = conn->getFd();
     
     for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it)
     {
-        if (it->fd == fds[0]  || it->fd == fds[1] || it->fd == fds[2])
+        if (it->fd == fds[0]  || it->fd == fds[1])
         {
             it = pollFDs.erase(it);
             std::cerr << "Removed fd: " << it->fd << " from pollFDs" << std::endl;
         }
     }
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < 2; ++i)
     {
         std::map<int, Connection*>::iterator connIt = connectionMap.find(fds[i]);
         if (connIt != connectionMap.end())
@@ -124,7 +123,7 @@ void Reactor::cgiRemover(Connection *conn)
     }
     clientToServerMap.erase(fds[0]);
     clientToServerMap.erase(fds[1]);
-    clientToServerMap.erase(fds[2]);
+
     if(cgi->output_fd != -1)
     {
         close(cgi->output_fd);

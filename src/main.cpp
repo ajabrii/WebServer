@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 10:13:13 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/23 16:00:41 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,6 +224,7 @@ int main(int ac, char **av, char **envp)
                 // Handle error events FIRST (highest priority)
                 if (event.isNewConnection)
                 {
+                    std::cout << "\033[1;32m[+]\033[0m New connection detected on fd: " << event.fd << std::endl;
                     HttpServer* server = reactor.getServerByListeningFd(event.fd); //? hna kanchof ina server t connecta m3ah l client bach nchof ina route khsni nmchi lih mn ber3d
                     if (server)
                     {
@@ -235,6 +236,8 @@ int main(int ac, char **av, char **envp)
                 }
                 else if (event.isReadable || event.isPullHUP)
                 {
+                    if(event.isReadable)
+                        std::cout << "\033[1;33m[>]\033[0m Readable event on fd: " << event.fd << std::endl;
                     if (event.isPullHUP)
                     {
                         std::cerr << "[POLLHUP] Connection closed: " << event.fd << std::endl;
@@ -547,7 +550,12 @@ int main(int ac, char **av, char **envp)
                 }
                 else if (event.isError)
                 {
+                    std::cerr << "\033[1;31m[!]\033[0m Error event on fd: " << event.fd << std::endl;
                     handleErrorEvent(event);
+                }
+                else
+                {
+                    std ::cerr << "Unhandled event type for fd: " << event.fd << std::endl;
                 }
                 
             } // End of for loop

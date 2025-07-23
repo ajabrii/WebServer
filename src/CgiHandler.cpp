@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/22 20:33:22 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/23 16:41:58 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -446,7 +446,18 @@ CgiState *CgiHandler::execCgi(Connection &conn)
             close(pfd_in[0]); // Close read end in child
             close(pfd_in[1]); // Close write end in child
         }
-        
+        else
+        {
+            // For GET or others, connect an empty pipe to stdin
+            int null_fd[2];
+            if (pipe(null_fd) == -1)
+                exit(1); // Pipe failure
+
+            dup2(null_fd[0], STDIN_FILENO); // Child will read EOF
+            close(null_fd[0]);
+            close(null_fd[1]);
+        }       
+                
         // **CRITICAL: Set up proper working directory and script path**
         // Convert URI path to filesystem path
         std::string filesystem_script_path = _data.script_path;
