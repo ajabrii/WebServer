@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <iostream>
 
+typedef class Connection Connection;
 class CgiState
 {
     public:
@@ -39,4 +40,5 @@ class CgiState
         size_t bytesWritten;
             // Optional:
         std::string script_path;
+        Connection* connection;
 };

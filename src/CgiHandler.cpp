@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/23 16:41:58 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/23 18:23:50 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -520,6 +520,7 @@ CgiState *CgiHandler::execCgi(Connection &conn)
         f->bodySent = false;
         f->script_path = _data.script_path;
         f->startTime = std::time(0);
+        f->connection = &conn; // Store the connection for later use
         for (int i = 0; env[i] != NULL; ++i) 
             delete[] env[i];
         delete[] env;

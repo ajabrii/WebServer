@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 16:00:41 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/23 18:28:46 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,8 +23,7 @@
 #include <cctype>
 #include <signal.h>
 #include <cstdlib>
-# define REQUEST_LIMIT_PER_CONNECTION 100 
-# define CGI_TIMEOUT_MINUTES 3
+# define REQUEST_LIMIT_PER_CONNECTION 100
 
 static volatile bool g_shutdown = false;
 static std::vector<HttpServer*>* g_servers = NULL;
@@ -205,6 +204,7 @@ int main(int ac, char **av, char **envp)
         for (size_t i = 0; i < servers.size(); ++i)
             reactor.registerServer(*servers[i]);
 
+        std::vector<Connection*> connections;
         //* === Event loop ===
         while (!g_shutdown)
         {
@@ -232,6 +232,8 @@ int main(int ac, char **av, char **envp)
                         conn->updateLastActivity(); // Initialize activity timestamp for new connection
                         reactor.addConnection(conn, server);
                         std::cout << NEW_CLIENT_CON << std::endl;
+                        // add the new connection to the connections vector
+                        connections.push_back(conn);
                     }
                 }
                 else if (event.isReadable || event.isPullHUP)
@@ -311,8 +313,11 @@ int main(int ac, char **av, char **envp)
 
                             HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput);
                             conn.writeData(resp.toString());
+
+                            conn.getCgiState()->connection->updateLastActivity();
+                            //print fd of conn and cgi->connection
+                            std::cerr << "CONN FD is : " << conn.getFd() << ", cgi connection fd is : " << conn.getCgiState()->connection->getFd() << std::endl;
                             // print all connectionMap of reactor <int, Connection *>  , id and address \n in c++98, using iterator
-                             std::cerr << "CONN FD is : " << conn.getFd() << ", cgi state address is : " << conn.getCgiState() << "\n";
 
                             reactor.removeConnection(event.fd); // 8 
                             // delete cgiState;
@@ -328,33 +333,6 @@ int main(int ac, char **av, char **envp)
                             // cleanupCgi(conn);
                             reactor.removeConnection(event.fd);
                         }
-                        std::cerr << "\033[1;34m[CGI]\033[0m CGI check timeout "<< std::endl;
-                        time_t now = time(NULL);
-                        std::cerr << "\033[1;34m[CGI]\033[0m CGI start time: " << cgiState->startTime << ", current time: " << now << std::endl;
-                        if (difftime(now, cgiState->startTime) > 3) 
-                        {
-                            std::cerr << "[CGI] Timeout expired for CGI script, killing process and closing connection\n";
-                            
-                            // kill the CGI process (you need to save its pid when you start it)
-                            if (cgiState->pid > 0) 
-                            {
-                                kill(cgiState->pid, SIGKILL);
-                            }
-
-                            // Clean up and close connection
-                            //send 504 Gateway Timeout response before closing
-                            HttpResponse timeoutResponse;
-                            timeoutResponse.statusCode = 504;
-                            timeoutResponse.statusText = "Gateway Timeout";
-                            timeoutResponse.body = "CGI script execution timed out.";
-                            timeoutResponse.headers["Content-Type"] = "text/plain";
-                            timeoutResponse.headers["Content-Length"] = Utils::toString(timeoutResponse.body.size());
-                            conn.writeData(timeoutResponse.toString());
-                            std::cout << "\033[1;34m[CGI]\033[0m CGI script timed out, closing connection for fd: " << event.fd << std::endl;
-                            reactor.removeConnection(conn.getFd());
-                        }
-                        std::cerr << "\033[1;34m[CGI]\033[0m CGI  DONE check timeout "<< std::endl;
-
                     }
                     else
                     {
@@ -553,12 +531,32 @@ int main(int ac, char **av, char **envp)
                     std::cerr << "\033[1;31m[!]\033[0m Error event on fd: " << event.fd << std::endl;
                     handleErrorEvent(event);
                 }
-                else
-                {
-                    std ::cerr << "Unhandled event type for fd: " << event.fd << std::endl;
-                }
+                
                 
             } // End of for loop
+            for (size_t j = 0; j < connections.size(); ++j) {
+                    Connection* conn = connections[j];
+                    if (conn->isTimedOut()) {
+                        std::cerr << "\033[1;31m[!]\033[0m Connection timed out: " << conn->getFd() << std::endl;
+                        // send 408 Request Timeout response
+                        HttpResponse timeoutResponse;
+                        timeoutResponse.statusCode = 408;
+                        timeoutResponse.statusText = "Request Timeout";
+                        timeoutResponse.body = "Your request has timed out due to inactivity.";
+                        timeoutResponse.headers["Content-Type"] = "text/plain";
+                        timeoutResponse.headers["Content-Length"] = Utils::toString(timeoutResponse.body.size());
+                        conn->writeData(timeoutResponse.toString());
+                        reactor.removeConnection(conn->getFd());
+                        delete conn; // Clean up connection object
+                        connections.erase(connections.begin() + j);
+                        --j; // Adjust index after removal
+                    }
+                    else
+                    {
+                        // Update last activity for active connections
+                        std::cout << "\033[1;32m[+]\033[0m Active connection: " << conn->getFd() << ", last activity: " << conn->getLastActivity() << std::endl;
+                    }
+                }
             } catch (const std::exception& e) {
                 std::cerr << "Event loop error: " << e.what() << std::endl;
                 // Continue with next iteration
