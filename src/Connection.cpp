@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 14:27:51 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/23 09:37:02 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 
 # include "../includes/HttpServer.hpp"
 
-Connection::Connection() 
-    : client_fd(-1), 
+Connection::Connection()
+    : client_fd(-1),
     lastActivityTime(std::time(0)),
     keepAlive(false),
     requestCount(0),
@@ -50,15 +50,7 @@ int Connection::getFd() const
     return client_fd;
 }
 
-std::string& Connection::getBuffer()
-{
-    return buffer;
-}
 
-void Connection::clearBuffer()
-{
-    buffer.clear();
-}
 /*
 === readData() reads the HTTP request from the client socket and stores it in a buffer ===
 
@@ -84,16 +76,10 @@ void Connection::readData(HttpServer* server)
             // Consider logging the actual errno value for debugging
             throw std::runtime_error("Failed to read from client socket: " + std::string(strerror(errno)));
         }
-    } 
-    else if (bytesRead == 0) {
-        // Client closed the connection gracefully
-        // For keep-alive connections, this is normal when client closes
-        throw std::runtime_error("Client disconnected (bytesRead == 0)"); // This should trigger connection cleanup
     }
-
     // Append the received data to the connection's buffer
     buffer.append(tmp, bytesRead);
-    std::cout << "Debug: Read " << bytesRead << " bytes. Buffer size: " << buffer.length() << std::endl;
+    // std::cout << "Debug: Read " << bytesRead << " bytes. Buffer size: " << buffer.length() << std::endl;
 
     if (requestState == READING_HEADERS) {
         size_t headerEndPos = buffer.find("\r\n\r\n");
@@ -115,16 +101,16 @@ void Connection::readData(HttpServer* server)
                     // No body expected
                     requestState = REQUEST_COMPLETE;
                 }
-                std::cout << "Debug: Headers parsed. State changed to: " << requestState << std::endl;
+                // std::cout << "Debug: Headers parsed. State changed to: " << requestState << std::endl;
         }
     }
-    
-    // kmel la header salaw and request mazal masalat 
+
+    // kmel la header salaw and request mazal masalat
     if (requestState != READING_HEADERS && requestState != REQUEST_COMPLETE) {
             bool bodyComplete = currentRequest.parseBody(buffer, server->getConfig().clientMaxBodySize); // Pass buffer by reference
             if (bodyComplete) {
                 requestState = REQUEST_COMPLETE;
-                std::cout << "Debug: Body parsed. State changed to: " << requestState << std::endl;
+                // std::cout << "Debug: Body parsed. State changed to: " << requestState << std::endl;
             }
     }
 
@@ -132,7 +118,8 @@ void Connection::readData(HttpServer* server)
     // and then call Connection::reset() for the next request on keep-alive
     // Connection::reset() should clear currentRequest and set requestState to READING_HEADERS
     if (requestState == REQUEST_COMPLETE) {
-        std::cout << "Debug: Request fully received and parsed for fd " << client_fd << std::endl;
+        ;
+        // std::cout << "Debug: Request fully received and parsed for fd " << client_fd << std::endl;
     }
 }
 
@@ -198,7 +185,7 @@ void Connection::reset() {
     contentLength = 0;
     isChunked = false;
     requestState = READING_HEADERS;
-    std::cout << "Debug: Connection " << client_fd << " reset for next request." << std::endl;
+    // std::cout << "Debug: Connection " << client_fd << " reset for next request." << std::endl;
 }
 
 bool Connection::isConnectionClosed() const {

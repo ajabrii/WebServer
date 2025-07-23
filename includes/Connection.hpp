@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/07/16 09:55:04 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 12:51:03 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,13 @@
 #define CONNECTION_HPP
 
 #include "../includes/HttpRequest.hpp"
+#include "../includes/HttpRequest.hpp"
 #include <string>
 #include <netinet/in.h>
 #include <ctime>
 #include "CgiState.hpp"
 # define BUFFER_SIZE 8192
-# define KEEP_ALIVE_TIMEOUT 60  // 60 seconds timeout for keep-alive connections
+# define KEEP_ALIVE_TIMEOUT 60
 
 class HttpServer;
 
@@ -42,14 +43,13 @@ class Connection
         time_t lastActivityTime;
         bool keepAlive;
         int requestCount;
-        
+
         RequestState requestState;
-        long contentLength; // Use long to match potential large sizes
+        long contentLength;
         bool isChunked;
         HttpRequest currentRequest;
         CgiState* cgiState;
-        // HttpServer* server;
-        
+
     public:
         Connection();
         Connection(int fd, const sockaddr_in& addr);
@@ -59,10 +59,7 @@ class Connection
         void readData(HttpServer* server);
         void writeData(const std::string& response) const;
         void closeConnection();
-        std::string& getBuffer();
-        void clearBuffer();// ! remove later on
-        
-        // Keep-alive related methods
+
         void updateLastActivity();
         bool isKeepAlive() const;
         void setKeepAlive(bool keepAlive);
@@ -72,11 +69,11 @@ class Connection
         void resetForNextRequest();
 
         HttpRequest& getCurrentRequest();
-        bool isRequestComplete() const; // New helper to check state for main loop
-        bool isConnectionClosed() const; // Check if connection is closed
+        bool isRequestComplete() const;
+        bool isConnectionClosed() const;
         void reset();
-        CgiState* getCgiState() const; // Get CgiState for this connection
-        void setCgiState(CgiState* cgiState); // Set CgiState
+        CgiState* getCgiState() const;
+        void setCgiState(CgiState* cgiState);
 };
 
 #endif

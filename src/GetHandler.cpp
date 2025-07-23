@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   GetHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 19:44:38 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/22 12:15:42 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,39 +22,27 @@
 #include <unistd.h>
 #include <cctype>
 # include "../includes/Errors.hpp"
+
 GetHandler::GetHandler() { }
 
 GetHandler::~GetHandler() { }
-
-/**
- * Main handler for GET requests
- * Processes the request according to this priority:
- * 1. Redirects (highest priority)
- * 2. File serving or directory listing based on path
- * 3. Error responses for not found/forbidden
- */
 
 
 HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route, const ServerConfig& serverConfig) const
 {
     std::cout << URI_PROCESS_LOG << req.uri << std::endl;
-
     if (!route.redirect.empty())
         return handleRedirect(route.redirect);
-
-    std::string requestPath = req.uri;
-    // Remove the route path prefix from the request URI to get the relative path
-    // Example: route.path="/images", req.uri="/images/photo.jpg" -> requestPath="/photo.jpg"
+    std::string requestPath = extractPath(req.uri);
+    requestPath = normalizePath(requestPath);
     if (requestPath.find(route.path) == 0)
         requestPath = requestPath.substr(route.path.length());
     std::string cleanRoot = route.root;
     if (!cleanRoot.empty() && cleanRoot[cleanRoot.length() - 1] == '/')
         cleanRoot = cleanRoot.substr(0, cleanRoot.length() - 1);
-
     if (!requestPath.empty() && requestPath[0] != '/')
         requestPath = "/" + requestPath;
     std::string filePath = cleanRoot + requestPath;
-
     struct stat pathStat;
     if (stat(filePath.c_str(), &pathStat) == 0)
     {
@@ -62,38 +50,22 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
             return handleDirectory(filePath, req.uri, route.directory_listing, serverConfig, route.indexFile);
         else if (S_ISREG(pathStat.st_mode))
             return serveStaticFile(filePath, serverConfig);
-        else
-        {
-            //?i think i should throw an exeption
-            std::cout << "\033[1;31m[GET Handler]\033[0m Path exists but is not a file or directory" << std::endl;
-        }
     }
-    // else
-    //     throw std::runtime_error("\033[1;31m[GET Handler]\033[0m Path does not exist: " + filePath);
-
     return createNotFoundResponse(serverConfig);
 }
 
 
 HttpResponse GetHandler::handleDirectory(const std::string& dirPath, const std::string& urlPath, bool listingEnabled, const ServerConfig& serverConfig, const std::string& indexFile) const
 {
-    std::cout << "listingEnabled: " << listingEnabled << std::endl;
     if (indexFile.empty() && listingEnabled)
-    {
-        std::cout << "\033[1;33m[GET Handler]\033[0m Directory listing enabled, serving directory listing" << std::endl;
         return handleDirectoryListing(dirPath, urlPath, serverConfig);
-    }
     else
     {
-        std::cout << "\033[1;33m[GET Handler]\033[0m Directory listing disabled, looking for index file" << std::endl;
-        
-        // Try to serve index.html from the directory //!(here is should add the index file from config file instead of index.html)
         std::string indexPath = dirPath + "/" + indexFile;
         struct stat indexStat;
-        
         if (stat(indexPath.c_str(), &indexStat) == 0 && S_ISREG(indexStat.st_mode))
             return serveStaticFile(indexPath, serverConfig);
-        }
+    }
     return createForbiddenResponse(serverConfig);
 }
 
@@ -135,11 +107,6 @@ HttpResponse GetHandler::serveStaticFile(const std::string& filePath, const Serv
     return res;
 }
 
-/**
- * Generates HTML directory listing
- * Creates a table with file names and types
- * Includes parent directory navigation
- */
 HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, const std::string& urlPath, const ServerConfig& serverConfig) const
 {
     std::cout << DIRECTORY_LISTING_LOG << dirPath << std::endl;
@@ -172,8 +139,6 @@ HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, cons
             continue;
         std::string fullPath = dirPath + "/" + name;
         std::string linkPath = buildLinkPath(urlPath, name);
-
-        // Determine file type and icon
         struct stat entryStat;
         std::string type = "File";
         std::string icon = "📄";
@@ -194,7 +159,7 @@ HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, cons
         html << "<td>" << type << "</td></tr>";
     }
 
-    html << "</table></div><p>return to the <a href=\"/\">homepage</a>.</p></body></html>";
+    html << "</table></div><p style=\"text-align:center;\">return to the <a href=\"/\">homepage</a>.</p></body></html>";
     closedir(dir);
 
     HttpResponse res;
@@ -210,7 +175,7 @@ std::string GetHandler::getMimeType(const std::string& filePath) const
 {
     size_t dotPos = filePath.find_last_of('.');
     if (dotPos == std::string::npos) {
-        return "application/octet-stream"; // ?Default for files without extension
+        return "application/octet-stream";
     }
 
     std::string extension = filePath.substr(dotPos + 1);
@@ -290,7 +255,7 @@ HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string& 
 {
     std::cout << "\033[1;31m[GET Handler]\033[0m Creating " << statusCode << " error response" << std::endl;
     std::cout << "\033[1;33m[GET Handler]\033[0m Using default error page" << std::endl;
-    
+
     HttpResponse res;
     res.statusCode = statusCode;
     res.statusText = statusText;
@@ -300,3 +265,76 @@ HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string& 
     return res;
 }
 
+std::string GetHandler::extractPath(const std::string& uri) const
+{
+
+    size_t queryPos = uri.find('?');
+    size_t fragmentPos = uri.find('#');
+
+    size_t endPos = std::string::npos;
+    if (queryPos != std::string::npos && fragmentPos != std::string::npos)
+        endPos = std::min(queryPos, fragmentPos);
+    else if (queryPos != std::string::npos)
+        endPos = queryPos;
+    else if (fragmentPos != std::string::npos)
+        endPos = fragmentPos;
+
+    if (endPos == std::string::npos)
+        return uri;
+    return uri.substr(0, endPos);
+}
+
+std::string GetHandler::normalizePath(const std::string& path) const
+{
+    // PATH NORMALIZATION: Clean up the path for security and consistency
+    // This function resolves relative path components and removes redundancies
+    // Examples:
+    //   "/path//to/./file" -> "/path/to/file"
+    //   "/path/to/../other/file" -> "/path/other/file"
+    //   "/path/to/../../.." -> "/"
+
+    std::string normalized = path;
+
+    // STEP 1: Replace multiple consecutive slashes with single slash
+    // This handles cases like "///" or "/path//to//file"
+    size_t pos = 0;
+    while ((pos = normalized.find("//", pos)) != std::string::npos) {
+        normalized.replace(pos, 2, "/");
+    }
+
+    // STEP 2: Handle . and .. path components
+    // Split the path into components and process each one
+    std::vector<std::string> components;
+    std::istringstream stream(normalized);
+    std::string component;
+
+    // Split by '/' delimiter
+    while (std::getline(stream, component, '/')) {
+        if (component.empty() || component == ".") {
+            continue;
+        } else if (component == "..") {
+            if (!components.empty()) {
+                components.pop_back();
+            }
+            // If components is empty, we're trying to go above root
+            // Ignore this (can't go above root directory)
+        } else {
+            // Regular path component - add it to our list
+            components.push_back(component);
+        }
+    }
+
+    // STEP 3: Rebuild the normalized path
+    std::string result = "/"; // Always start with root
+    for (size_t i = 0; i < components.size(); ++i) {
+        if (i > 0) result += "/"; // Add separator between components
+        result += components[i];
+    }
+
+    // STEP 4: Handle special case where original path was just "/"
+    if (components.empty() && !path.empty() && path[0] == '/') {
+        return "/";
+    }
+
+    return result;
+}
