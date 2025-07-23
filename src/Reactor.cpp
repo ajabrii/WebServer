@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Reactor.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 19:41:20 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/23 09:22:01 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,7 +196,7 @@ void Reactor::poll()
     readyEvents.clear();
     int ret = ::poll(pollFDs.data(), pollFDs.size(), 1000); // 1 second timeout for keep-alive cleanup
     if (ret < 0)
-        throw std::runtime_error("Error: poll failed");
+        throw std::runtime_error("Error: poll failed"); // todo seee why when i ctrl +c it throw error
     for (size_t i = 0; i < pollFDs.size(); ++i)
     {
         pollfd& pfd = pollFDs[i];
