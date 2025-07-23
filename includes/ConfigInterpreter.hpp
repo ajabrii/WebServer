@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:03:57 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 17:23:24 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/23 17:00:38 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,18 @@ class ConfigInterpreter {
         // void parseServerBlock(const std::vector<std::string>& lines, size_t& i);
         // void parseRouteBlock(ServerConfig& server, const std::vector<std::string>& lines, size_t& i);
         void parseRouteLine(RouteConfig& route, const std::string& line);
+        void parseRouteOption(RouteConfig& route, const std::string& key, const std::string& value);
+        void parseMethodsOption(RouteConfig& route, const std::string& value);
+        void parseDirectoryListingOption(RouteConfig& route, const std::string& value);
+        void parseUploadPathOption(RouteConfig& route, const std::string& value);
+        void parseCgiOption(RouteConfig& route, const std::string& value);
         void parseServerLine(ServerConfig& server, const std::string& line);
+        void parseServerOption(ServerConfig& server, const std::string& key, const std::string& value, const std::string& line);
+        void parseHostOption(ServerConfig& server, const std::string& value);
+        void parsePortOption(ServerConfig& server, const std::string& value);
+        void parseServerNameOption(ServerConfig& server, const std::string& value);
+        void parseClientMaxBodySizeOption(ServerConfig& server, const std::string& value);
+        void parseErrorPageOption(ServerConfig& server, const std::string& line);
         std::string extractPathFromRouteLine(const std::string& line);
         std::vector<std::string> readFile(const std::string& filepath);
         bool hasValidExtension(const std::string& filePath) const;

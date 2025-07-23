@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 17:22:44 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/23 17:00:36 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -239,26 +239,57 @@ const std::vector<ServerConfig>& ConfigInterpreter::getServerConfigs() const {
     return serverConfigs;
 }
 
-void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& line)
+void ConfigInterpreter::parseMethodsOption(RouteConfig& route, const std::string& value)
 {
-    // std::cout << "--------------------------------------------->line: " << line << "\n";
-    size_t equal = line.find('=');
-    if (equal == std::string::npos)
-        throw std::runtime_error("Invalid route line: " + line);
+    std::stringstream ss(value);
+    std::string method;
+    while (ss >> method)
+        if (method == "GET" || method == "POST" || method == "DELETE")
+            route.allowedMethods.push_back(method);
+        else 
+            throw std::runtime_error("Unkownen method :: " + method);
+}
 
-    std::string key = clean_line(line.substr(0, equal));
-    std::string value = clean_line(line.substr(equal + 1));
-    
-    key = toLower(key); // bach n9bel kolchi 
+void ConfigInterpreter::parseDirectoryListingOption(RouteConfig& route, const std::string& value)
+{
+    if (value == "on")
+        route.directory_listing = true;
+    else
+        route.directory_listing = false;
+}
+
+void ConfigInterpreter::parseUploadPathOption(RouteConfig& route, const std::string& value)
+{
+    if (!route.uploadDir.empty()) {
+        throw std::runtime_error("Duplicate 'upload_path' entry in route block.");
+    }
+    route.uploadDir = value;
+}
+
+void ConfigInterpreter::parseCgiOption(RouteConfig& route, const std::string& value)
+{
+    std::stringstream line(value);
+
+    std::stringstream countStream(value);
+    int inputCount = 0;
+    std::string tempInput;
+    while (countStream >> tempInput) ++inputCount;
+    if (inputCount != 2)
+        throw std::runtime_error("invalid CGI input");
+    std::string ext;
+    std::string path;
+    line >> ext;
+    line >> path;
+    // if (ext != ".py" && ext != ".php")
+    //     throw std::runtime_error("unsupported extension ");
+    route.cgi[ext] = path;
+}
+
+void ConfigInterpreter::parseRouteOption(RouteConfig& route, const std::string& key, const std::string& value)
+{
     if (key == "methods")
     {
-        std::stringstream ss(value);
-        std::string method;
-        while (ss >> method)
-            if (method == "GET" || method == "POST" || method == "DELETE")
-                route.allowedMethods.push_back(method);
-            else 
-                throw std::runtime_error("Unkownen method :: " + method);
+        parseMethodsOption(route, value);
     }
     else if (key == "indexfile")
     {
@@ -270,37 +301,31 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
         route.root = value;
     else if (key == "directory_listing")
     {
-        if (value == "on")
-            route.directory_listing = true;
-        else
-            route.directory_listing = false;
+        parseDirectoryListingOption(route, value);
     }
     else if (key == "upload_path") {
-        if (!route.uploadDir.empty()) {
-            throw std::runtime_error("Duplicate 'upload_path' entry in route block.");
-        }
-        route.uploadDir = value;
+        parseUploadPathOption(route, value);
     }
     else if (key == "cgi")
     {
-        std::stringstream line(value);
-
-        std::stringstream countStream(value);
-        int inputCount = 0;
-        std::string tempInput;
-        while (countStream >> tempInput) ++inputCount;
-        if (inputCount != 2)
-            throw std::runtime_error("invalid CGI input");
-        std::string ext;
-        std::string path;
-        line >> ext;
-        line >> path;
-        // if (ext != ".py" && ext != ".php")
-        //     throw std::runtime_error("unsupported extension ");
-        route.cgi[ext] = path;
+        parseCgiOption(route, value);
     }
     else
         throw std::runtime_error("Unknown route option: " + key);
+}
+
+void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& line)
+{
+    // std::cout << "--------------------------------------------->line: " << line << "\n";
+    size_t equal = line.find('=');
+    if (equal == std::string::npos)
+        throw std::runtime_error("Invalid route line: " + line);
+
+    std::string key = clean_line(line.substr(0, equal));
+    std::string value = clean_line(line.substr(equal + 1));
+    
+    key = toLower(key); // bach n9bel kolchi 
+    parseRouteOption(route, key, value);
 }
 
 bool isNum(const std::string& token)
@@ -315,6 +340,141 @@ bool isNum(const std::string& token)
     return true;
 }
 
+void ConfigInterpreter::parseHostOption(ServerConfig& server, const std::string& value)
+{
+    if (!server.host.empty())
+        throw std::runtime_error("Duplicate 'host' entry in server block.");
+    server.host = value;
+}
+
+void ConfigInterpreter::parsePortOption(ServerConfig& server, const std::string& value)
+{
+    std::stringstream ss(value);
+    std::string portStr;
+    while (ss >> portStr) {
+        if (portStr.size() > 5)
+            throw std::runtime_error("Invalid port length: " + portStr);
+        if (!isNum(portStr))
+            throw std::runtime_error("Port is not numeric: " + portStr);
+        int portNum = std::atoi(portStr.c_str());
+        if (portNum <= 0 || portNum > 65535)
+            throw std::runtime_error("Invalid port number: " + portStr);
+        // check duplicates
+        if (std::find(server.port.begin(), server.port.end(), portNum) != server.port.end())
+            throw std::runtime_error("Duplicate port in server block: " + portStr);
+        server.port.push_back(portNum);
+    }
+    if (server.port.empty())
+        throw std::runtime_error("No valid ports specified in server block.");
+}
+
+void ConfigInterpreter::parseServerNameOption(ServerConfig& server, const std::string& value)
+{
+    std::stringstream ss(value);
+    std::string name;
+    while (ss >> name){
+        if (std::find(server.serverName.begin(), server.serverName.end(), name) != server.serverName.end())
+            throw std::runtime_error("Server name already taken: " + name);
+        server.serverName.push_back(name);
+    }
+}
+
+void ConfigInterpreter::parseClientMaxBodySizeOption(ServerConfig& server, const std::string& value)
+{
+    if (value.empty())
+        throw std::runtime_error("client_max_body_size cannot be empty");
+        
+    unsigned long long size = 0;
+    std::string numStr = value;
+    unsigned long long multiplier = 1;
+    
+    // Check for suffix and extract number
+    if (!value.empty()) {
+        char lastChar = std::tolower(value[value.size() - 1]);
+        if (lastChar == 'k' || lastChar == 'm' || lastChar == 'g') {
+            if (value.size() == 1) {
+                throw std::runtime_error("client_max_body_size: suffix without number");
+            }
+            numStr = value.substr(0, value.size() - 1);
+            
+            if (lastChar == 'k') {
+                multiplier = 1024ULL;
+            } else if (lastChar == 'm') {
+                multiplier = 1024ULL * 1024ULL;
+            } else if (lastChar == 'g') {
+                multiplier = 1024ULL * 1024ULL * 1024ULL;
+            }
+        }
+    }
+    
+    // kolhom numbers
+    if (numStr.empty() || !isNum(numStr)) {
+        throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
+    }
+    
+    // Convert to number (using strtoul for better error handling)
+    char* endptr;
+    unsigned long baseSize = std::strtoul(numStr.c_str(), &endptr, 10);
+    if (*endptr != '\0' || baseSize == 0) {
+        throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
+    }
+    
+    // Check for overflow before multiplication
+    if (baseSize > (ULLONG_MAX / multiplier)) {
+        throw std::runtime_error("client_max_body_size too large: " + value);
+    }
+    
+    size = baseSize * multiplier;
+    server.clientMaxBodySize = size;
+}
+
+void ConfigInterpreter::parseErrorPageOption(ServerConfig& server, const std::string& line)
+{
+    std::stringstream ss(line);
+    std::string temp;
+    ss >> temp; // skip "error_page"
+    std::vector<int> codes;
+    std::string token;
+    while (ss >> token)
+    {
+        if (isNum(token))
+            codes.push_back(std::atoi(token.c_str()));
+        else
+        {
+            for (size_t i = 0; i < codes.size(); ++i)
+                server.error_pages[codes[i]] = token;
+            break;
+        }
+    }
+    if (codes.empty())
+        throw std::runtime_error("No error codes specified for error_page directive.");
+}
+
+void ConfigInterpreter::parseServerOption(ServerConfig& server, const std::string& key, const std::string& value, const std::string& line)
+{
+    if (key == "host") {
+        parseHostOption(server, value);
+    }
+    else if (key == "port")
+    {
+        parsePortOption(server, value);
+    }
+    else if (key == "server_name")
+    {
+        parseServerNameOption(server, value);
+    }
+    else if (key == "client_max_body_size")
+    {
+        parseClientMaxBodySizeOption(server, value);
+    }
+    else if (key.find("error_page") == 0)
+    {
+        parseErrorPageOption(server, line);
+    }
+    else
+        throw std::runtime_error("Unknown server option: " + key);
+}
+
 void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string& line)
 {
     size_t equal = line.find('=');
@@ -325,113 +485,7 @@ void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string&
     std::string value = trim(line.substr(equal + 1));
 
     key = toLower(key);
-    if (key == "host") {
-        if (!server.host.empty())
-            throw std::runtime_error("Duplicate 'host' entry in server block.");
-        server.host = value;
-    }
-    else if (key == "port")
-    {
-        std::stringstream ss(value);
-        std::string portStr;
-        while (ss >> portStr) {
-            if (portStr.size() > 5)
-                throw std::runtime_error("Invalid port length: " + portStr);
-            if (!isNum(portStr))
-                throw std::runtime_error("Port is not numeric: " + portStr);
-            int portNum = std::atoi(portStr.c_str());
-            if (portNum <= 0 || portNum > 65535)
-                throw std::runtime_error("Invalid port number: " + portStr);
-            // check duplicates
-            if (std::find(server.port.begin(), server.port.end(), portNum) != server.port.end())
-                throw std::runtime_error("Duplicate port in server block: " + portStr);
-            server.port.push_back(portNum);
-        }
-        if (server.port.empty())
-            throw std::runtime_error("No valid ports specified in server block.");
-    }
-    else if (key == "server_name")
-    {
-        std::stringstream ss(value);
-        std::string name;
-        while (ss >> name){
-            if (std::find(server.serverName.begin(), server.serverName.end(), name) != server.serverName.end())
-                throw std::runtime_error("Server name already taken: " + name);
-            server.serverName.push_back(name);
-        }
-    }
-    else if (key == "client_max_body_size")
-    {
-        if (value.empty())
-            throw std::runtime_error("client_max_body_size cannot be empty");
-            
-        unsigned long long size = 0;
-        std::string numStr = value;
-        unsigned long long multiplier = 1;
-        
-        // Check for suffix and extract number
-        if (!value.empty()) {
-            char lastChar = std::tolower(value[value.size() - 1]);
-            if (lastChar == 'k' || lastChar == 'm' || lastChar == 'g') {
-                if (value.size() == 1) {
-                    throw std::runtime_error("client_max_body_size: suffix without number");
-                }
-                numStr = value.substr(0, value.size() - 1);
-                
-                if (lastChar == 'k') {
-                    multiplier = 1024ULL;
-                } else if (lastChar == 'm') {
-                    multiplier = 1024ULL * 1024ULL;
-                } else if (lastChar == 'g') {
-                    multiplier = 1024ULL * 1024ULL * 1024ULL;
-                }
-            }
-        }
-        
-        // kolhom numbers
-        if (numStr.empty() || !isNum(numStr)) {
-            throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
-        }
-        
-        // Convert to number (using strtoul for better error handling)
-        char* endptr;
-        unsigned long baseSize = std::strtoul(numStr.c_str(), &endptr, 10);
-        if (*endptr != '\0' || baseSize == 0) {
-            throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
-        }
-        
-        // Check for overflow before multiplication
-        if (baseSize > (ULLONG_MAX / multiplier)) {
-            throw std::runtime_error("client_max_body_size too large: " + value);
-        }
-        
-        size = baseSize * multiplier;
-
-        server.clientMaxBodySize = size;
-    }
-    else if (key.find("error_page") == 0)
-    {
-        std::stringstream ss(line);
-        std::string temp;
-        ss >> temp; // skip "error_page"
-        std::vector<int> codes;
-        std::string token;
-        while (ss >> token)
-        {
-            if (isNum(token))
-                codes.push_back(std::atoi(token.c_str()));
-            else
-            {
-                for (size_t i = 0; i < codes.size(); ++i)
-                    server.error_pages[codes[i]] = token;
-                break;
-            }
-        }
-        if (codes.empty())
-            throw std::runtime_error("No error codes specified for error_page directive.");
-    }
-    else
-        throw std::runtime_error("Unknown server option: " + key);
+    parseServerOption(server, key, value, line);
 }
 
 void ConfigInterpreter::checkValues() const
