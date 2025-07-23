@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 17:10:40 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/23 16:40:08 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,10 @@ public:
     HttpRequest();
 
     void parseHeaders(const std::string& rawHeaders);
+    void parseRequestLine(const std::string& line);
+    void parseHeaderLine(const std::string& line, int& hostFlag);
+    void validateAbsoluteUri();
+    void determineBodyProtocol();
 
     bool parseBody(std::string& connectionBuffer, long maxBodySize); // Will be called incrementally
 

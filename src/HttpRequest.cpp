@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 17:11:53 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/23 16:40:01 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,18 +20,11 @@ std::string toLower(std::string str) {
     return str;
 }
 
-void HttpRequest::parseHeaders(const std::string& rawHeaders)
+void HttpRequest::parseRequestLine(const std::string& line)
 {
-    std::istringstream stream(rawHeaders);
-    std::string line;
-    int hostFlag = 0;
-
-    if (!std::getline(stream, line) || line.empty()){
-        throwHttpError(400, "Invalid HTTP request: empty request line");
-    }
-
     std::istringstream requestLineStream(line);
     requestLineStream >> this->method >> this->uri >> this->version;
+    
     if ((this->method.empty() || this->uri.empty() || this->version.empty())){
         throwHttpError(400, "Invalid HTTP request: info missed in request line");
     }
@@ -39,7 +32,7 @@ void HttpRequest::parseHeaders(const std::string& rawHeaders)
         throwHttpError(505, "HTTP Version Not Supported");
     }
     else if (this->method != "GET" && this->method != "POST" && this->method != "DELETE") {
-        throwHttpError(501, "Not Implemented: Unsupported HTTP method"); //? kayna f dispatcher method
+        throwHttpError(501, "Not Implemented: Unsupported HTTP method");
     }
     else if (this->uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
     {
@@ -49,103 +42,146 @@ void HttpRequest::parseHeaders(const std::string& rawHeaders)
     {
         throwHttpError(414, "URI Too Long");
     }
-    
-    // Parse headers
-    while (std::getline(stream, line)) {
-        std::string trimmed_line = line;
-        // Remove trailing \r from the line read by getline
-        if (!trimmed_line.empty() && trimmed_line[trimmed_line.size() - 1] == '\r') {
-            trimmed_line.erase(trimmed_line.size() - 1);
-        }
+}
 
-        if (trimmed_line.empty()) { // end of header line
-            if (hostFlag != 1) {
-                throwHttpError(400, "Bad request: Host header missing or deplicated");
-            }
-            break;
-        }
-
-        size_t colon = line.find(":");
-        if (colon == 0) {
-            throwHttpError(400, "Bad request: Empty header key");
-        }
-        if (colon == std::string::npos) {
-            throwHttpError(400, "Bad request: invalid header line (missing colon)");
-        }
-
-        std::string key = line.substr(0, colon);
-        std::string value = line.substr(colon + 1);
-
-        key.erase(0, key.find_first_not_of(" \t"));
-        key.erase(key.find_last_not_of(" \t\r") + 1); // remove trailing whitespace and \r
-        value.erase(0, value.find_first_not_of(" \t"));
-        value.erase(value.find_last_not_of(" \t\r") + 1); // remove trailing whitespace and \r
-
-        this->headers[key] = value;
-
-        if (toLower(key) == "host") {
-            if (value.empty()) {
-                throwHttpError(400, "Bad request: Host header value empty");
-            }
-            hostFlag = 1;
-        }
+void HttpRequest::parseHeaderLine(const std::string& line, int& hostFlag)
+{
+    std::string trimmed_line = line;
+    // Remove trailing \r from the line read by getline
+    if (!trimmed_line.empty() && trimmed_line[trimmed_line.size() - 1] == '\r') {
+        trimmed_line.erase(trimmed_line.size() - 1);
     }
 
-        if (this->uri.find("http://", 0) == 0)
-        {
-            size_t host_start_pos = 7; // length of "http://"
-            size_t path_start_pos = this->uri.find('/', host_start_pos);
-            std::string host_in_uri;
-        
-            if (path_start_pos == std::string::npos) {
-                // URI is like "http://www.example.com" with no path
-                host_in_uri = this->uri.substr(host_start_pos);
-                this->uri = "/"; // The path is just the root
-            } else {
-                // URI is like "http://www.example.com/path"
-                host_in_uri = this->uri.substr(host_start_pos, path_start_pos - host_start_pos);
-                this->uri = this->uri.substr(path_start_pos); // Update URI to just be the path
-            }
-        
-            // l host d request khass tkon bhal host li 
-            std::string host_header = GetHeader("host");
-            if (host_header.find(':') != std::string::npos) {
-                host_header = host_header.substr(0, host_header.find(':'));
-            }
-        
-            if (host_in_uri != host_header) {
-                throwHttpError(400, "Host in request URI does not match Host header");
-            }
+    if (trimmed_line.empty()) { // end of header line
+        if (hostFlag != 1) {
+            throwHttpError(400, "Bad request: Host header missing or deplicated");
         }
+        return;
+    }
 
-    // After parsing all headers, determine body protocol if content-length or transfer-encoding
+    size_t colon = line.find(":");
+    if (colon == 0) {
+        throwHttpError(400, "Bad request: Empty header key");
+    }
+    if (colon == std::string::npos) {
+        throwHttpError(400, "Bad request: invalid header line (missing colon)");
+    }
+
+    std::string key = toLower(line.substr(0, colon));
+    std::string value = line.substr(colon + 1);
+
+    if (key[key.length() - 1] == ' ')
+        throwHttpError(400, "Bad request: Header key ends with space");
+    key.erase(0, key.find_first_not_of(" \t"));
+    key.erase(key.find_last_not_of(" \t\r") + 1); // remove trailing whitespace and \r
+    value.erase(0, value.find_first_not_of(" \t"));
+    value.erase(value.find_last_not_of(" \t\r") + 1); // remove trailing whitespace and \r
+
+    this->headers[key] = value;
+
+    if (toLower(key) == "host") {
+        if (value.empty()) {
+            throwHttpError(400, "Bad request: Host header value empty");
+        }
+        hostFlag = 1;
+    }
+}
+
+void HttpRequest::validateAbsoluteUri()
+{
+    if (this->uri.find("http://", 0) == 0)
+    {
+        size_t host_start_pos = 7; // length of "http://"
+        size_t path_start_pos = this->uri.find('/', host_start_pos);
+        std::string host_in_uri;
+    
+        if (path_start_pos == std::string::npos) {
+            // URI is like "http://www.example.com" with no path
+            host_in_uri = this->uri.substr(host_start_pos);
+            this->uri = "/"; // The path is just the root
+        } else {
+            // URI is like "http://www.example.com/path"
+            host_in_uri = this->uri.substr(host_start_pos, path_start_pos - host_start_pos);
+            this->uri = this->uri.substr(path_start_pos); // Update URI to just be the path
+        }
+    
+        // l host d request khass tkon bhal host li 
+        std::string host_header = GetHeader("host");
+        if (host_header.find(':') != std::string::npos) {
+            host_header = host_header.substr(0, host_header.find(':'));
+        }
+    
+        if (host_in_uri != host_header) {
+            throwHttpError(400, "Host in request URI does not match Host header");
+        }
+    }
+}
+
+void HttpRequest::determineBodyProtocol()
+{
     if (this->method == "POST"){
         
         std::string cl_header = GetHeader("content-length");
         std::string te_header = GetHeader("transfer-encoding");
 
-    if ((!cl_header.empty() && !te_header.empty()) || (cl_header.empty() && te_header.empty())) {
-        throwHttpError(400, "Bad request: not specified body protocol");
-    } else if (!cl_header.empty()) {
-        std::stringstream ss(cl_header);
-        ss >> this->contentLength;
-        if (ss.fail() || this->contentLength < 0) {
-            throwHttpError(400, "Invalid Content-Length header value");
+        if ((!cl_header.empty() && !te_header.empty()) || (cl_header.empty() && te_header.empty())) {
+            throwHttpError(400, "Bad request: not specified body protocol");
+        } else if (!cl_header.empty()) {
+            std::stringstream ss(cl_header);
+            ss >> this->contentLength;
+            if (ss.fail() || this->contentLength < 0) {
+                throwHttpError(400, "Invalid Content-Length header value");
+            }
+            this->isChunked = false;
+        } else if (!te_header.empty() && te_header == "chunked") {
+            this->isChunked = true;
+            this->contentLength = 0;
         }
-        this->isChunked = false;
-    } else if (!te_header.empty() && te_header == "chunked") {
-        this->isChunked = true;
-        this->contentLength = 0;
-    }
-    else if (!te_header.empty() && te_header != "chunked") {
-        throwHttpError(501, "Not Implemented: Unsupported Transfer-Encoding");
-    }
+        else if (!te_header.empty() && te_header != "chunked") {
+            throwHttpError(501, "Not Implemented: Unsupported Transfer-Encoding");
+        }
     }
     else {
-    // For methods other than POST, no body is expected
-    this->isChunked = false;
-    this->contentLength = 0;
+        // For methods other than POST, no body is expected
+        this->isChunked = false;
+        this->contentLength = 0;
     }
+}
+
+void HttpRequest::parseHeaders(const std::string& rawHeaders)
+{
+    std::istringstream stream(rawHeaders);
+    std::string line;
+    int hostFlag = 0;
+
+    // Parse request line
+    if (!std::getline(stream, line) || line.empty()){
+        throwHttpError(400, "Invalid HTTP request: empty request line");
+    }
+    parseRequestLine(line);
+    
+    // Parse header lines
+    while (std::getline(stream, line)) {
+        std::string trimmed_line = line;
+        if (!trimmed_line.empty() && trimmed_line[trimmed_line.size() - 1] == '\r') {
+            trimmed_line.erase(trimmed_line.size() - 1);
+        }
+
+        if (trimmed_line.empty()) { // end of header section
+            if (hostFlag != 1) {
+                throwHttpError(400, "Bad request: Host header missing or deplicated");
+            }
+            break;
+        }
+        
+        parseHeaderLine(line, hostFlag);
+    }
+
+    // Validate absolute URI if present
+    validateAbsoluteUri();
+
+    // Determine body protocol based on headers
+    determineBodyProtocol();
 }
 
 bool HttpRequest::parseBody(std::string& connectionBuffer, long maxBodySize) {
