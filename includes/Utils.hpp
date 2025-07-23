@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 11:25:40 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/23 13:18:01 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,6 @@ void handleCgiState(Reactor &reactor, Connection &conn, CgiState *cgiState, cons
 HttpResponse parseCgiOutput(const std::string &raw);
 void ltrim(std::string &s);
 std::string toLower(const std::string &s);
-void signalHandler(int signum);
+
 
 #endif

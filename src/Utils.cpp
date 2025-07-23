@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 11:25:27 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/23 13:18:23 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -330,4 +330,43 @@ HttpResponse createErrorResponse(int statusCode, const std::string &statusText, 
     resp.body = Error::loadErrorPage(statusCode, ServerConfig);
     resp.headers["content-length"] = Utils::toString(resp.body.size());
     return resp;
+}
+
+
+void handleCgiState(Reactor &reactor, Connection &conn, CgiState *cgiState, const Event &event)
+{
+    if (!cgiState->bodySent && conn.getCurrentRequest().method == POST && cgiState->input_fd != -1)
+    {
+        ssize_t written = write(cgiState->input_fd,
+                                conn.getCurrentRequest().body.c_str(),
+                                conn.getCurrentRequest().body.size());
+        if (written == -1)
+        {
+            perror("write to CGI stdin failed");
+        }
+        close(cgiState->input_fd);
+        cgiState->input_fd = -1;
+        cgiState->bodySent = true;
+        std::cout << "\033[1;34m[CGI]\033[0m Body sent to CGI script for fd: "
+                  << event.fd << std::endl;
+    }
+
+    char buffer[4096];
+    ssize_t n = read(conn.getCgiState()->output_fd, buffer, sizeof(buffer));
+    if (n > 0)
+    {
+        conn.getCgiState()->rawOutput.append(buffer, n);
+    }
+    else if (n == 0)
+    {
+        HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput);
+        conn.writeData(resp.toString());
+        reactor.removeConnection(event.fd);
+        std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
+    }
+    else
+    {
+        Error::logs("CGI read error on fd " + Utils::toString(event.fd));
+        reactor.removeConnection(event.fd);
+    }
 }
