@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 19:02:43 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/23 19:27:26 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,9 @@ void ConfigInterpreter::getConfigData(std::string filePath)
     blockKeywords.push_back("route");
     bool matched;
     std::string keyword;
-    // Check file extension (.config or .yaml)
+    // Check file extension (.conf or .yaml)
     if (!hasValidExtension(filePath)) {
-        throw std::runtime_error("Config file must have .config or .yaml extension");
+        throw std::runtime_error("Config file must have .conf or .yaml extension");
     }
     std::ifstream infile(filePath.c_str());
     if (!infile.is_open())
@@ -84,7 +84,7 @@ bool ConfigInterpreter::hasValidExtension(const std::string& filePath) const
     if (dotPos == std::string::npos)
         return false;
     std::string ext = filePath.substr(dotPos);
-    return (ext == ".config" || ext == ".yaml");
+    return (ext == ".conf" || ext == ".yaml");
 }
 
 std::string ConfigInterpreter::trim(const std::string& line) {
