@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 10:14:35 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/23 16:19:33 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,11 +55,7 @@ void Reactor::cleanupTimedOutConnections()
         removeConnection(timedOutFds[i]);
     }
 }
- /*
- === registerServer & add connection do the same thing one for server the other for the client ===
-  ?this function register and add the servers fd to pollfd
-  ?so we can start the listening on the expected events
- */
+
 void Reactor::registerServer(HttpServer& server)
 {
     const std::vector<int>& fds = server.getFds();
@@ -167,6 +163,7 @@ void Reactor::removeConnection(int fd)
             cgiRemover(connIt->second);
             return;
         }
+        delete connIt->second; //! i should delete the connection object
         connectionMap.erase(connIt);
     }
     for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it)
@@ -180,17 +177,6 @@ void Reactor::removeConnection(int fd)
     clientToServerMap.erase(fd);
 }
 
-/*
-=== this function is where the multiplexing magic happens ===
-
-*(x) poll() : lets the kernel ! multiple fds at once (monitoring for read/write events).
-@ It blocks until at least one fd is ready (here we block forever with -1).
-@ The kernel sets pfd.revents flags to show which events happened (e.g., POLLIN, POLLOUT).
-
-*(x) We loop over pollFDs:
-? If pfd.revents shows readable or writable, we create an Event struct to describe it.
-@ This way, our reactor collects all ready events so we can handle them later.
-*/
 void Reactor::poll()
 {
     readyEvents.clear();
@@ -199,14 +185,13 @@ void Reactor::poll()
     {
         if ( errno == EINTR )
             return;
-        throw std::runtime_error("Error: poll failed"); // todo seee why when i ctrl +c it throw error
+        throw std::runtime_error("Error: poll failed");
     }
     for (size_t i = 0; i < pollFDs.size(); ++i)
     {
         pollfd& pfd = pollFDs[i];
         if (pfd.revents == 0)
             continue;
-
         Event evt;
         evt.fd = pfd.fd;
 
