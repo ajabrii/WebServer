@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 12:47:46 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/23 09:39:54 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,5 +43,7 @@ void setConnectionHeaders(HttpResponse& response, bool keepAlive)
         response.headers["Connection"] = "close";
     }
 }
+
+
 
 

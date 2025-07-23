@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 09:35:38 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/23 10:14:05 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ static volatile bool g_shutdown = false;
 static std::vector<HttpServer *> *g_servers = NULL;
 static Reactor *g_reactor = NULL;
 // ========================= FUNCTION DECLARATIONS =========================
-HttpResponse createNotFoundResponse(const ServerConfig &config);
+
 HttpResponse createErrorResponse(int statusCode, const std::string &statusText, const ServerConfig &ServerConfig);
 void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv);
 void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server,
@@ -264,7 +264,6 @@ int main(int ac, char **av, char **envp)
             {
                 // Poll for events and cleanup expired connections
                 reactor.poll();
-                reactor.cleanupTimedOutConnections();
 
                 // Process all ready events
                 std::vector<Event> events = reactor.getReadyEvents();
@@ -288,6 +287,7 @@ int main(int ac, char **av, char **envp)
                         handleErrorEvent(event);
                     }
                 }
+                reactor.cleanupTimedOutConnections();
             }
             catch (const std::exception &e)
             {
@@ -354,7 +354,7 @@ void processReadableEvent(Reactor &reactor, const Event &event, const std::strin
     {
         std::cerr << "Connection read error: " << e.what() << std::endl;
         HttpResponse errorResp = createErrorResponse(e.getStatusCode(), e.what(), server->getConfig());
-        conn.writeData(errorResp.toString());        
+        conn.writeData(errorResp.toString());
         reactor.removeConnection(event.fd);
         return;
     }
@@ -397,8 +397,7 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server,
         }
         else
         {
-            // No route found - return 404
-            resp = createNotFoundResponse(server->getConfig());
+            resp = createErrorResponse(404, "Not Found", server->getConfig());
         }
 
         // Send response and handle connection persistence
@@ -408,11 +407,11 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server,
     {
         handleHttpException(reactor, conn, server, e);
     }
-    catch (const std::exception &e)
-    {
-        Error::logs("Connection error: " + std::string(e.what()));
-        reactor.removeConnection(event.fd);
-    }
+    // catch (const std::exception &e)
+    // {
+    //     Error::logs("Connection error: " + std::string(e.what()));
+    //     reactor.removeConnection(event.fd);
+    // }
 }
 
 void handleCgiRequest(Reactor &reactor, Connection &conn, CgiHandler &cgi, const ServerConfig &ServerConfig)
@@ -470,7 +469,6 @@ void handleHttpException(Reactor &reactor, Connection &conn, HttpServer *server,
 {
     std::string msg = e.what();
 
-    // Handle incomplete body (continue reading)
     if (msg.find("incomplete body") != std::string::npos)
     {
         return;
@@ -493,17 +491,6 @@ void handleHttpException(Reactor &reactor, Connection &conn, HttpServer *server,
 }
 
 // ========================= RESPONSE BUILDERS =========================
-HttpResponse createNotFoundResponse(const ServerConfig &config)
-{
-    HttpResponse resp;
-    resp.version = "HTTP/1.1";
-    resp.statusCode = 404;
-    resp.statusText = "Not Found";
-    resp.headers["content-type"] = "text/html";
-    resp.body = Error::loadErrorPage(404, config);
-    resp.headers["content-length"] = Utils::toString(resp.body.size());
-    return resp;
-}
 
 HttpResponse createErrorResponse(int statusCode, const std::string &statusText, const ServerConfig &ServerConfig)
 {
