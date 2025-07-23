@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 15:13:23 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/23 15:35:55 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,14 +157,11 @@ void processReadableEvent(Reactor &reactor, const Event &event, const std::strin
     Connection &conn = reactor.getConnection(event.fd);
     CgiState *cgiState = conn.getCgiState();
 
-    // Handle CGI process communication
     if (cgiState)
     {
         handleCgiState(reactor, conn, cgiState, event);
         return;
     }
-
-    // Handle regular HTTP request
     HttpServer *server = reactor.getServerForClient(event.fd);
     if (!server)
     {
@@ -172,14 +169,9 @@ void processReadableEvent(Reactor &reactor, const Event &event, const std::strin
         std::cerr << "Error: No server found for client fd: " << event.fd << std::endl;
         return;
     }
-
-    // Read data from client
-    try
-    {
+    try {
         conn.readData(server);
-    }
-    catch (const HttpRequest::HttpException &e)
-    {
+    } catch (const HttpRequest::HttpException &e) {
         std::cerr << "Connection read error: " << e.what() << std::endl;
         HttpResponse errorResp = createErrorResponse(e.getStatusCode(), e.what(), server->getConfig());
         conn.writeData(errorResp.toString());
@@ -194,21 +186,16 @@ void processReadableEvent(Reactor &reactor, const Event &event, const std::strin
     }
 }
 
-void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server,
-                        const Event &event, const std::string &cgiEnv)
+void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, const Event &event, const std::string &cgiEnv)
 {
     HttpRequest &req = conn.getCurrentRequest();
-
-    try
-    {
-        // Route matching
+    try {
         Router router;
         const RouteConfig *route = router.match(req, server->getConfig());
         HttpResponse resp;
 
         if (route)
         {
-            // Check if request should be handled by CGI
             CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
 
             if (cgi.IsCgi())
@@ -218,7 +205,6 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server,
             }
             else
             {
-                // Handle regular HTTP request
                 RequestDispatcher dispatcher;
                 resp = dispatcher.dispatch(req, *route, server->getConfig());
             }
@@ -230,18 +216,10 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server,
             reactor.removeConnection(event.fd);
         }
 
-        // Send response and handle connection persistence
         handleHttpResponse(reactor, conn, resp, req);
-    }
-    catch (const std::runtime_error &e)
-    {
+    } catch (const std::runtime_error &e) {
         handleHttpException(reactor, conn, server, e);
     }
-    // catch (const std::exception &e)
-    // {
-    //     Error::logs("Connection error: " + std::string(e.what()));
-    //     reactor.removeConnection(event.fd);
-    // }
 }
 
 void handleCgiRequest(Reactor &reactor, Connection &conn, CgiHandler &cgi, const ServerConfig &ServerConfig)
@@ -261,24 +239,18 @@ void handleCgiRequest(Reactor &reactor, Connection &conn, CgiHandler &cgi, const
     }
 }
 
-void handleHttpResponse(Reactor &reactor, Connection &conn, HttpResponse &resp,
-                        const HttpRequest &req)
+void handleHttpResponse(Reactor &reactor, Connection &conn, HttpResponse &resp, const HttpRequest &req)
 {
-    // Determine if connection should be kept alive
     bool keepAlive = shouldKeepAlive(req);
-
     if (conn.getRequestCount() >= REQUEST_LIMIT_PER_CONNECTION)
     {
         keepAlive = false;
     }
 
-    // Set connection headers and send response
     setConnectionHeaders(resp, keepAlive);
     conn.writeData(resp.toString());
     conn.reset();
     conn.updateLastActivity();
-
-    // Handle connection persistence
     if (keepAlive)
     {
         conn.setKeepAlive(true);
@@ -294,8 +266,7 @@ void handleHttpResponse(Reactor &reactor, Connection &conn, HttpResponse &resp,
     }
 }
 
-void handleHttpException(Reactor &reactor, Connection &conn, HttpServer *server,
-                         const std::runtime_error &e)
+void handleHttpException(Reactor &reactor, Connection &conn, HttpServer *server, const std::runtime_error &e)
 {
     std::string msg = e.what();
 
@@ -303,18 +274,7 @@ void handleHttpException(Reactor &reactor, Connection &conn, HttpServer *server,
     {
         return;
     }
-
-    // Handle parsing errors
-    std::cerr << "Parse error: " << msg << std::endl;
-
-    HttpResponse errorResp;
-    errorResp.version = "HTTP/1.1";
-    errorResp.statusCode = 400;
-    errorResp.statusText = "Bad Request";
-    errorResp.headers["content-type"] = "text/html";
-    errorResp.body = Error::loadErrorPage(400, server->getConfig());
-    errorResp.headers["content-length"] = Utils::toString(errorResp.body.size());
-
+    HttpResponse errorResp = createErrorResponse(400, "Bad Request", server->getConfig());
     setConnectionHeaders(errorResp, false);
     conn.writeData(errorResp.toString());
     reactor.removeConnection(conn.getFd());
