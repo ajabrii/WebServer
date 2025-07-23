@@ -1,15 +1,12 @@
 #!/bin/bash
 
 printf "Content-Type: text/html\r\n\r\n"
-sleep 20
+# sleep 20
 # Read POST data
-if [ "$REQUEST_METHOD" != "POST" ]; then
-    echo "Status: 405 Method Not Allowed"
-    echo "Content-Type: text/plain"
-    echo
-    echo "Only POST supported"
-    exit 1
-fi
+# if [ "$REQUEST_METHOD" != "POST" ]; then
+#     echo "Only POST supported"
+#     exit 1
+# fi
 
 read POST_DATA
 

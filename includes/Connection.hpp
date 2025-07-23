@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/07/22 16:10:33 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 20:33:13 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,9 @@ class Connection
         
         // Keep-alive related methods
         void updateLastActivity();
+        time_t getLastActivity() const{
+            return lastActivityTime;
+        }
         bool isKeepAlive() const;
         void setKeepAlive(bool keepAlive);
         bool isTimedOut() const;

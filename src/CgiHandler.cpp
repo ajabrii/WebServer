@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/22 17:45:01 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 20:33:22 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -326,6 +326,8 @@ std::string GetKey(std::map<std::string, std::string> map ,std::string target)
 
 CgiState *CgiHandler::execCgi(Connection &conn)
 {
+    conn.updateLastActivity();
+    std::cerr << "last activity time: " << conn.getLastActivity() << std::endl;
     CgiState *f = new CgiState();
     std::string cmd;
     std::string fp; // Full path to interpreter

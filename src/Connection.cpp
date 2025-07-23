@@ -6,13 +6,15 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 16:13:03 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 20:28:05 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 
 # include "../includes/HttpServer.hpp"
+# include "../includes/Errors.hpp"
+# define CGI_TIMEOUT_MINUTES 3 * 60
 
 Connection::Connection() 
     : client_fd(-1), 
@@ -149,6 +151,10 @@ void Connection::setKeepAlive(bool ka) {
 }
 
 bool Connection::isTimedOut() const {
+    
+    // if (cgiState && cgiState->pid != -1) {
+    //     return (std::time(0) - lastActivityTime) > CGI_TIMEOUT_MINUTES;
+    // }
     return (std::time(0) - lastActivityTime) > KEEP_ALIVE_TIMEOUT;
 }
 

@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/19 20:12:54 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 20:30:16 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,9 @@ void Reactor::cleanupTimedOutConnections()
     std::vector<int> timedOutFds;
     
     // Find timed out connections
+
+    // std::cerr << 
+    
     for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) 
     {
         if (it->second->isKeepAlive() && it->second->isTimedOut()) {
@@ -93,7 +96,10 @@ void Reactor::cgiRemover(Connection *conn)
 {
     int fds[2];
     CgiState *cgi = conn->getCgiState();
-
+    if (cgi == NULL) 
+    {
+        return;
+    }
     // fds[0] = cgi->input_fd;
     fds[0] = cgi->output_fd;
     fds[1] = conn->getFd();
@@ -102,7 +108,7 @@ void Reactor::cgiRemover(Connection *conn)
     {
         if (it->fd == fds[0]  || it->fd == fds[1])
         {
-            pollFDs.erase(it);
+            it = pollFDs.erase(it);
             std::cerr << "Removed fd: " << it->fd << " from pollFDs" << std::endl;
         }
     }
@@ -114,15 +120,13 @@ void Reactor::cgiRemover(Connection *conn)
             std::cerr << "Removing connection for fd: " << fds[i] << std::endl;
             connectionMap.erase(connIt);
         }
+        clientToServerMap.erase(fds[i]);
     }
     // clientToServerMap.erase(fds[2]);
     // clientToServerMap.erase(fds[0]);
     // clientToServerMap.erase(fds[1]);
     // close(fds[0]);
-    close(fds[0]);
-    close(fds[1]);
-    if (cgi->pid != -1)
-        waitpid(cgi->pid, NULL, 0);
+    
     // delete cgi;
 }
 

@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 17:44:05 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/22 20:12:44 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -298,7 +298,7 @@ int main(int ac, char **av, char **envp)
                         {
                             conn.getCgiState()->rawOutput.append(buffer, n);
                         }
-                            else if (n == 0) 
+                        else if (n == 0) 
                         {
                             std::cout << "\033[1;34m[CGI]\033[0m CGI output EOF detected\n";
                             // for (std::map<int, Connection*>::iterator it = reactor.getConnectionMap().begin(); it != reactor.getConnectionMap().end(); ++it) 
@@ -312,6 +312,8 @@ int main(int ac, char **av, char **envp)
                              std::cerr << "CONN FD is : " << conn.getFd() << ", cgi state address is : " << conn.getCgiState() << "\n";
 
                             reactor.removeConnection(event.fd); // 8 
+                            // delete cgiState;
+                            // conn.setCgiState(NULL);
                             // reactor.removeConnection(conn.getCgiState()->output_fd);
                             // cleanupCgi(conn);
                             std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
@@ -325,6 +327,7 @@ int main(int ac, char **av, char **envp)
                         }
                         std::cerr << "\033[1;34m[CGI]\033[0m CGI check timeout "<< std::endl;
                         time_t now = time(NULL);
+                        std::cerr << "\033[1;34m[CGI]\033[0m CGI start time: " << cgiState->startTime << ", current time: " << now << std::endl;
                         if (difftime(now, cgiState->startTime) > 3) 
                         {
                             std::cerr << "[CGI] Timeout expired for CGI script, killing process and closing connection\n";
@@ -569,6 +572,7 @@ int main(int ac, char **av, char **envp)
         std::cerr << "Fatal: " << e.what() << std::endl;
         
         // Emergency cleanup
+
         if (g_servers) {
             for (size_t i = 0; i < g_servers->size(); ++i) {
                 delete (*g_servers)[i];
