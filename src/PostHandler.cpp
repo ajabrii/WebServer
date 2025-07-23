@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 11:53:59 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 12:42:09 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,34 +19,32 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
-#include "../includes/Errors.hpp"
+# include "../includes/Errors.hpp"
 
-std::string extractBoundary(const std::string &ct)
+
+std::string extractBoundary(const std::string& ct)
 {
     size_t pos = ct.find("boundary=");
-    if (pos != std::string::npos)
-    {
+    if (pos != std::string::npos) {
         std::string boundary = ct.substr(pos + 9);
         // Remove any trailing semicolon or whitespace
         size_t end = boundary.find(';');
-        if (end != std::string::npos)
-        {
+        if (end != std::string::npos) {
             boundary = boundary.substr(0, end);
         }
         // Trim whitespace from the end
-        while (!boundary.empty() && (boundary[boundary.size() - 1] == ' ' ||
-                                     boundary[boundary.size() - 1] == '\t' ||
-                                     boundary[boundary.size() - 1] == '\r' ||
-                                     boundary[boundary.size() - 1] == '\n'))
-        {
-            boundary = boundary.substr(0, boundary.size() - 1);
+        while (!boundary.empty() && (boundary[boundary.size()-1] == ' ' ||
+                                   boundary[boundary.size()-1] == '\t' ||
+                                   boundary[boundary.size()-1] == '\r' ||
+                                   boundary[boundary.size()-1] == '\n')) {
+            boundary = boundary.substr(0, boundary.size()-1);
         }
         return boundary;
     }
     return "";
 }
 
-void writeFile(const std::string &path, const std::string &content)
+void writeFile(const std::string& path, const std::string& content)
 {
     std::ofstream out(path.c_str(), std::ios::binary);
     if (!out)
@@ -54,30 +52,29 @@ void writeFile(const std::string &path, const std::string &content)
     out << content;
 }
 
-void writeKeyValuesToFile(const std::string &path, const std::map<std::string, std::string> &fields)
+void writeKeyValuesToFile(const std::string& path, const std::map<std::string,std::string>& fields)
 {
-    std::cout << "file path: `" << path << "'" << std::endl;
+    std::cout <<"file path: `"<< path <<"'" <<std::endl;
     std::ofstream out(path.c_str());
     if (!out)
     {
         throw std::runtime_error("Error: Failed to write file: " + path);
     }
-    for (std::map<std::string, std::string>::const_iterator it = fields.begin(); it != fields.end(); ++it)
+    for (std::map<std::string,std::string>::const_iterator it=fields.begin(); it!=fields.end(); ++it)
         out << it->first << "=" << it->second << "\n";
 }
 
-// improve later on
-std::vector<Part> parseMultipart(const std::string &body, const std::string &boundary)
+//improve later on
+std::vector<Part> parseMultipart(const std::string& body, const std::string& boundary)
 {
     std::vector<Part> parts;
-    std::string sep = "--" + boundary; // boundaries are prefixed with -- according to RFC 2046
+    std::string sep = "--" + boundary;  // boundaries are prefixed with -- according to RFC 2046
 
     size_t pos = 0;
 
     // Find the first boundary
     pos = body.find(sep, pos);
-    if (pos == std::string::npos)
-    {
+    if (pos == std::string::npos) {
         return parts; // No boundary found
     }
 
@@ -86,18 +83,14 @@ std::vector<Part> parseMultipart(const std::string &body, const std::string &bou
         pos += sep.size();
 
         // Check for end boundary (boundary followed by --)
-        if (pos + 2 <= body.size() && body.substr(pos, 2) == "--")
-        {
+        if (pos + 2 <= body.size() && body.substr(pos, 2) == "--") {
             break; // End of multipart data
         }
 
         // Skip line ending after boundary
-        if (pos + 2 <= body.size() && body.substr(pos, 2) == "\r\n")
-        {
+        if (pos + 2 <= body.size() && body.substr(pos, 2) == "\r\n") {
             pos += 2;
-        }
-        else if (pos + 1 <= body.size() && body.substr(pos, 1) == "\n")
-        {
+        } else if (pos + 1 <= body.size() && body.substr(pos, 1) == "\n") {
             pos += 1;
         }
 
@@ -105,12 +98,10 @@ std::vector<Part> parseMultipart(const std::string &body, const std::string &bou
         size_t headerEnd = body.find("\r\n\r\n", pos);
         size_t headerLength = 4; // length of "\r\n\r\n"
 
-        if (headerEnd == std::string::npos)
-        {
+        if (headerEnd == std::string::npos) {
             headerEnd = body.find("\n\n", pos);
             headerLength = 2; // length of "\n\n"
-            if (headerEnd == std::string::npos)
-            {
+            if (headerEnd == std::string::npos) {
                 break; // Invalid format
             }
         }
@@ -123,8 +114,7 @@ std::vector<Part> parseMultipart(const std::string &body, const std::string &bou
 
         // Find next boundary
         size_t nextSep = body.find(sep, pos);
-        if (nextSep == std::string::npos)
-        {
+        if (nextSep == std::string::npos) {
             nextSep = body.size(); // Use end of body if no next boundary
         }
 
@@ -133,36 +123,29 @@ std::vector<Part> parseMultipart(const std::string &body, const std::string &bou
         std::string content = body.substr(pos, nextSep - pos);
 
         // Remove trailing line ending from content (usually there's a \r\n before the next boundary)
-        if (content.size() >= 2 && content.substr(content.size() - 2) == "\r\n")
-        {
-            content = content.substr(0, content.size() - 2);
-        }
-        else if (content.size() >= 1 && content.substr(content.size() - 1) == "\n")
-        {
-            content = content.substr(0, content.size() - 1);
+        if (content.size() >= 2 && content.substr(content.size()-2) == "\r\n") {
+            content = content.substr(0, content.size()-2);
+        } else if (content.size() >= 1 && content.substr(content.size()-1) == "\n") {
+            content = content.substr(0, content.size()-1);
         }
 
         Part part;
 
         // Parse filename from header
         size_t fnPos = header.find("filename=\"");
-        if (fnPos != std::string::npos)
-        {
-            size_t fnEnd = header.find("\"", fnPos + 10);
-            if (fnEnd != std::string::npos)
-            {
-                part.filename = header.substr(fnPos + 10, fnEnd - (fnPos + 10));
+        if (fnPos != std::string::npos) {
+            size_t fnEnd = header.find("\"", fnPos+10);
+            if (fnEnd != std::string::npos) {
+                part.filename = header.substr(fnPos+10, fnEnd - (fnPos+10));
             }
         }
 
         // Parse name from header
         size_t namePos = header.find("name=\"");
-        if (namePos != std::string::npos)
-        {
-            size_t nameEnd = header.find("\"", namePos + 6);
-            if (nameEnd != std::string::npos)
-            {
-                part.name = header.substr(namePos + 6, nameEnd - (namePos + 6));
+        if (namePos != std::string::npos) {
+            size_t nameEnd = header.find("\"", namePos+6);
+            if (nameEnd != std::string::npos) {
+                part.name = header.substr(namePos+6, nameEnd - (namePos+6));
             }
         }
 
@@ -171,15 +154,14 @@ std::vector<Part> parseMultipart(const std::string &body, const std::string &bou
 
         // Move to the next boundary
         pos = nextSep;
-        if (pos >= body.size())
-            break;
+        if (pos >= body.size()) break;
     }
     return parts;
 }
 
-std::map<std::string, std::string> parseFormUrlEncoded(const std::string &body)
+std::map<std::string,std::string> parseFormUrlEncoded(const std::string& body)
 {
-    std::map<std::string, std::string> fields;
+    std::map<std::string,std::string> fields;
     std::istringstream ss(body);
     std::string pair;
     while (std::getline(ss, pair, '&'))
@@ -188,14 +170,14 @@ std::map<std::string, std::string> parseFormUrlEncoded(const std::string &body)
         if (eq != std::string::npos)
         {
             std::string key = pair.substr(0, eq);
-            std::string value = pair.substr(eq + 1);
+            std::string value = pair.substr(eq+1);
             fields[key] = value;
         }
     }
     return fields;
 }
 
-HttpResponse makeErrorResponse(int code, const std::string &text, const ServerConfig &serverConfig)
+HttpResponse makeErrorResponse(int code, const std::string& text, const ServerConfig& serverConfig)
 {
     HttpResponse resp;
     resp.statusCode = code;
@@ -205,11 +187,11 @@ HttpResponse makeErrorResponse(int code, const std::string &text, const ServerCo
     return resp;
 }
 
-PostHandler::PostHandler() {}
+PostHandler::PostHandler() { }
 
-PostHandler::~PostHandler() {}
+PostHandler::~PostHandler() { }
 
-HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &route, const ServerConfig &serverConfig) const
+HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& route, const ServerConfig& serverConfig) const
 {
     HttpResponse resp;
     resp.version = req.version;
@@ -217,8 +199,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
     std::string originalCt = req.GetHeader("content-type");
     std::string ct = originalCt;
     std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower);
-    if (route.uploadDir.empty())
-    {
+    if (route.uploadDir.empty()) {
         return makeErrorResponse(500, "Upload directory not configured.", serverConfig);
     }
     try
@@ -231,26 +212,20 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
 
             std::vector<Part> parts = parseMultipart(req.body, boundary);
 
-            std::vector<std::string> uploadedFiles;
+            bool saved = false;
             for (size_t i = 0; i < parts.size(); ++i)
             {
                 if (!parts[i].filename.empty())
                 {
                     std::string filepath = route.uploadDir + "/" + parts[i].filename;
                     writeFile(filepath, parts[i].content);
-                    uploadedFiles.push_back(filepath);
+                    resp.body = "<html><head><title>Uploads</title></head><body><h1>File uploaded: " + filepath +"</h1></body></html>";
+                    saved = true;
+                    break;
                 }
             }
-            if (uploadedFiles.empty())
+            if (!saved)
                 return makeErrorResponse(400, "No file found in multipart data.", serverConfig);
-
-            // Build response showing all uploaded files
-            resp.body = "<html><head><title>Uploads</title></head><body><h1>Files uploaded:</h1><ul>";
-            for (size_t i = 0; i < uploadedFiles.size(); ++i)
-            {
-                resp.body += "<li>" + uploadedFiles[i] + "</li>";
-            }
-            resp.body += "</ul></body></html>";
         }
         else if (ct.find("application/x-www-form-urlencoded") != std::string::npos)
         {
@@ -258,7 +233,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
             std::string filepath = route.uploadDir + "/form_" + Utils::toString(std::time(0)) + ".txt";
             writeKeyValuesToFile(filepath, fields);
             resp.version = "HTTP/1.1";
-            resp.body = "<html><head><title>Uploads</title></head><body><h1>File uploaded: " + filepath + "</h1></body></html>";
+            resp.body = "<html><head><title>Uploads</title></head><body><h1>File uploaded: " + filepath +"</h1></body></html>";
         }
         else if (ct.find("application/json") != std::string::npos)
         {
@@ -273,8 +248,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
             resp.body = "Data saved to: " + filepath;
         }
     }
-    catch (const std::exception &e)
-    {
+    catch (const std::exception& e) {
 
         return makeErrorResponse(500, e.what(), serverConfig);
     }
@@ -284,3 +258,4 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
     resp.headers["content-length"] = Utils::toString(resp.body.size());
     return resp;
 }
+

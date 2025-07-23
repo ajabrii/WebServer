@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/07 11:31:49 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 07:52:09 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 12:46:15 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,17 +48,11 @@ std::string Error::loadErrorPage(int statusCode, const ServerConfig& config)
         {
             std::stringstream buffer;
             buffer << file.rdbuf();
-            if (file.bad() || buffer.str().empty())
-            {
-                std::cerr << "Error reading or empty error page: " << filePath << std::endl;
-                return defaultErrResponses[statusCode];
-            }
             return buffer.str();
         }
     }
     return defaultErrResponses[statusCode];
 }
-
 
 
 void Error::logs(const std::string& message)

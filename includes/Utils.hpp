@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 13:18:01 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 12:47:57 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,6 @@
 #define UTILS_HPP
 
 #include "../includes/HttpServer.hpp"
-#include "../includes/Reactor.hpp"
-#include "../includes/Router.hpp"
-#include "../includes/RequestDispatcher.hpp"
-#include "../includes/CgiHandler.hpp"
-#include "../includes/Errors.hpp"
-#include "../includes/Utils.hpp"
-
-#define REQUEST_LIMIT_PER_CONNECTION 100
-
 
 #include <string>
 #include <sstream>
@@ -38,21 +29,4 @@ namespace Utils
 }
 bool shouldKeepAlive(const HttpRequest& request);
 void setConnectionHeaders(HttpResponse& response, bool keepAlive);
-HttpResponse createErrorResponse(int statusCode, const std::string &statusText, const ServerConfig &ServerConfig);
-void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv);
-void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server,
-                        const Event &event, const std::string &cgiEnv);
-void handleCgiRequest(Reactor &reactor, Connection &conn, CgiHandler &cgi, const ServerConfig &ServerConfig);
-void handleHttpResponse(Reactor &reactor, Connection &conn, HttpResponse &resp,
-                        const HttpRequest &req);
-void handleHttpException(Reactor &reactor, Connection &conn, HttpServer *server,
-                         const std::runtime_error &e);
-void handleErrorEvent(const Event &event);
-void handleNewConnection(Reactor &reactor, const Event &event);
-void handleCgiState(Reactor &reactor, Connection &conn, CgiState *cgiState, const Event &event);
-HttpResponse parseCgiOutput(const std::string &raw);
-void ltrim(std::string &s);
-std::string toLower(const std::string &s);
-
-
 #endif

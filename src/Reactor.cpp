@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 10:14:35 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/22 11:36:45 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,71 +88,34 @@ void Reactor::addConnection(Connection* conn, HttpServer* server)
 
 void Reactor::cgiRemover(Connection *conn)
 {
+    int fds[2];
     CgiState *cgi = conn->getCgiState();
-    if (!cgi)
-        return;
 
-    std::vector<int> fdsToRemove;
-    fdsToRemove.push_back(cgi->output_fd);
-    fdsToRemove.push_back(conn->getFd());
+    fds[0] = cgi->output_fd;
+    fds[1] = conn->getFd();
 
-    // Remove from pollFDs - iterate backwards to avoid iterator invalidation
-    for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end();)
+    for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it)
     {
-        bool shouldErase = false;
-        for (size_t i = 0; i < fdsToRemove.size(); ++i)
+        if (it->fd == fds[0]  || it->fd == fds[1])
         {
-            if (it->fd == fdsToRemove[i])
-            {
-                std::cerr << "Removed fd: " << it->fd << " from pollFDs" << std::endl;
-                shouldErase = true;
-                break;
-            }
+            pollFDs.erase(it);
+            std::cerr << "Removed fd: " << it->fd << " from pollFDs" << std::endl;
         }
-        if (shouldErase)
-            it = pollFDs.erase(it);
-        else
-            ++it;
     }
-
-    // Remove from connectionMap
-    for (size_t i = 0; i < fdsToRemove.size(); ++i)
+    for (int i = 0; i < 2; ++i)
     {
-        std::map<int, Connection*>::iterator connIt = connectionMap.find(fdsToRemove[i]);
+        std::map<int, Connection*>::iterator connIt = connectionMap.find(fds[i]);
         if (connIt != connectionMap.end())
         {
-            std::cerr << "Removing connection for fd: " << fdsToRemove[i] << std::endl;
+            std::cerr << "Removing connection for fd: " << fds[i] << std::endl;
             connectionMap.erase(connIt);
         }
-        clientToServerMap.erase(fdsToRemove[i]);
     }
 
-    // Close file descriptors only if they're valid
-    if (cgi->output_fd != -1)
-    {
-        close(cgi->output_fd);
-        cgi->output_fd = -1;
-    }
-    if (cgi->input_fd != -1)
-    {
-        close(cgi->input_fd);
-        cgi->input_fd = -1;
-    }
-    
-    // Close the client socket
-    if (conn->getFd() != -1)
-    {
-        close(conn->getFd());
-    }
-
-    // Wait for the CGI process and clean up
+    close(fds[0]);
+    close(fds[1]);
     if (cgi->pid != -1)
-    {
         waitpid(cgi->pid, NULL, 0);
-        cgi->pid = -1;
-    }
-    
-    delete conn;
 }
 
 void Reactor::removeConnection(int fd)
@@ -196,11 +159,7 @@ void Reactor::poll()
     readyEvents.clear();
     int ret = ::poll(pollFDs.data(), pollFDs.size(), 1000); // 1 second timeout for keep-alive cleanup
     if (ret < 0)
-    {
-        if ( errno == EINTR )
-            return;
-        throw std::runtime_error("Error: poll failed"); // todo seee why when i ctrl +c it throw error
-    }
+        throw std::runtime_error("Error: poll failed");
     for (size_t i = 0; i < pollFDs.size(); ++i)
     {
         pollfd& pfd = pollFDs[i];

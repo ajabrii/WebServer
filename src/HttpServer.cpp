@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 09:43:54 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/16 09:26:48 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ void HttpServer::setup()
         if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
             throw std::runtime_error("Error: bind failed on port " + Utils::toString(config.port[i]));
 
-        if (listen(fd, CLIENT_QUEUE) < 0)
+        if (listen(fd, 128) < 0)
             throw std::runtime_error("Error: listen failed");
 
         listen_fds.push_back(fd);
