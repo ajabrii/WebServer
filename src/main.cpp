@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 20:12:44 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/23 10:13:13 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -235,6 +235,10 @@ int main(int ac, char **av, char **envp)
                 }
                 else if (event.isReadable || event.isPullHUP)
                 {
+                    if (event.isPullHUP)
+                    {
+                        std::cerr << "[POLLHUP] Connection closed: " << event.fd << std::endl;
+                    }
                     Connection &conn = reactor.getConnection(event.fd);
                     CgiState *cgiState = conn.getCgiState();
                     if (cgiState)
@@ -248,11 +252,7 @@ int main(int ac, char **av, char **envp)
                                 std::cerr << ", remaining bytes: " << remaining << std::endl;
                                 if (remaining > 0)
                                 {
-                                    ssize_t written = write(
-                                        cgiState->input_fd,
-                                        body.c_str() + cgiState->bytesWritten,
-                                        remaining
-                                    );
+                                    ssize_t written = write(cgiState->input_fd, body.c_str() + cgiState->bytesWritten,remaining);
 
                                     if (written > 0)
                                     {
@@ -549,6 +549,7 @@ int main(int ac, char **av, char **envp)
                 {
                     handleErrorEvent(event);
                 }
+                
             } // End of for loop
             } catch (const std::exception& e) {
                 std::cerr << "Event loop error: " << e.what() << std::endl;
