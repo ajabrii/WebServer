@@ -7,12 +7,89 @@
   <title>POST Method Testing</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white p-6">
-  <h1 class="text-2xl font-bold mb-4">📤 Test POST Requests</h1>
-  <form action="/uploads" method="POST" enctype="multipart/form-data" class="space-y-4">
-    <input type="text" name="username" placeholder="Username" class="p-2 w-full rounded text-black">
-    <input type="file" name="upload" class="block">
-    <button class="bg-green-600 px-4 py-2 rounded">Upload</button>
-  </form>
+<body class="bg-gray-950 text-white min-h-screen p-6 font-sans">
+  <div class="max-w-3xl mx-auto space-y-10">
+    <h1 class="text-3xl font-bold text-green-400">📤 POST Method Tests</h1>
+
+    <!-- Form URL Encoded -->
+    <section class="bg-gray-900 p-4 rounded shadow">
+      <h2 class="text-xl font-semibold mb-2">Form Data (application/x-www-form-urlencoded)</h2>
+      <form action="/form" method="POST" class="space-y-2">
+        <input type="text" name="username" placeholder="Username" class="w-full p-2 rounded bg-white text-black">
+        <input type="email" name="email" placeholder="Email" class="w-full p-2 rounded bg-white text-black">
+        <button type="submit" class="bg-green-600 px-4 py-2 rounded hover:bg-green-500">Submit</button>
+      </form>
+    </section>
+
+    <!-- JSON via Fetch -->
+    <section class="bg-gray-900 p-4 rounded shadow">
+      <h2 class="text-xl font-semibold mb-2">JSON POST (application/json)</h2>
+      <textarea id="jsonPayload" rows="4" placeholder='{"message":"Hello"}' class="w-full p-2 rounded bg-white text-black"></textarea>
+      <button onclick="postJSON()" class="mt-2 bg-green-600 px-4 py-2 rounded hover:bg-green-500">Send JSON</button>
+    </section>
+
+    <!-- Plain Text -->
+    <section class="bg-gray-900 p-4 rounded shadow">
+      <h2 class="text-xl font-semibold mb-2">Plain Text (text/plain)</h2>
+      <textarea id="plainText" rows="3" placeholder="Some plain text..." class="w-full p-2 rounded bg-white text-black"></textarea>
+      <button onclick="postPlainText()" class="mt-2 bg-green-600 px-4 py-2 rounded hover:bg-green-500">Send Text</button>
+    </section>
+
+    <!-- File Upload -->
+    <section class="bg-gray-900 p-4 rounded shadow">
+      <h2 class="text-xl font-semibold mb-2">Single File Upload</h2>
+      <form action="/uploads" method="POST" enctype="multipart/form-data" class="space-y-2">
+        <input type="file" name="file" class="block w-full">
+        <button class="bg-green-600 px-4 py-2 rounded hover:bg-green-500">Upload</button>
+      </form>
+    </section>
+
+    <!-- Multiple Files Upload -->
+    <section class="bg-gray-900 p-4 rounded shadow">
+      <h2 class="text-xl font-semibold mb-2">Multiple Files Upload</h2>
+      <form action="/uploads" method="POST" enctype="multipart/form-data" class="space-y-2">
+        <input type="file" name="files" multiple class="block w-full">
+        <button class="bg-green-600 px-4 py-2 rounded hover:bg-green-500">Upload Multiple</button>
+      </form>
+    </section>
+
+    <!-- Edge Case Test -->
+    <section class="bg-gray-900 p-4 rounded shadow">
+      <h2 class="text-xl font-semibold mb-2">Edge Case: Empty POST</h2>
+      <form action="/uploads/" method="POST">
+        <button class="bg-yellow-600 px-4 py-2 rounded hover:bg-yellow-500">Send Empty POST</button>
+      </form>
+    </section>
+  </div>
+
+  <script>
+    async function postJSON() {
+      const data = document.getElementById('jsonPayload').value;
+      try {
+        const res = await fetch('/json', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: data
+        });
+        alert(await res.text());
+      } catch (err) {
+        alert('JSON POST Failed');
+      }
+    }
+
+    async function postPlainText() {
+      const text = document.getElementById('plainText').value;
+      try {
+        const res = await fetch('/plaintext', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: text
+        });
+        alert(await res.text());
+      } catch (err) {
+        alert('Text POST Failed');
+      }
+    }
+  </script>
 </body>
 </html>
