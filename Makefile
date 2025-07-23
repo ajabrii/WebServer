@@ -31,7 +31,8 @@ SRC = \
 	$(SRCDIR)/RequestDispatcher.cpp \
 	$(SRCDIR)/RouteConfig.cpp \
 	$(SRCDIR)/ServerConfig.cpp \
-	$(SRCDIR)/Utils.cpp
+	$(SRCDIR)/Utils.cpp \
+	$(SRCDIR)/ResponseBuilder.cpp
 
 HEADERS = \
 	$(INCDIR)/CgiHandler.hpp \
@@ -50,7 +51,8 @@ HEADERS = \
 	$(INCDIR)/RequestDispatcher.hpp \
 	$(INCDIR)/RouteConfig.hpp \
 	$(INCDIR)/ServerConfig.hpp \
-	$(INCDIR)/Utils.hpp
+	$(INCDIR)/Utils.hpp \
+	$(INCDIR)/ResponseBuilder.hpp
 # Object files
 OBJ = $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 

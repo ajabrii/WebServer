@@ -6,13 +6,14 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 12:15:42 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/23 15:13:23 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/GetHandler.hpp"
 #include "../includes/RequestDispatcher.hpp"
 #include "../includes/Utils.hpp"
+#include "../includes/ResponseBuilder.hpp"
 #include <iostream>
 #include <fcntl.h>
 #include <dirent.h>
@@ -21,14 +22,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cctype>
-# include "../includes/Errors.hpp"
+#include "../includes/Errors.hpp"
 
-GetHandler::GetHandler() { }
+GetHandler::GetHandler() {}
 
-GetHandler::~GetHandler() { }
+GetHandler::~GetHandler() {}
 
-
-HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route, const ServerConfig& serverConfig) const
+HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig &route, const ServerConfig &serverConfig) const
 {
     std::cout << URI_PROCESS_LOG << req.uri << std::endl;
     if (!route.redirect.empty())
@@ -54,8 +54,7 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig& route
     return createNotFoundResponse(serverConfig);
 }
 
-
-HttpResponse GetHandler::handleDirectory(const std::string& dirPath, const std::string& urlPath, bool listingEnabled, const ServerConfig& serverConfig, const std::string& indexFile) const
+HttpResponse GetHandler::handleDirectory(const std::string &dirPath, const std::string &urlPath, bool listingEnabled, const ServerConfig &serverConfig, const std::string &indexFile) const
 {
     if (indexFile.empty() && listingEnabled)
         return handleDirectoryListing(dirPath, urlPath, serverConfig);
@@ -69,22 +68,13 @@ HttpResponse GetHandler::handleDirectory(const std::string& dirPath, const std::
     return createForbiddenResponse(serverConfig);
 }
 
-
-HttpResponse GetHandler::handleRedirect(const std::string& redirectUrl) const
+HttpResponse GetHandler::handleRedirect(const std::string &redirectUrl) const
 {
     std::cout << REDIRCT_LOG << redirectUrl << std::endl;
-    HttpResponse res;
-    res.statusCode = 301;
-    res.statusText = "Moved Permanently";
-    res.headers["Location"] = redirectUrl;
-    res.headers["Content-Type"] = "text/html";
-    res.headers["Content-Length"] = Utils::toString(res.body.size());
-
-    return res;
+    return ResponseBuilder::createRedirectResponse(301, "Moved Permanently", redirectUrl);
 }
 
-
-HttpResponse GetHandler::serveStaticFile(const std::string& filePath, const ServerConfig& serverConfig) const
+HttpResponse GetHandler::serveStaticFile(const std::string &filePath, const ServerConfig &serverConfig) const
 {
     std::cout << STATIC_FILE_LOG << filePath << "'" << std::endl;
     std::ifstream file(filePath.c_str(), std::ios::binary);
@@ -107,10 +97,10 @@ HttpResponse GetHandler::serveStaticFile(const std::string& filePath, const Serv
     return res;
 }
 
-HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, const std::string& urlPath, const ServerConfig& serverConfig) const
+HttpResponse GetHandler::handleDirectoryListing(const std::string &dirPath, const std::string &urlPath, const ServerConfig &serverConfig) const
 {
     std::cout << DIRECTORY_LISTING_LOG << dirPath << std::endl;
-    DIR* dir = opendir(dirPath.c_str());
+    DIR *dir = opendir(dirPath.c_str());
     if (!dir)
         return createForbiddenResponse(serverConfig);
     std::ostringstream html;
@@ -131,7 +121,7 @@ HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, cons
     html << "<div class='container'>";
     html << "<h1>📁 Index of " << urlPath << "</h1>";
     html << "<table><tr><th>Name</th><th>Type</th></tr>";
-    struct dirent* entry;
+    struct dirent *entry;
     while ((entry = readdir(dir)) != NULL)
     {
         std::string name = entry->d_name;
@@ -149,9 +139,9 @@ HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, cons
             {
                 type = "Directory";
                 icon = "📁";
-                if (linkPath[linkPath.length() - 1] != '/') {
+                if (linkPath[linkPath.length() - 1] != '/')
+                {
                     linkPath += "/";
-
                 }
             }
         }
@@ -171,16 +161,18 @@ HttpResponse GetHandler::handleDirectoryListing(const std::string& dirPath, cons
     return res;
 }
 
-std::string GetHandler::getMimeType(const std::string& filePath) const
+std::string GetHandler::getMimeType(const std::string &filePath) const
 {
     size_t dotPos = filePath.find_last_of('.');
-    if (dotPos == std::string::npos) {
+    if (dotPos == std::string::npos)
+    {
         return "application/octet-stream";
     }
 
     std::string extension = filePath.substr(dotPos + 1);
 
-    for (size_t i = 0; i < extension.length(); ++i) {
+    for (size_t i = 0; i < extension.length(); ++i)
+    {
         extension[i] = std::tolower(extension[i]);
     }
 
@@ -226,11 +218,12 @@ std::string GetHandler::getMimeType(const std::string& filePath) const
     return "application/octet-stream";
 }
 
-std::string GetHandler::buildLinkPath(const std::string& urlPath, const std::string& name) const
+std::string GetHandler::buildLinkPath(const std::string &urlPath, const std::string &name) const
 {
     std::string linkPath = urlPath;
 
-    if (linkPath[linkPath.length() - 1] != '/') {
+    if (linkPath[linkPath.length() - 1] != '/')
+    {
         linkPath += "/";
     }
 
@@ -238,20 +231,17 @@ std::string GetHandler::buildLinkPath(const std::string& urlPath, const std::str
     return linkPath;
 }
 
-
-HttpResponse GetHandler::createNotFoundResponse(const ServerConfig& serverConfig) const
+HttpResponse GetHandler::createNotFoundResponse(const ServerConfig &serverConfig) const
 {
     return createErrorResponse(404, "Not Found", serverConfig);
 }
 
-
-HttpResponse GetHandler::createForbiddenResponse(const ServerConfig& serverConfig) const
+HttpResponse GetHandler::createForbiddenResponse(const ServerConfig &serverConfig) const
 {
     return createErrorResponse(403, "Forbidden", serverConfig);
 }
 
-
-HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string& statusText, const ServerConfig& serverConfig) const
+HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string &statusText, const ServerConfig &serverConfig) const
 {
     std::cout << "\033[1;31m[GET Handler]\033[0m Creating " << statusCode << " error response" << std::endl;
     std::cout << "\033[1;33m[GET Handler]\033[0m Using default error page" << std::endl;
@@ -260,12 +250,12 @@ HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string& 
     res.statusCode = statusCode;
     res.statusText = statusText;
     res.headers["content-type"] = "text/html";
-    res.body = Error::loadErrorPage(statusCode, serverConfig); // Load body first
+    res.body = Error::loadErrorPage(statusCode, serverConfig);        // Load body first
     res.headers["content-length"] = Utils::toString(res.body.size()); // Then set content-length
     return res;
 }
 
-std::string GetHandler::extractPath(const std::string& uri) const
+std::string GetHandler::extractPath(const std::string &uri) const
 {
 
     size_t queryPos = uri.find('?');
@@ -284,7 +274,7 @@ std::string GetHandler::extractPath(const std::string& uri) const
     return uri.substr(0, endPos);
 }
 
-std::string GetHandler::normalizePath(const std::string& path) const
+std::string GetHandler::normalizePath(const std::string &path) const
 {
     // PATH NORMALIZATION: Clean up the path for security and consistency
     // This function resolves relative path components and removes redundancies
@@ -298,7 +288,8 @@ std::string GetHandler::normalizePath(const std::string& path) const
     // STEP 1: Replace multiple consecutive slashes with single slash
     // This handles cases like "///" or "/path//to//file"
     size_t pos = 0;
-    while ((pos = normalized.find("//", pos)) != std::string::npos) {
+    while ((pos = normalized.find("//", pos)) != std::string::npos)
+    {
         normalized.replace(pos, 2, "/");
     }
 
@@ -309,16 +300,23 @@ std::string GetHandler::normalizePath(const std::string& path) const
     std::string component;
 
     // Split by '/' delimiter
-    while (std::getline(stream, component, '/')) {
-        if (component.empty() || component == ".") {
+    while (std::getline(stream, component, '/'))
+    {
+        if (component.empty() || component == ".")
+        {
             continue;
-        } else if (component == "..") {
-            if (!components.empty()) {
+        }
+        else if (component == "..")
+        {
+            if (!components.empty())
+            {
                 components.pop_back();
             }
             // If components is empty, we're trying to go above root
             // Ignore this (can't go above root directory)
-        } else {
+        }
+        else
+        {
             // Regular path component - add it to our list
             components.push_back(component);
         }
@@ -326,13 +324,16 @@ std::string GetHandler::normalizePath(const std::string& path) const
 
     // STEP 3: Rebuild the normalized path
     std::string result = "/"; // Always start with root
-    for (size_t i = 0; i < components.size(); ++i) {
-        if (i > 0) result += "/"; // Add separator between components
+    for (size_t i = 0; i < components.size(); ++i)
+    {
+        if (i > 0)
+            result += "/"; // Add separator between components
         result += components[i];
     }
 
     // STEP 4: Handle special case where original path was just "/"
-    if (components.empty() && !path.empty() && path[0] == '/') {
+    if (components.empty() && !path.empty() && path[0] == '/')
+    {
         return "/";
     }
 

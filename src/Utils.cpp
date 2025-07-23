@@ -6,11 +6,12 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 13:18:23 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/23 15:13:23 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Utils.hpp"
+#include "../includes/ResponseBuilder.hpp"
 
 std::string clean_line(std::string line)
 {
@@ -24,7 +25,7 @@ std::string clean_line(std::string line)
     return line;
 }
 
-bool shouldKeepAlive(const HttpRequest& request)
+bool shouldKeepAlive(const HttpRequest &request)
 {
     std::string connection = request.GetHeader("connection");
     std::transform(connection.begin(), connection.end(), connection.begin(), ::tolower); // http is case-insensitive
@@ -34,18 +35,18 @@ bool shouldKeepAlive(const HttpRequest& request)
     return true;
 }
 
-void setConnectionHeaders(HttpResponse& response, bool keepAlive)
+void setConnectionHeaders(HttpResponse &response, bool keepAlive)
 {
-    if (keepAlive) {
+    if (keepAlive)
+    {
         response.headers["Connection"] = "keep-alive";
         response.headers["Keep-Alive"] = "timeout=60, max=100";
-    } else {
+    }
+    else
+    {
         response.headers["Connection"] = "close";
     }
 }
-
-
-
 
 // ========================= UTILITY FUNCTIONS =========================
 std::string toLower(const std::string &s)
@@ -149,7 +150,6 @@ void handleNewConnection(Reactor &reactor, const Event &event)
     }
 }
 
-
 // ========================= HELPER FUNCTIONS =========================
 
 void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv)
@@ -226,6 +226,8 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server,
         else
         {
             resp = createErrorResponse(404, "Not Found", server->getConfig());
+            conn.writeData(resp.toString());
+            reactor.removeConnection(event.fd);
         }
 
         // Send response and handle connection persistence
@@ -322,16 +324,8 @@ void handleHttpException(Reactor &reactor, Connection &conn, HttpServer *server,
 
 HttpResponse createErrorResponse(int statusCode, const std::string &statusText, const ServerConfig &ServerConfig)
 {
-    HttpResponse resp;
-    resp.version = "HTTP/1.1";
-    resp.statusCode = statusCode;
-    resp.statusText = statusText;
-    resp.headers["content-type"] = "text/html";
-    resp.body = Error::loadErrorPage(statusCode, ServerConfig);
-    resp.headers["content-length"] = Utils::toString(resp.body.size());
-    return resp;
+    return ResponseBuilder::createErrorResponse(statusCode, statusText, ServerConfig);
 }
-
 
 void handleCgiState(Reactor &reactor, Connection &conn, CgiState *cgiState, const Event &event)
 {
