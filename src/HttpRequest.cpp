@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 16:40:01 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/23 19:24:21 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -202,14 +202,14 @@ bool HttpRequest::parseBody(std::string& connectionBuffer, long maxBodySize) {
         return false;
     } else { // Chunked body
         // Call the incremental chunked decoder
-        return decodeChunked(connectionBuffer, this->body);
+        return decodeChunked(connectionBuffer, this->body, maxBodySize);
     }
 }
 
 // --- decodeChunkedIncremental implementation ---
 // This function will consume valid chunks from 'buffer' and append to 'decodedOutput'
 // Returns true if the 0-chunk (end of message) is found and consumed.
-bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput) {
+bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput, long maxBodySize) {
     size_t pos = 0;
     while (pos < buffer.length()) {
         size_t newline_pos = buffer.find("\r\n", pos);
@@ -226,7 +226,9 @@ bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput)
         if (ss.fail() || !ss.eof()) { // Check for parsing errors or extra characters on size line
             throwHttpError(400, "Invalid chunk size format");
         }
-
+        if (chunkSize > 0 && (decodedOutput.length() + chunkSize) > static_cast<size_t>(maxBodySize)) {
+            throwHttpError(413, "body Too Large");
+        }
         if (chunkSize == 0) { // End of chunked message
             // Check for the final CRLF after the 0-chunk
             if (buffer.length() < newline_pos + 4) { // Need "0\r\n\r\n"

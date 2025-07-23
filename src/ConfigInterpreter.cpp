@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 17:00:36 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/23 19:02:43 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -415,7 +415,7 @@ void ConfigInterpreter::parseClientMaxBodySizeOption(ServerConfig& server, const
     // Convert to number (using strtoul for better error handling)
     char* endptr;
     unsigned long baseSize = std::strtoul(numStr.c_str(), &endptr, 10);
-    if (*endptr != '\0' || baseSize == 0) {
+    if (*endptr != '\0') {
         throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
     }
     

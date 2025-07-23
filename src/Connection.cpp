@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 12:51:53 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/23 09:58:35 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,12 +77,6 @@ void Connection::readData(HttpServer* server)
             throw std::runtime_error("Failed to read from client socket: " + std::string(strerror(errno)));
         }
     }
-    else if (bytesRead == 0) {
-        // Client closed the connection gracefully
-        // For keep-alive connections, this is normal when client closes
-        throw std::runtime_error("Client disconnected (bytesRead == 0)"); // This should trigger connection cleanup
-    }
-
     // Append the received data to the connection's buffer
     buffer.append(tmp, bytesRead);
     // std::cout << "Debug: Read " << bytesRead << " bytes. Buffer size: " << buffer.length() << std::endl;
@@ -154,7 +148,7 @@ void Connection::incrementRequestCount() {
 }
 
 void Connection::resetForNextRequest() {
-    buffer.clear();
+    buffer.clear(); // can be removed becaue its all ready cleaned by conn.reset();
     updateLastActivity();
 }
 /*
