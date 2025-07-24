@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/24 20:08:15 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/24 20:38:02 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -422,6 +422,8 @@ int main(int ac, char **av, char **envp)
                                 // }
                                 if (cgi.IsCgi())
                                 {
+                                         std::cerr << "DEBUG: 0 ----------------------------------------------------------------------" << std::endl;
+                                    
                                     conn.setCgiState(cgi.execCgi(conn));
                                     // print fd of conn
                                     std::cerr << "CGI fd: " << conn.getFd() << std::endl;
@@ -473,7 +475,8 @@ int main(int ac, char **av, char **envp)
                                 
                                 std::cout << "\033[1;33m[Main]\033[0m No route found for URI: " << req.uri << " - returning 404" << std::endl;
                             }
-    
+
+                            std::cerr << "DEBUG:  1 ----------------------------------------------------------------------" << std::endl;
                             // Determine if we should keep the connection alive
                             bool keepAlive = shouldKeepAlive(req);
                             
@@ -556,6 +559,7 @@ int main(int ac, char **av, char **envp)
                         timeoutResponse.headers["Content-Type"] = "text/plain";
                         timeoutResponse.headers["Content-Length"] = Utils::toString(timeoutResponse.body.size());
                         conn->writeData(timeoutResponse.toString());
+                        
                         reactor.removeConnection(conn->getFd());
                         delete conn; // Clean up connection object
                         connections.erase(connections.begin() + j);

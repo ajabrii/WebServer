@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/15 13:10:43 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/24 20:34:39 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ bool shouldKeepAlive(const HttpRequest& request)
     
     if (connection == "close") 
         return false;
+    std::cerr << "-------------------------------------------------------> Connection header: " << connection << std::endl;
     return true;
 }
 
