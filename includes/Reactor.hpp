@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 18:35:25 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/24 20:06:33 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,30 +34,30 @@ struct Event {
 class Reactor
 {
     private:
-        std::vector<pollfd> pollFDs;
-        std::map<int, HttpServer*> serverMap;
-        std::map<int, Connection*> connectionMap;
-        std::map<int, HttpServer*> clientToServerMap;
-        // std::map<int, CgiState*> clienToCgiStateMap;
-        std::vector<Event> readyEvents;
-
-
+    std::map<int, HttpServer*> serverMap;
+    std::map<int, Connection*> connectionMap;
+    std::map<int, HttpServer*> clientToServerMap;
+    // std::map<int, CgiState*> clienToCgiStateMap;
+    std::vector<Event> readyEvents;
+    
+    
     public:
-        Reactor();
-        ~Reactor();
-        void registerServer(HttpServer& server);
-        void addConnection(Connection* conn, HttpServer* server);
-        void removeConnection(int fd);
-        void poll();
-        std::vector<Event> getReadyEvents() const;
-        Connection& getConnection(int fd);
-        HttpServer* getServerByListeningFd(int fd);
-        HttpServer* getServerForClient(int clientFd);
-        std::map<int, Connection*> getConnectionMap(void) const;
-        void watchCgi(Connection* conn);
-        void cgiRemover(Connection *conn);
-        void cleanup();
-        void cleanupTimedOutConnections(); // Cleanup connections that have timed out
+    Reactor();
+    ~Reactor();
+    void registerServer(HttpServer& server);
+    void addConnection(Connection* conn, HttpServer* server);
+    void removeConnection(int fd);
+    void poll();
+    std::vector<Event> getReadyEvents() const;
+    Connection& getConnection(int fd);
+    HttpServer* getServerByListeningFd(int fd);
+    HttpServer* getServerForClient(int clientFd);
+    std::map<int, Connection*> getConnectionMap(void) const;
+    void watchCgi(Connection* conn);
+    void cgiRemover(Connection *conn);
+    void cleanup();
+    void cleanupTimedOutConnections(); // Cleanup connections that have timed out
+    std::vector<pollfd> pollFDs;
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 18:28:46 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/24 20:08:15 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,6 +221,12 @@ int main(int ac, char **av, char **envp)
             {
                 Event event = events[i];
 
+                // print all POLLFDs fds
+                    for (size_t i = 0; i < reactor.pollFDs.size(); ++i) 
+                    {
+                        std::cerr << "pollFDs[" << i << "].fd: " << reactor.pollFDs[i].fd << std::endl;
+                    }
+
                 // Handle error events FIRST (highest priority)
                 if (event.isNewConnection)
                 {
@@ -318,7 +324,6 @@ int main(int ac, char **av, char **envp)
                             //print fd of conn and cgi->connection
                             std::cerr << "CONN FD is : " << conn.getFd() << ", cgi connection fd is : " << conn.getCgiState()->connection->getFd() << std::endl;
                             // print all connectionMap of reactor <int, Connection *>  , id and address \n in c++98, using iterator
-
                             reactor.removeConnection(event.fd); // 8 
                             // delete cgiState;
                             // conn.setCgiState(NULL);
@@ -490,7 +495,10 @@ int main(int ac, char **av, char **envp)
                                 conn.resetForNextRequest();
                                 conn.updateLastActivity(); // Reset timeout for keep-alive connection
                                 std::cout << "\033[1;32m[+]\033[0m Connection kept alive (request #" << conn.getRequestCount() << ")" << std::endl;
-                            } else {
+                            }
+                             else 
+                            {
+                                // remove the connection from the connections vector C++98 no auto
                                 reactor.removeConnection(event.fd);
                                 std::cout << "\033[1;31m[-]\033[0m Connection closed" << std::endl;
                             }
@@ -534,9 +542,11 @@ int main(int ac, char **av, char **envp)
                 
                 
             } // End of for loop
-            for (size_t j = 0; j < connections.size(); ++j) {
+            for (size_t j = 0; j < connections.size(); ++j) 
+                {
                     Connection* conn = connections[j];
-                    if (conn->isTimedOut()) {
+                    if (conn->isTimedOut()) 
+                    {
                         std::cerr << "\033[1;31m[!]\033[0m Connection timed out: " << conn->getFd() << std::endl;
                         // send 408 Request Timeout response
                         HttpResponse timeoutResponse;
@@ -551,10 +561,16 @@ int main(int ac, char **av, char **envp)
                         connections.erase(connections.begin() + j);
                         --j; // Adjust index after removal
                     }
-                    else
+                    else if (conn->getFd() != -1)
                     {
                         // Update last activity for active connections
                         std::cout << "\033[1;32m[+]\033[0m Active connection: " << conn->getFd() << ", last activity: " << conn->getLastActivity() << std::endl;
+                    }
+                    else
+                    {
+                        delete conn; // Clean up invalid connection object
+                        connections.erase(connections.begin() + j);
+                        --j; // Adjust index after removal
                     }
                 }
             } catch (const std::exception& e) {

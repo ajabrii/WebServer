@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 18:35:21 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/24 20:13:12 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,14 +103,23 @@ void Reactor::cgiRemover(Connection *conn)
     fds[0] = cgi->output_fd;
     fds[1] = conn->getFd();
     
-    for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it)
+    std::cerr << " fd: " << fds[0] << " and fd: " << fds[1] << std::endl;
+    for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end();)
     {
-        if (it->fd == fds[0]  || it->fd == fds[1])
+        std::cerr << "Checking fd: " << it->fd << std::endl;
+        if (it->fd == fds[0] || it->fd == fds[1])
         {
-            it = pollFDs.erase(it);
+            // print both fds[0 and fds[1] and their values
+            
             std::cerr << "Removed fd: " << it->fd << " from pollFDs" << std::endl;
+            it = pollFDs.erase(it);
+        }
+        else
+        {
+            ++it;
         }
     }
+    
     for (int i = 0; i < 2; ++i)
     {
         std::map<int, Connection*>::iterator connIt = connectionMap.find(fds[i]);
@@ -134,11 +143,15 @@ void Reactor::cgiRemover(Connection *conn)
         close(cgi->input_fd);
         cgi->input_fd = -1;
     }
-    if(conn->getFd() != -1)
+    std::cerr << "keep alive: " << conn->isKeepAlive() << std::endl;
+    if (conn->isKeepAlive())
     {
-        close(conn->getFd());
+        conn->resetForNextRequest();
     }
-    
+    else
+    {
+        conn->closeConnection();
+    }
 }
 
 void Reactor::removeConnection(int fd)
@@ -258,22 +271,7 @@ void Reactor::watchCgi(Connection* conn)
     pfdOut.fd = cgiState->output_fd;
     pfdOut.events = POLLIN;
     pollFDs.push_back(pfdOut);
-
-    // Watch CGI input (stdin) only for POST
-    // if (cgiState->input_fd != -1) 
-    // {
-    //     pollfd pfdIn;
-    //     pfdIn.fd = cgiState->input_fd;
-    //     pfdIn.events = POLLOUT;
-    //     pollFDs.push_back(pfdIn);
-    // }
-    
-
-    // Optional: associate CGI fds with connection
     connectionMap[cgiState->output_fd] = conn;
-    // clienToCgiStateMap[cgiState->output_fd] = cgiState;
-    // if (cgiState->input_fd != -1)
-    //     connectionMap[cgiState->input_fd] = conn;
 }
 
 // geter that return connectionMap
