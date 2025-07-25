@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 19:27:26 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/25 17:54:31 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -527,8 +527,14 @@ void ConfigInterpreter::checkValues() const
             }
         }
     }
-}
 
+    // for (size_t i = 0; i < serverConfigs.size(); ++i) {
+    //     std::cout << "Server " << i + 1 << " routes:\n";
+    //     for (size_t j = 0; j < serverConfigs[i].routes.size(); ++j) {
+    //         std::cout << "  Route " << j + 1 << ": " << serverConfigs[i].routes[j].path << "\n";
+    //     }
+    // }
+}
 
 std::string ConfigInterpreter::getPathForCGI(char **envp) const
 {

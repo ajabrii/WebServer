@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 19:24:21 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/25 17:07:41 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,9 +73,9 @@ void HttpRequest::parseHeaderLine(const std::string& line, int& hostFlag)
     if (key[key.length() - 1] == ' ')
         throwHttpError(400, "Bad request: Header key ends with space");
     key.erase(0, key.find_first_not_of(" \t"));
-    key.erase(key.find_last_not_of(" \t\r") + 1); // remove trailing whitespace and \r
+    key.erase(key.find_last_not_of(" \t\r") + 1);
     value.erase(0, value.find_first_not_of(" \t"));
-    value.erase(value.find_last_not_of(" \t\r") + 1); // remove trailing whitespace and \r
+    value.erase(value.find_last_not_of(" \t\r") + 1);
 
     this->headers[key] = value;
 
@@ -206,65 +206,111 @@ bool HttpRequest::parseBody(std::string& connectionBuffer, long maxBodySize) {
     }
 }
 
-// --- decodeChunkedIncremental implementation ---
-// This function will consume valid chunks from 'buffer' and append to 'decodedOutput'
-// Returns true if the 0-chunk (end of message) is found and consumed.
-bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput, long maxBodySize) {
-    size_t pos = 0;
-    while (pos < buffer.length()) {
-        size_t newline_pos = buffer.find("\r\n", pos);
-        if (newline_pos == std::string::npos) {
-            // Not enough data for chunk size line or trailing CRLF
+bool HttpRequest::parseChunkSize(const std::string& sizeHex, long& chunkSize)
+{
+    if (sizeHex.empty()) {
+        return false;
+    }
+    
+    // Find and ignore chunk extensions (everything after ';')
+    std::string hexPart = sizeHex;
+    size_t semicolon = hexPart.find(';');
+    if (semicolon != std::string::npos) {
+        hexPart = hexPart.substr(0, semicolon);
+    }
+    
+    // Validate hex characters
+    for (size_t i = 0; i < hexPart.size(); ++i) {
+        char c = hexPart[i];
+        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
             return false;
         }
+    }
+    
+    // Parse hex to number
+    std::istringstream iss(hexPart);
+    iss >> std::hex >> chunkSize;
+    
+    if (iss.fail() || !iss.eof() || chunkSize < 0) {
+        return false;
+    }
+    
+    // Check for reasonable chunk size limit (e.g., 100MB)
+    // if (chunkSize > 104857600) {
+    //     return false;
+    // }
+    
+    return true;
+}
 
-        std::string size_hex_str = buffer.substr(pos, newline_pos - pos);
-        std::istringstream ss(size_hex_str);
+bool HttpRequest::skipTrailerHeaders(std::string& buffer, size_t startPos)
+{
+    size_t pos = startPos;
+    
+    while (true) {
+        size_t lineEnd = buffer.find("\r\n", pos);
+        if (lineEnd == std::string::npos) {
+            return false; // Need more data
+        }
+        
+        // Check if this is the final empty line
+        if (lineEnd == pos) {
+            buffer.erase(0, pos + 2); // Remove everything including final \r\n
+            return true;
+        }
+        
+        // Skip this trailer header line
+        pos = lineEnd + 2;
+    }
+}
+
+bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput, long maxBodySize) {
+    while (true)
+    {
+        // STEP 1: Find chunk size line
+        size_t sizeEndPos = buffer.find("\r\n");
+        if (sizeEndPos == std::string::npos) {
+            return false; // Need more data
+        }
+
+        // STEP 2: Parse chunk size with proper error handling
+        std::string sizeHex = buffer.substr(0, sizeEndPos);
         long chunkSize;
-        ss >> std::hex >> chunkSize;
-
-        if (ss.fail() || !ss.eof()) { // Check for parsing errors or extra characters on size line
+        if (!parseChunkSize(sizeHex, chunkSize)) {
             throwHttpError(400, "Invalid chunk size format");
         }
+        
+        // STEP 3: Check maxBodySize before adding chunk
         if (chunkSize > 0 && (decodedOutput.length() + chunkSize) > static_cast<size_t>(maxBodySize)) {
-            throwHttpError(413, "body Too Large");
+            throwHttpError(413, "Payload Too Large");
         }
-        if (chunkSize == 0) { // End of chunked message
-            // Check for the final CRLF after the 0-chunk
-            if (buffer.length() < newline_pos + 4) { // Need "0\r\n\r\n"
-                return false; // Not enough data for final CRLF
+
+        // STEP 4: Handle final chunk (size 0)
+        if (chunkSize == 0) {
+            // Need to handle optional trailer headers
+            size_t trailerStart = sizeEndPos + 2;
+            if (!skipTrailerHeaders(buffer, trailerStart)) {
+                return false; // Need more data for complete trailer
             }
-            if (buffer.substr(newline_pos, 4) != "\r\n\r\n") {
-                if (buffer.substr(newline_pos, 2) != "\r\n") { // Should be 0\r\n
-                    throwHttpError(400, "Expected CRLF after 0-chunk size");
-                }
-            }
-            buffer.erase(0, newline_pos + 4); // Consume "0\r\n\r\n"
-            return true; // Body is complete
+            return true; // Chunked body complete
         }
 
-        // Check if full chunk data + CRLF is available
-        size_t expected_total_chunk_len = (newline_pos - pos) + 2 + chunkSize + 2; // size_hex + \r\n + data + \r\n
-        if (buffer.length() < pos + expected_total_chunk_len) {
-            // Not enough data for the full chunk (size, data, and trailing \r\n)
-            return false;
+        // STEP 5: Check if we have complete chunk data
+        size_t dataStartPos = sizeEndPos + 2;
+        size_t chunkTotalLength = dataStartPos + chunkSize + 2; // +2 for trailing \r\n
+        if (buffer.length() < chunkTotalLength) {
+            return false; // Need more data
         }
 
-        // Extract chunk data
-        size_t chunk_data_start = newline_pos + 2;
-        decodedOutput.append(buffer.substr(chunk_data_start, chunkSize));
-
-        // Check for chunk trailing CRLF
-        size_t chunk_crlf_pos = chunk_data_start + chunkSize;
-        if (buffer.substr(chunk_crlf_pos, 2) != "\r\n") {
-            throwHttpError(400, "Expected CRLF after chunk data");
+        // STEP 6: Validate chunk trailing CRLF
+        if (buffer.substr(dataStartPos + chunkSize, 2) != "\r\n") {
+            throwHttpError(400, "Invalid chunk format: missing trailing CRLF");
         }
-
-        // Consume the processed chunk from the buffer
-        buffer.erase(0, chunk_crlf_pos + 2); // Erase up to and including the chunk's trailing CRLF
-        pos = 0; // Reset position as buffer has been modified
+        
+        // STEP 7: Extract chunk data and remove processed chunk
+        decodedOutput.append(buffer, dataStartPos, chunkSize);
+        buffer.erase(0, chunkTotalLength);
     }
-    return false; // Not complete yet, or no more full chunks could be processed
 }
 
 
