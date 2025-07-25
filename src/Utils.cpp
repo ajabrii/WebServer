@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/25 17:06:59 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/25 18:26:35 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,5 +160,7 @@ HttpResponse parseCgiOutput(const std::string& raw)
     return response;
 }
 
-
-
+std::string buildSetCookieHeader(const std::string& session_id) 
+{
+    return "Set-Cookie: session_id=" + session_id + "; Path=/; HttpOnly\r\n";
+}

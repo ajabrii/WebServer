@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/25 18:10:17 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/25 18:45:52 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,9 @@
 #include "../includes/CgiHandler.hpp"
 #include "../includes/Errors.hpp"
 #include "../includes/Utils.hpp"
+#include "../includes/CookieParser.hpp"
+#include "../includes/SessionManager.hpp"
+#include "../includes/SessionID.hpp"
 #include <sstream>
 #include <algorithm>
 #include <cctype>
@@ -186,6 +189,43 @@ int main(int ac, char **av, char **envp)
                             //         std::cout << "Body Length: " << req.body.length() << std::endl;
                             //         std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
                             //     }
+                            // parse cookies if present
+                            if (req.headers.find("cookie") != req.headers.end()) 
+                            {
+                                std::string cookieHeader = req.headers["cookie"];
+                                std::map<std::string, std::string> cookies = CookieParser::parse(cookieHeader);
+                                req.cookies = cookies; // Store parsed cookies in request
+                                // fetch session ID from cookies
+                                if (cookies.find("session_id") != cookies.end())
+                                {
+                                    std::string sessionId = cookies["session_id"];
+                                    SessionManager sessionManager;
+                                    std::map<std::string, std::string> sessionData = sessionManager.load(sessionId);
+                                    req.sessionData = sessionData; // Store session data in request
+                                    std::cout << "\033[1;33m[Session]\033[0m Session ID: " << sessionId << std::endl;
+                                }
+                                else
+                                {
+                                    // Generate a new session ID if not present
+                                    std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
+                                    req.cookies["session_id"] = newSessionId;
+                                    SessionManager sessionManager;
+                                    sessionManager.save(newSessionId, std::map<std::string, std::string>());
+                                    std::cout << "\033[1;33m[Session]\033[0m New Session ID generated: " << newSessionId << std::endl;
+                                }
+                                    
+                            } // if not set-cookie
+                            else 
+                            {
+                                // Generate a new session ID if no cookies are present
+                                std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
+                                req.cookies["session_id"] = newSessionId;
+                                SessionManager sessionManager;
+                                sessionManager.save(newSessionId, std::map<std::string, std::string>());
+                                std::cout << "\033[1;33m[Session]\033[0m New Session ID generated: " << newSessionId << std::endl;
+                            }
+                            
+
                             Router router;
                             const RouteConfig* route = router.match(req, server->getConfig());
                             HttpResponse resp;

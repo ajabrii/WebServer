@@ -7,8 +7,8 @@
 
 class CookieParser 
 {
-public:
-    static std::map<std::string, std::string> parse(const std::string &header);
+    public:
+        static std::map<std::string, std::string> parse(const std::string &header);
 };
 
 #endif

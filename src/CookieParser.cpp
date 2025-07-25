@@ -6,7 +6,8 @@ std::map<std::string, std::string> CookieParser::parse(const std::string &header
     std::map<std::string, std::string> cookies;
     std::string::size_type start = 0, end;
 
-    while ((end = header.find(';', start)) != std::string::npos) {
+    while ((end = header.find(';', start)) != std::string::npos) 
+    {
         std::string token = header.substr(start, end - start);
         std::string::size_type eq = token.find('=');
         if (eq != std::string::npos)
@@ -16,7 +17,6 @@ std::map<std::string, std::string> CookieParser::parse(const std::string &header
             ++start;
     }
 
-    // Handle last (or only) cookie
     std::string token = header.substr(start);
     std::string::size_type eq = token.find('=');
     if (eq != std::string::npos)

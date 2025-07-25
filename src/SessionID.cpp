@@ -1,12 +1,10 @@
-#include "SessionID.hpp"
+#include "../includes/SessionID.hpp"
 #include <sstream>
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
 #include <unistd.h>
-
-typedef struct Connection;
 
 std::string SessionID::generate(Connection* conn, int requestCounter) 
 {

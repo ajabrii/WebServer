@@ -3,10 +3,13 @@
 
 #include <string>
 
+typedef class Connection Connection;
 class SessionID 
 {
+    private:
+        SessionID() {}
     public:
-        static std::string SessionID::generate(Connection* conn, int requestCounter);
+        static std::string generate(Connection* conn, int requestCounter);
 };
 
 #endif
