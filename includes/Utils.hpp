@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/14 14:55:45 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/25 17:07:31 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,5 +29,11 @@ namespace Utils
 }
 bool shouldKeepAlive(const HttpRequest& request);
 void setConnectionHeaders(HttpResponse& response, bool keepAlive);
+std::string toLower(const std::string& s);
+
+// Helper: Trim leading spaces
+void ltrim(std::string& s);
+HttpResponse parseCgiOutput(const std::string& raw);
+
 // void handleErrorEvent(const Event& event);
 #endif

@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/24 18:52:39 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/25 17:58:45 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,7 +169,11 @@ void Connection::incrementRequestCount() {
 void Connection::resetForNextRequest() {
     buffer.clear();
     updateLastActivity();
-    this->cgiState = NULL; // Reset CGI state for the next request
+    if (cgiState) 
+    {
+        delete cgiState;
+        cgiState = NULL;
+    }
 }
 /*
 === this function writes data aka response to the client ==

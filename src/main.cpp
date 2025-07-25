@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/24 20:38:02 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/25 17:58:52 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,116 +32,6 @@ static Reactor* g_reactor = NULL;
 void signalHandler(int signum) {
     (void)signum;
     g_shutdown = true;
-}
-
-// Helper: Convert string to lowercase
-std::string toLower(const std::string& s) {
-    std::string result = s;
-    for (size_t i = 0; i < result.size(); ++i)
-        result[i] = std::tolower(result[i]);
-    return result;
-}
-
-// Helper: Trim leading spaces
-void ltrim(std::string& s) {
-    size_t i = 0;
-    while (i < s.size() && std::isspace(static_cast<unsigned char>(s[i]))) ++i;
-    s.erase(0, i);
-}
-HttpResponse parseCgiOutput(const std::string& raw) 
-{
-    HttpResponse response;
-
-    size_t headerEnd = raw.find("\r\n\r\n");
-    if (headerEnd == std::string::npos) 
-    {
-        response.statusCode = 500;
-        response.statusText = "Internal Server Error";
-        response.body = "CGI script did not return valid headers.";
-        return response;
-    }
-
-    std::string headerPart = raw.substr(0, headerEnd);
-    std::string bodyPart = raw.substr(headerEnd + 4);
-
-    std::istringstream headerStream(headerPart);
-    std::string line;
-    bool statusParsed = false;
-
-    // Read first line
-    if (std::getline(headerStream, line)) 
-    {
-        if (!line.empty() && *line.rbegin() == '\r')
-            line.erase(line.size() - 1);
-
-        if (line.compare(0, 5, "HTTP/") == 0) 
-        {
-            std::istringstream statusStream(line);
-            std::string httpVersion;
-            statusStream >> httpVersion >> response.statusCode;
-            std::getline(statusStream, response.statusText);
-            ltrim(response.statusText);
-            statusParsed = true;
-        } 
-        else 
-        {
-            // Reset headerStream to re-parse first line
-            headerStream.clear(); // Reset error flags
-            headerStream.str(headerPart); // Rewind to start
-        }
-    }
-
-    // Parse headers
-    while (std::getline(headerStream, line)) 
-    {
-        if (!line.empty() && *line.rbegin() == '\r')
-            line.erase(line.size() - 1);
-
-        size_t colon = line.find(':');
-        if (colon != std::string::npos) 
-        {
-            std::string key = line.substr(0, colon);
-            std::string value = line.substr(colon + 1);
-            ltrim(value);
-
-            // Lowercase for lookup only
-            std::string lowerKey = toLower(key);
-            if (lowerKey == "status") 
-            {
-                std::istringstream statusStream(value);
-                statusStream >> response.statusCode;
-                std::getline(statusStream, response.statusText);
-                ltrim(response.statusText);
-                statusParsed = true;
-            } 
-            else 
-            {
-                response.headers[key] = value;
-            }
-        }
-    }
-
-    if (!statusParsed) 
-    {
-        response.statusCode = 200;
-        response.statusText = "OK";
-    }
-
-    response.body = bodyPart;
-
-    if (response.headers.find("Content-Length") == response.headers.end()) 
-    {
-        std::ostringstream oss;
-        oss << response.body.size();
-        response.headers["Content-Length"] = oss.str();
-    }
-
-    if (response.headers.find("Content-Type") == response.headers.end()) 
-    {
-        response.headers["Content-Type"] = "text/html";
-    }
-
-    return response;
 }
 
 void handleErrorEvent(const Event& event)
@@ -239,105 +129,22 @@ int main(int ac, char **av, char **envp)
                         reactor.addConnection(conn, server);
                         std::cout << NEW_CLIENT_CON << std::endl;
                         // add the new connection to the connections vector
+                        bool keepAlive = shouldKeepAlive(conn->getCurrentRequest());      
+                            // Limit number of requests per connection to prevent resource exhaustion
+                        if (conn->getRequestCount() >= REQUEST_LIMIT_PER_CONNECTION)
+                            keepAlive = false;
+                        conn->setKeepAlive(keepAlive);
                         connections.push_back(conn);
                     }
                 }
                 else if (event.isReadable || event.isPullHUP)
                 {
-                    if(event.isReadable)
-                        std::cout << "\033[1;33m[>]\033[0m Readable event on fd: " << event.fd << std::endl;
-                    if (event.isPullHUP)
-                    {
-                        std::cerr << "[POLLHUP] Connection closed: " << event.fd << std::endl;
-                    }
                     Connection &conn = reactor.getConnection(event.fd);
                     CgiState *cgiState = conn.getCgiState();
                     if (cgiState)
                     {
-                        std::cerr << "in fd  : " << cgiState->input_fd << " bodySent: " << cgiState->bodySent << " bytesWritten: " << cgiState->bytesWritten << std::endl;
-                        if (!cgiState->bodySent && cgiState->input_fd != -1)
-                        {
-                                const std::string& body = conn.getCurrentRequest().body;
-                                size_t totalSize = body.size();
-                                size_t remaining = totalSize - cgiState->bytesWritten;
-                                std::cerr << ", remaining bytes: " << remaining << std::endl;
-                                if (remaining > 0)
-                                {
-                                    ssize_t written = write(cgiState->input_fd, body.c_str() + cgiState->bytesWritten,remaining);
-
-                                    if (written > 0)
-                                    {
-                                        cgiState->bytesWritten += written;
-
-                                        if (cgiState->bytesWritten >= totalSize)
-                                        {
-                                            close(cgiState->input_fd);
-                                            cgiState->input_fd = -1;
-                                            cgiState->bodySent = true;
-                                            std::cout << "\033[1;34m[CGI]\033[0m Body fully sent to CGI script for fd: " << event.fd << std::endl;
-                                        }
-                                    }
-                                    else if (written == 0)
-                                    {
-                                        // Write returned 0 bytes — unexpected on pipes
-                                        std::cerr << "[CGI] write() returned 0 bytes (unexpected)\n";
-                                        close(cgiState->input_fd);
-                                        cgiState->input_fd = -1;
-                                        cgiState->bodySent = true;
-                                    }
-                                    else // written == -1
-                                    {
-                                        // Don't know errno (can't check EAGAIN), assume fatal
-                                        std::cerr << "[CGI] write() failed while sending body to CGI (fatal)\n";
-                                        close(cgiState->input_fd);
-                                        cgiState->input_fd = -1;
-                                        cgiState->bodySent = true;
-                                    }
-                                }
-                                else
-                                {
-                                    // Empty body case — Content-Length: 0
-                                    close(cgiState->input_fd);
-                                    cgiState->input_fd = -1;
-                                    cgiState->bodySent = true;
-                                    std::cout << "\033[1;34m[CGI]\033[0m Empty body (0 bytes) sent to CGI script for fd: " << event.fd << std::endl;
-                                }
-                        }
-                        char buffer[4096];
-                        ssize_t n = read(conn.getCgiState()->output_fd, buffer, sizeof(buffer));
-                        if (n > 0) 
-                        {
-                            conn.getCgiState()->rawOutput.append(buffer, n);
-                        }
-                        else if (n == 0) 
-                        {
-                            std::cout << "\033[1;34m[CGI]\033[0m CGI output EOF detected\n";
-                            // for (std::map<int, Connection*>::iterator it = reactor.getConnectionMap().begin(); it != reactor.getConnectionMap().end(); ++it) 
-                            // {
-                            //     std::cerr << "Connection fd: " << it->first << " at address: " << it->second << std::endl;
-                            // }
-
-                            HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput);
-                            conn.writeData(resp.toString());
-
-                            conn.getCgiState()->connection->updateLastActivity();
-                            //print fd of conn and cgi->connection
-                            std::cerr << "CONN FD is : " << conn.getFd() << ", cgi connection fd is : " << conn.getCgiState()->connection->getFd() << std::endl;
-                            // print all connectionMap of reactor <int, Connection *>  , id and address \n in c++98, using iterator
-                            reactor.removeConnection(event.fd); // 8 
-                            // delete cgiState;
-                            // conn.setCgiState(NULL);
-                            // reactor.removeConnection(conn.getCgiState()->output_fd);
-                            // cleanupCgi(conn);
-                            std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
-                        } 
-                        else 
-                        {
-                            perror("CGI read error");
-                            // reactor.removeConnection(conn.getCgiState()->output_fd);
-                            // cleanupCgi(conn);
-                            reactor.removeConnection(event.fd);
-                        }
+                        cgiState->writeToScript(conn);
+                        cgiState->readFromScript(conn,reactor);
                     }
                     else
                     {
@@ -487,12 +294,14 @@ int main(int ac, char **av, char **envp)
                             setConnectionHeaders(resp, keepAlive);
                             
                             // Send the response
+                            setConnectionHeaders(resp, conn.isKeepAlive());
                             conn.writeData(resp.toString());
                             conn.reset(); //m7i lkhra mn connection bach nwjdo request lakhra la kant connection keep alive
                             conn.updateLastActivity(); // Update activity timestamp after sending response
                             
                             // Handle connection based on keep-alive decision
-                            if (keepAlive) {
+                            if (keepAlive) 
+                            {
                                 conn.setKeepAlive(true);
                                 conn.incrementRequestCount();
                                 conn.resetForNextRequest();
@@ -558,6 +367,7 @@ int main(int ac, char **av, char **envp)
                         timeoutResponse.body = "Your request has timed out due to inactivity.";
                         timeoutResponse.headers["Content-Type"] = "text/plain";
                         timeoutResponse.headers["Content-Length"] = Utils::toString(timeoutResponse.body.size());
+                        setConnectionHeaders(timeoutResponse, conn->isKeepAlive());
                         conn->writeData(timeoutResponse.toString());
                         
                         reactor.removeConnection(conn->getFd());
@@ -567,8 +377,11 @@ int main(int ac, char **av, char **envp)
                     }
                     else if (conn->getFd() != -1)
                     {
-                        // Update last activity for active connections
-                        std::cout << "\033[1;32m[+]\033[0m Active connection: " << conn->getFd() << ", last activity: " << conn->getLastActivity() << std::endl;
+                        // curent vs last activity print and KEEP_ALIVE_TIMEOUT - last activity and limit of timeout
+                        std::cout << "Connection fd: " << conn->getFd()
+                                  << ", Keep-alive: " << (conn->isKeepAlive() ? "Yes" : "No") <<
+                                  ", Time still to time out: " << (KEEP_ALIVE_TIMEOUT - (time(NULL) - conn->getLastActivity())) << " seconds" << std::endl;
+                        
                     }
                     else
                     {

@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/24 20:13:12 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/25 18:07:56 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,26 +91,22 @@ void Reactor::addConnection(Connection* conn, HttpServer* server)
     connectionMap[conn->getFd()] = conn;
     clientToServerMap[conn->getFd()] = server;
 }
-
 void Reactor::cgiRemover(Connection *conn)
 {
     int fds[2];
     CgiState *cgi = conn->getCgiState();
     if (cgi == NULL) 
-    {
         return;
-    }
+
     fds[0] = cgi->output_fd;
     fds[1] = conn->getFd();
-    
-    std::cerr << " fd: " << fds[0] << " and fd: " << fds[1] << std::endl;
+
+    std::cerr << "keep alive: " << conn->isKeepAlive() << std::endl;
+
     for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end();)
     {
-        std::cerr << "Checking fd: " << it->fd << std::endl;
-        if (it->fd == fds[0] || it->fd == fds[1])
+        if (it->fd == fds[0] || (it->fd == fds[1] && !conn->isKeepAlive()))
         {
-            // print both fds[0 and fds[1] and their values
-            
             std::cerr << "Removed fd: " << it->fd << " from pollFDs" << std::endl;
             it = pollFDs.erase(it);
         }
@@ -118,41 +114,46 @@ void Reactor::cgiRemover(Connection *conn)
         {
             ++it;
         }
-    }
-    
+    }// Reset timeout for keep-alive connection
     for (int i = 0; i < 2; ++i)
     {
-        std::map<int, Connection*>::iterator connIt = connectionMap.find(fds[i]);
-        if (connIt != connectionMap.end())
+        if (i == 0 || (i == 1 && !conn->isKeepAlive()))
         {
-            std::cerr << "Removing connection for fd: " << fds[i] << std::endl;
-            connectionMap.erase(connIt);
+            std::map<int, Connection*>::iterator connIt = connectionMap.find(fds[i]);
+            if (connIt != connectionMap.end())
+            {
+                std::cerr << "Removing connection for fd: " << fds[i] << std::endl;
+                connectionMap.erase(connIt);
+            }
         }
-        clientToServerMap.erase(fds[i]);
     }
-    clientToServerMap.erase(fds[0]);
-    clientToServerMap.erase(fds[1]);
-
-    if(cgi->output_fd != -1)
+    clientToServerMap.erase(fds[0]); // always erase CGI output fd
+    if (!conn->isKeepAlive())
+        clientToServerMap.erase(fds[1]); // only erase client fd if connection is not reused
+    
+    if (cgi->output_fd != -1)
     {
         close(cgi->output_fd);
         cgi->output_fd = -1;
     }
-    if(cgi->input_fd != -1)
+    if (cgi->input_fd != -1)
     {
         close(cgi->input_fd);
         cgi->input_fd = -1;
     }
-    std::cerr << "keep alive: " << conn->isKeepAlive() << std::endl;
+
     if (conn->isKeepAlive())
     {
+        conn->setKeepAlive(true);
+        conn->incrementRequestCount();
         conn->resetForNextRequest();
+        conn->updateLastActivity(); // Reset timeout for keep-alive connection
+        std::cout << "\033[1;32m[+]\033[0m Connection kept alive (request #" << conn->getRequestCount() << ")" << std::endl;
     }
     else
-    {
         conn->closeConnection();
-    }
 }
+
 
 void Reactor::removeConnection(int fd)
 {

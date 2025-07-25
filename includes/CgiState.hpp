@@ -4,7 +4,9 @@
 #include <sys/wait.h>
 #include <iostream>
 
+
 typedef class Connection Connection;
+typedef class Reactor Reactor;
 class CgiState
 {
     public:
@@ -41,4 +43,6 @@ class CgiState
             // Optional:
         std::string script_path;
         Connection* connection;
+        void writeToScript(Connection& conn);
+        void readFromScript(Connection& conn , Reactor& reactor);
 };
