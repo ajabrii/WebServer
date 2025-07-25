@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/25 17:58:52 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/25 18:10:17 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,13 +110,6 @@ int main(int ac, char **av, char **envp)
                 for (size_t i = 0; i < events.size(); ++i)
             {
                 Event event = events[i];
-
-                // print all POLLFDs fds
-                    for (size_t i = 0; i < reactor.pollFDs.size(); ++i) 
-                    {
-                        std::cerr << "pollFDs[" << i << "].fd: " << reactor.pollFDs[i].fd << std::endl;
-                    }
-
                 // Handle error events FIRST (highest priority)
                 if (event.isNewConnection)
                 {
