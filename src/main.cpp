@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/25 17:49:48 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/23 15:59:44 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,15 +50,11 @@ void handleErrorEvent(const Event &event)
 
 int main(int ac, char **av, char **envp)
 {
-    if (ac != 2)
-    {
+    if (ac != 2) {
         Error::logs("Usage: " + std::string(av[0]) + " <config_file>");
         return 1;
     }
-
-    try
-    {
-
+    try {
         ConfigInterpreter parser;
         parser.getConfigData(av[1]);
         parser.parse();
@@ -68,11 +64,10 @@ int main(int ac, char **av, char **envp)
 
         std::vector<ServerConfig> configs = parser.getServerConfigs();
         std::vector<HttpServer *> servers;
-
         signal(SIGINT, signalHandler);
         signal(SIGTERM, signalHandler);
         g_servers = &servers;
-
+        
         for (size_t i = 0; i < configs.size(); ++i)
         {
             HttpServer *server = new HttpServer(configs[i]);
@@ -82,8 +77,7 @@ int main(int ac, char **av, char **envp)
 
         Reactor reactor;
         g_reactor = &reactor;
-        for (size_t i = 0; i < servers.size(); ++i)
-        {
+        for (size_t i = 0; i < servers.size(); ++i) {
             reactor.registerServer(*servers[i]);
         }
         while (!g_shutdown)
@@ -123,9 +117,7 @@ int main(int ac, char **av, char **envp)
             delete servers[i];
         }
         servers.clear();
-    }
-    catch (const std::exception &e)
-    {
+    } catch (const std::exception &e) {
         std::cerr << "Fatal: " << e.what() << std::endl;
         if (g_servers)
         {

@@ -1,18 +1,802 @@
-<!-- File: App/cgi.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CGI Testing</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>WebServ 42 - CGI Testing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0a0a0a, #1a2e1a, #163e16);
+      color: #e8e8e8;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    .background-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(68,255,68,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(68,255,68,0.1) 1px, transparent 1px);
+      background-size: 50px 50px;
+      z-index: -1;
+      animation: gridMove 20s linear infinite;
+    }
+
+    @keyframes gridMove {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px 40px;
+      backdrop-filter: blur(20px);
+      border-bottom: 2px solid #44ff44;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #44ff44;
+      text-shadow: 0 0 10px #44ff44;
+    }
+
+    .nav-menu {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .nav-menu a {
+      text-decoration: none;
+      color: #ccc;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+
+    .nav-menu a:hover {
+      color: #44ff44;
+      border-color: #44ff44;
+      box-shadow: 0 0 10px rgba(68,255,68,0.3);
+    }
+
+    .nav-menu a.active {
+      color: #44ff44;
+      border-color: #44ff44;
+      background: rgba(68,255,68,0.1);
+    }
+
+    .back-btn {
+      padding: 10px 20px;
+      background: linear-gradient(45deg, #44ff44, #66ff66);
+      color: #000;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: transform 0.2s ease;
+      text-decoration: none;
+    }
+
+    .back-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(68,255,68,0.4);
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .hero-section {
+      text-align: center;
+      margin-bottom: 60px;
+      padding: 60px 20px;
+      background: linear-gradient(135deg, rgba(68,255,68,0.1), rgba(102,255,102,0.05));
+      border-radius: 20px;
+      border: 1px solid rgba(68,255,68,0.2);
+    }
+
+    .hero-title {
+      font-size: 48px;
+      background: linear-gradient(45deg, #44ff44, #66ff66, #88ff88);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    .hero-subtitle {
+      font-size: 20px;
+      color: #aaa;
+      margin-bottom: 30px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .section {
+      margin-bottom: 50px;
+      background: rgba(0,0,0,0.4);
+      padding: 30px;
+      border-radius: 15px;
+      border-left: 4px solid #44ff44;
+      backdrop-filter: blur(10px);
+    }
+
+    .section-title {
+      font-size: 32px;
+      color: #44ff44;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .section-subtitle {
+      font-size: 24px;
+      color: #88ff88;
+      margin: 25px 0 15px 0;
+      border-bottom: 2px solid rgba(136,255,136,0.3);
+      padding-bottom: 5px;
+    }
+
+    .cgi-zone {
+      border: 3px solid #44ff44;
+      border-radius: 15px;
+      padding: 30px;
+      text-align: center;
+      background: rgba(68,255,68,0.05);
+      margin: 20px 0;
+      transition: all 0.3s ease;
+    }
+
+    .cgi-zone:hover {
+      border-color: #66ff66;
+      background: rgba(68,255,68,0.1);
+      transform: scale(1.02);
+    }
+
+    .cgi-icon {
+      font-size: 64px;
+      color: #44ff44;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .cgi-btn {
+      padding: 15px 30px;
+      background: linear-gradient(45deg, #44ff44, #66ff66);
+      color: #000;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      margin: 10px;
+    }
+
+    .cgi-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(68,255,68,0.4);
+    }
+
+    .form-group {
+      margin: 20px 0;
+    }
+
+    .form-label {
+      display: block;
+      color: #44ff44;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      background: rgba(0,0,0,0.6);
+      border: 2px solid #333;
+      border-radius: 8px;
+      color: #e8e8e8;
+      font-family: inherit;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #44ff44;
+      box-shadow: 0 0 10px rgba(68,255,68,0.3);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .code-block {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px 0;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      position: relative;
+    }
+
+    .code-block::before {
+      content: "CGI SCRIPT";
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      font-size: 10px;
+      color: #44ff44;
+      opacity: 0.7;
+    }
+
+    .response-area {
+      background: #000;
+      border: 2px solid #44ff44;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      font-family: monospace;
+      font-size: 14px;
+      min-height: 200px;
+      color: #66ff66;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .status-ready { background: #00ff00; }
+    .status-running { background: #ffaa00; animation: blink 1s infinite; }
+    .status-success { background: #44ff44; }
+    .status-error { background: #ff0044; }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.3; }
+    }
+
+    .script-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+
+    .script-card {
+      background: rgba(68,255,68,0.1);
+      padding: 25px;
+      border-radius: 12px;
+      border: 1px solid rgba(68,255,68,0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .script-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(68,255,68,0.2);
+    }
+
+    .script-card-title {
+      font-size: 18px;
+      color: #44ff44;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .script-card-language {
+      background: rgba(68,255,68,0.2);
+      color: #44ff44;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-bottom: 10px;
+      display: inline-block;
+    }
+
+    .terminal-output {
+      background: #000;
+      color: #00ff00;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
+      margin: 15px 0;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .info {
+      background: rgba(0,136,255,0.1);
+      border-left: 4px solid #0088ff;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 5px;
+      color: #88ccff;
+    }
+
+    .warning {
+      background: rgba(255,165,0,0.1);
+      border-left: 4px solid #ffa500;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 5px;
+      color: #ffa500;
+    }
+
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 32px;
+      }
+      .nav-menu {
+        flex-direction: column;
+        gap: 10px;
+      }
+      header {
+        flex-direction: column;
+        gap: 20px;
+      }
+      .script-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-<body class="bg-gray-900 text-white p-6">
-  <h1 class="text-2xl font-bold mb-6">⚙️ CGI Script Testing</h1>
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-    <a href="/cgi-bin/test.py" class="bg-yellow-400 px-4 py-2 rounded text-center font-semibold">Python</a>
-    <a href="/cgi-bin/test.php" class="bg-blue-400 px-4 py-2 rounded text-center font-semibold">PHP</a>
-    <a href="/cgi-bin/test.sh" class="bg-gray-400 px-4 py-2 rounded text-center font-semibold">Shell</a>
-  </div>
+<body>
+  <div class="background-grid"></div>
+
+  <header>
+    <div class="logo">{'{ CGI Testing }'}</div>
+    <nav class="nav-menu">
+      <a href="app.html">📚 Docs</a>
+      <a href="post.html">📤 POST</a>
+      <a href="delete.html">🗑️ DELETE</a>
+      <a href="cgi.html" class="active">⚙️ CGI</a>
+    </nav>
+    <a href="app.html" class="back-btn">← Back to Main</a>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <div class="hero-section">
+      <h1 class="hero-title">CGI Script Testing</h1>
+      <p class="hero-subtitle">
+        Test Common Gateway Interface (CGI) functionality of your WebServ server.
+        Execute Python, PHP, and Shell scripts with environment variables and parameters.
+      </p>
+    </div>
+
+    <!-- Available Scripts Section -->
+    <section class="section">
+      <h2 class="section-title">
+        📋 Available CGI Scripts
+      </h2>
+
+      <div class="script-grid">
+        <div class="script-card">
+          <div class="script-card-language">PYTHON</div>
+          <div class="script-card-title">🐍 Hello World</div>
+          <p>Basic Python CGI script that outputs HTML</p>
+          <button class="cgi-btn" onclick="runScript('/cgi-bin/1.py')">Execute</button>
+        </div>
+
+        <div class="script-card">
+          <div class="script-card-language">PHP</div>
+          <div class="script-card-title">🐘 Environment Info</div>
+          <p>PHP script showing server environment variables</p>
+          <button class="cgi-btn" onclick="runScript('/cgi-bin/1.php')">Execute</button>
+        </div>
+
+        <div class="script-card">
+          <div class="script-card-language">SHELL</div>
+          <div class="script-card-title">🔧 System Info</div>
+          <p>Shell script displaying system information</p>
+          <button class="cgi-btn" onclick="runScript('/cgi-bin/1.sh')">Execute</button>
+        </div>
+
+        <div class="script-card">
+          <div class="script-card-language">PHP</div>
+          <div class="script-card-title">📊 File Handler</div>
+          <p>PHP script for file processing</p>
+          <button class="cgi-btn" onclick="runScript('/cgi-bin/f.php')">Execute</button>
+        </div>
+
+        <div class="script-card">
+          <div class="script-card-language">SHELL</div>
+          <div class="script-card-title">🎉 Fun Script</div>
+          <p>Fun shell script with animations</p>
+          <button class="cgi-btn" onclick="runScript('/cgi-bin/haha.sh')">Execute</button>
+        </div>
+
+        <div class="script-card">
+          <div class="script-card-language">PYTHON</div>
+          <div class="script-card-title">🕒 Time Display</div>
+          <p>Current server time and timezone</p>
+          <button class="cgi-btn" onclick="runScript('/cgi-bin/1.py')">Execute</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Custom Script Runner -->
+    <section class="section">
+      <h2 class="section-title">
+        🎯 Custom Script Execution
+      </h2>
+
+      <div class="form-group">
+        <label class="form-label">Script Path:</label>
+        <input type="text" id="scriptPath" class="form-input" placeholder="/cgi-bin/your_script.py" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Query Parameters (optional):</label>
+        <input type="text" id="queryParams" class="form-input" placeholder="name=test&value=123" />
+      </div>
+
+      <button class="cgi-btn" onclick="runCustomScript()">
+        <span class="status-indicator status-ready" id="customStatus"></span>
+        🚀 Execute Custom Script
+      </button>
+    </section>
+
+    <!-- Form Data Testing -->
+    <section class="section">
+      <h2 class="section-title">
+        📝 CGI Form Data Testing
+      </h2>
+
+      <form id="cgiForm" onsubmit="submitCgiForm(event)">
+        <div class="form-group">
+          <label class="form-label">Name:</label>
+          <input type="text" class="form-input" name="name" value="Test User" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email:</label>
+          <input type="email" class="form-input" name="email" value="test@example.com" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Message:</label>
+          <textarea class="form-input form-textarea" name="message">This is a test message for CGI processing.</textarea>
+        </div>
+
+        <button type="submit" class="cgi-btn">
+          <span class="status-indicator status-ready" id="formStatus"></span>
+          📤 Submit to CGI
+        </button>
+      </form>
+    </section>
+
+    <!-- Script Output Monitor -->
+    <section class="section">
+      <h2 class="section-title">
+        📊 Script Output Monitor
+      </h2>
+
+      <div class="response-area" id="responseArea">
+WebServ CGI Output Monitor
+========================================
+Waiting for CGI script execution...
+
+Status: Ready
+CGI Directory: /cgi-bin/
+Supported: Python (.py), PHP (.php), Shell (.sh)
+Environment: HTTP headers passed to scripts
+
+Ready to execute scripts...
+      </div>
+    </section>
+
+    <!-- Available Test Scripts -->
+    <section class="section">
+      <h2 class="section-title">
+        📁 Test Scripts Reference
+      </h2>
+
+      <div class="section-subtitle">Python Scripts</div>
+      <div class="code-block">
+#!/usr/bin/env python3
+# hello.py - Basic CGI script
+print("Content-Type: text/html\n")
+print("<html><body>")
+print("<h1>Hello from Python CGI!</h1>")
+print("<p>Server time: " + str(datetime.now()) + "</p>")
+print("</body></html>")
+      </div>
+
+      <div class="section-subtitle">PHP Scripts</div>
+      <div class="code-block">
+#!/usr/bin/env php
+<?php
+// env.php - Environment variables
+header("Content-Type: text/html");
+echo "<html><body>";
+echo "<h1>Server Environment</h1>";
+echo "<pre>";
+print_r($_SERVER);
+echo "</pre>";
+echo "</body></html>";
+?>
+      </div>
+
+      <div class="section-subtitle">Shell Scripts</div>
+      <div class="code-block">
+#!/bin/bash
+# sysinfo.sh - System information
+echo "Content-Type: text/html"
+echo ""
+echo "<html><body>"
+echo "<h1>System Information</h1>"
+echo "<p>Date: $(date)</p>"
+echo "<p>Uptime: $(uptime)</p>"
+echo "<p>User: $(whoami)</p>"
+echo "</body></html>"
+      </div>
+    </section>
+
+    <!-- Environment Variables -->
+    <section class="section">
+      <h2 class="section-title">
+        🌍 CGI Environment Variables
+      </h2>
+
+      <div class="info">
+        <strong>Standard CGI Environment Variables:</strong>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>REQUEST_METHOD:</strong> GET, POST, etc.</li>
+          <li><strong>QUERY_STRING:</strong> URL parameters</li>
+          <li><strong>CONTENT_TYPE:</strong> Request content type</li>
+          <li><strong>CONTENT_LENGTH:</strong> Request body size</li>
+          <li><strong>HTTP_*:</strong> HTTP headers (e.g., HTTP_USER_AGENT)</li>
+          <li><strong>SERVER_NAME:</strong> Server hostname</li>
+          <li><strong>SERVER_PORT:</strong> Server port number</li>
+          <li><strong>SCRIPT_NAME:</strong> Script path</li>
+        </ul>
+      </div>
+
+      <button class="cgi-btn" onclick="showEnvironment()">
+        📋 Display Current Environment
+      </button>
+
+      <div id="environmentOutput" class="terminal-output" style="display: none;"></div>
+    </section>
+
+    <!-- Performance Testing -->
+    <section class="section">
+      <h2 class="section-title">
+        ⚡ Performance & Stress Testing
+      </h2>
+
+      <div class="warning">
+        <strong>Performance Tests:</strong> These tests execute multiple CGI scripts simultaneously to test server performance and resource handling.
+      </div>
+
+      <div class="script-grid">
+        <div class="script-card">
+          <div class="script-card-title">🔄 Sequential Test</div>
+          <p>Run 5 scripts one after another</p>
+          <button class="cgi-btn" onclick="sequentialTest()">Run Sequential</button>
+        </div>
+
+        <div class="script-card">
+          <div class="script-card-title">⚡ Concurrent Test</div>
+          <p>Run 5 scripts simultaneously</p>
+          <button class="cgi-btn" onclick="concurrentTest()">Run Concurrent</button>
+        </div>
+
+        <div class="script-card">
+          <div class="script-card-title">🕒 Timeout Test</div>
+          <p>Test long-running script handling</p>
+          <button class="cgi-btn" onclick="timeoutTest()">Test Timeout</button>
+        </div>
+
+        <div class="script-card">
+          <div class="script-card-title">💥 Error Handling</div>
+          <p>Test script with syntax errors</p>
+          <button class="cgi-btn" onclick="errorTest()">Test Errors</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const responseArea = document.getElementById('responseArea');
+    
+    function updateResponseArea(message) {
+      const timestamp = new Date().toLocaleTimeString();
+      responseArea.textContent += `\n[${timestamp}] ${message}`;
+      responseArea.scrollTop = responseArea.scrollHeight;
+    }
+
+    async function runScript(scriptPath) {
+      updateResponseArea(`Executing CGI script: ${scriptPath}`);
+      
+      try {
+        const response = await fetch(scriptPath);
+        const output = await response.text();
+        
+        if (response.ok) {
+          updateResponseArea(`✅ Script executed successfully`);
+          updateResponseArea(`Output:\n${output.substring(0, 500)}${output.length > 500 ? '...' : ''}`);
+        } else {
+          updateResponseArea(`❌ Script execution failed: ${response.status}`);
+        }
+      } catch (error) {
+        updateResponseArea(`❌ Error executing script: ${error.message}`);
+      }
+    }
+
+    async function runCustomScript() {
+      const scriptPath = document.getElementById('scriptPath').value.trim();
+      const queryParams = document.getElementById('queryParams').value.trim();
+      const customStatus = document.getElementById('customStatus');
+      
+      if (!scriptPath) {
+        updateResponseArea('Please enter a script path');
+        return;
+      }
+
+      const fullPath = queryParams ? `${scriptPath}?${queryParams}` : scriptPath;
+      customStatus.className = 'status-indicator status-running';
+      
+      await runScript(fullPath);
+      
+      setTimeout(() => {
+        customStatus.className = 'status-indicator status-ready';
+      }, 2000);
+    }
+
+    async function submitCgiForm(event) {
+      event.preventDefault();
+      const formStatus = document.getElementById('formStatus');
+      formStatus.className = 'status-indicator status-running';
+      
+      const formData = new FormData(event.target);
+      
+      try {
+        const response = await fetch('/cgi-bin/1.php', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const output = await response.text();
+        
+        if (response.ok) {
+          formStatus.className = 'status-indicator status-success';
+          updateResponseArea(`✅ Form submitted to CGI successfully`);
+          updateResponseArea(`Response:\n${output.substring(0, 400)}`);
+        } else {
+          formStatus.className = 'status-indicator status-error';
+          updateResponseArea(`❌ Form submission failed: ${response.status}`);
+        }
+      } catch (error) {
+        formStatus.className = 'status-indicator status-error';
+        updateResponseArea(`❌ Form submission error: ${error.message}`);
+      }
+      
+      setTimeout(() => {
+        formStatus.className = 'status-indicator status-ready';
+      }, 3000);
+    }
+
+    async function showEnvironment() {
+      updateResponseArea('Fetching CGI environment variables...');
+      
+      try {
+        const response = await fetch('/cgi-bin/1.php');
+        const output = await response.text();
+        
+        const envOutput = document.getElementById('environmentOutput');
+        envOutput.textContent = output;
+        envOutput.style.display = 'block';
+        
+        updateResponseArea('Environment variables displayed below');
+      } catch (error) {
+        updateResponseArea(`Error fetching environment: ${error.message}`);
+      }
+    }
+
+    async function sequentialTest() {
+      updateResponseArea('Starting sequential CGI test...');
+      
+      const scripts = [
+        '/cgi-bin/1.py',
+        '/cgi-bin/1.php',
+        '/cgi-bin/1.sh',
+        '/cgi-bin/f.php',
+        '/cgi-bin/haha.sh'
+      ];
+      
+      for (let i = 0; i < scripts.length; i++) {
+        updateResponseArea(`Sequential test ${i + 1}/5: ${scripts[i]}`);
+        await runScript(scripts[i]);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      updateResponseArea('Sequential test completed');
+    }
+
+    async function concurrentTest() {
+      updateResponseArea('Starting concurrent CGI test...');
+      
+      const scripts = [
+        '/cgi-bin/1.py',
+        '/cgi-bin/1.php',
+        '/cgi-bin/1.sh',
+        '/cgi-bin/f.php',
+        '/cgi-bin/haha.sh'
+      ];
+      
+      const promises = scripts.map((script, index) => {
+        updateResponseArea(`Concurrent test ${index + 1}/5: ${script}`);
+        return fetch(script);
+      });
+      
+      try {
+        await Promise.all(promises);
+        updateResponseArea('✅ All concurrent requests completed');
+      } catch (error) {
+        updateResponseArea(`❌ Concurrent test error: ${error.message}`);
+      }
+    }
+
+    async function timeoutTest() {
+      updateResponseArea('Testing CGI timeout handling...');
+      
+      try {
+        const response = await fetch('/cgi-bin/1.py');
+        updateResponseArea(`Timeout test result: ${response.status}`);
+      } catch (error) {
+        updateResponseArea(`Timeout test: ${error.message}`);
+      }
+    }
+
+    async function errorTest() {
+      updateResponseArea('Testing CGI error handling...');
+      
+      try {
+        const response = await fetch('/cgi-bin/nonexistent.py');
+        updateResponseArea(`Error test result: ${response.status} - ${response.statusText}`);
+      } catch (error) {
+        updateResponseArea(`Error test: ${error.message}`);
+      }
+    }
+  </script>
 </body>
 </html>

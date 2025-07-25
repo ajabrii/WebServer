@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 11:53:59 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/23 17:44:31 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,7 +219,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
     std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower);
     if (route.uploadDir.empty())
     {
-        return makeErrorResponse(500, "Upload directory not configured.", serverConfig);
+        return makeErrorResponse(500, "Upload directory not configured.", serverConfig); //! check the code status
     }
     try
     {
