@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/25 18:45:52 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/25 20:50:24 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,14 +190,30 @@ int main(int ac, char **av, char **envp)
                             //         std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
                             //     }
                             // parse cookies if present
-                            if (req.headers.find("cookie") != req.headers.end()) 
+                            // print all headres of request no auto
+                            
+                            std::cout << "Headers:" << std::endl;
+                            for (std::map<std::string, std::string>::const_iterator it = req.headers.begin(); it != req.headers.end(); ++it) {
+                                std::cout << "  " << it->first << ": " << it->second << std::endl;
+                            }
+                            
+                            if (req.headers.find("Cookie") != req.headers.end()) 
                             {
-                                std::string cookieHeader = req.headers["cookie"];
+                                std::cout << "\033[1;33m[Session]\033[0m Cookies found in request" << std::endl;
+                                std::string cookieHeader = req.headers["Cookie"];
                                 std::map<std::string, std::string> cookies = CookieParser::parse(cookieHeader);
+                                // print cookies
+
+                                std::cout << "Parsed Cookies:" << std::endl;
+                                for (std::map<std::string, std::string>::const_iterator it = cookies.begin(); it != cookies.end(); ++it) {
+                                    std::cout << "  " << it->first << ": " << it->second << std::endl;
+                                }
+
                                 req.cookies = cookies; // Store parsed cookies in request
                                 // fetch session ID from cookies
                                 if (cookies.find("session_id") != cookies.end())
                                 {
+                                    std::cout << "\033[1;33m[Session]\033[0m Session ID found in cookies" << std::endl;
                                     std::string sessionId = cookies["session_id"];
                                     SessionManager sessionManager;
                                     std::map<std::string, std::string> sessionData = sessionManager.load(sessionId);
@@ -206,6 +222,7 @@ int main(int ac, char **av, char **envp)
                                 }
                                 else
                                 {
+                                    std::cout << "\033[1;33m[Session]\033[0m No session ID found in cookies" << std::endl;
                                     // Generate a new session ID if not present
                                     std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
                                     req.cookies["session_id"] = newSessionId;
@@ -217,6 +234,7 @@ int main(int ac, char **av, char **envp)
                             } // if not set-cookie
                             else 
                             {
+                                std::cout << "\033[1;33m[Session]\033[0m No cookies found in request" << std::endl;
                                 // Generate a new session ID if no cookies are present
                                 std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
                                 req.cookies["session_id"] = newSessionId;
@@ -229,7 +247,7 @@ int main(int ac, char **av, char **envp)
                             Router router;
                             const RouteConfig* route = router.match(req, server->getConfig());
                             HttpResponse resp;
-                                
+                            
                             // Print all request details here
                             // std::cout << "----- FULL REQUEST DETAILS -----" << std::endl;
                             // std::cout << "Method: " << req.method << std::endl;
@@ -307,6 +325,14 @@ int main(int ac, char **av, char **envp)
                                 resp.statusText = "Not Found";
                                 resp.headers["content-type"] = "text/html";
                                 resp.body = Error::loadErrorPage(404, server->getConfig());
+                                // set set-cookie header for session management
+                                if (req.cookies.find("session_id") != req.cookies.end()) 
+                                {
+                                    resp.headers["set-cookie"] = "session_id=" + req.cookies["session_id"] + "; Path=/; HttpOnly";
+                                    // set mode to dark
+                                    resp.headers["mode"] = (std::string)"dark" + "; Path=/; HttpOnly" ;
+                                    
+                                }
                                 
                                 // C++98 compatible string conversion
                                 std::stringstream ss;
@@ -328,6 +354,12 @@ int main(int ac, char **av, char **envp)
                             
                             // Send the response
                             setConnectionHeaders(resp, conn.isKeepAlive());
+                            // if no cookie header is set, set it
+                            if (req.cookies.find("session_id") != req.cookies.end()) 
+                            {
+                                resp.headers["set-cookie"] = "session_id=" + req.cookies["session_id"] + "; Path=/; HttpOnly";
+                                resp.headers["mode"] = (std::string)"dark" + "; Path=/; HttpOnly" ;
+                            }
                             conn.writeData(resp.toString());
                             conn.reset(); //m7i lkhra mn connection bach nwjdo request lakhra la kant connection keep alive
                             conn.updateLastActivity(); // Update activity timestamp after sending response
@@ -368,6 +400,11 @@ int main(int ac, char **av, char **envp)
                                 
                         //         // Always close connection on parse errors
                                 setConnectionHeaders(errorResp, false);
+                            if (req.cookies.find("session_id") != req.cookies.end()) 
+                            {
+                                errorResp.headers["set-cookie"] = "session_id=" + req.cookies["session_id"] + "; Path=/; HttpOnly";
+                                errorResp.headers["mode"] = (std::string)"dark" + "; Path=/; HttpOnly" ;
+                            }
                                 conn.writeData(errorResp.toString());
                                 conn.updateLastActivity(); // Update activity timestamp after error response
                                 reactor.removeConnection(event.fd);
@@ -401,6 +438,13 @@ int main(int ac, char **av, char **envp)
                         timeoutResponse.headers["Content-Type"] = "text/plain";
                         timeoutResponse.headers["Content-Length"] = Utils::toString(timeoutResponse.body.size());
                         setConnectionHeaders(timeoutResponse, conn->isKeepAlive());
+                        // if no cookie header is set, set it
+                        if (conn->getCurrentRequest().cookies.find("session_id") != conn->getCurrentRequest().cookies.end()) 
+                        {
+                            timeoutResponse.headers["set-cookie"] = "session_id=" + conn->getCurrentRequest().cookies["session_id"] + "; Path=/; HttpOnly";
+                            timeoutResponse.headers["Set-Cookie"] = "mode=dark; Path=/; HttpOnly";
+
+                        }
                         conn->writeData(timeoutResponse.toString());
                         
                         reactor.removeConnection(conn->getFd());

@@ -17,6 +17,7 @@ std::map<std::string, std::string> CookieParser::parse(const std::string &header
             ++start;
     }
 
+    // Handle last (or only) cookie
     std::string token = header.substr(start);
     std::string::size_type eq = token.find('=');
     if (eq != std::string::npos)
