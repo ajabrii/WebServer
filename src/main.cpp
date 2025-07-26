@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 17:07:46 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/26 19:06:21 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -254,6 +254,7 @@ int main(int ac, char **av, char **envp)
                                 }
                                 req.sessionPath = sessionManager.buildSessionFilePath(req.cookies["session_id"]);
                                 req.sessionData = sessionManager.load(req.cookies["session_id"]);
+                                req.SessionId = req.cookies["session_id"];
                             } // if not set-cookie
                             else 
                             {
@@ -386,7 +387,7 @@ int main(int ac, char **av, char **envp)
                             
                             // Send the response
                             setConnectionHeaders(resp, conn.isKeepAlive());
-                            resp.SetCookieHeaders(req.cookies, req.sessionData);
+                            resp.SetCookieHeaders(req);
                             conn.writeData(resp.toString());
                             conn.reset(); //m7i lkhra mn connection bach nwjdo request lakhra la kant connection keep alive
                             conn.updateLastActivity(); // Update activity timestamp after sending response
@@ -427,7 +428,7 @@ int main(int ac, char **av, char **envp)
                                 
                         //         // Always close connection on parse errors
                                 setConnectionHeaders(errorResp, false);
-                                errorResp.SetCookieHeaders(req.cookies, req.sessionData);
+                                errorResp.SetCookieHeaders(req);
                                 conn.writeData(errorResp.toString());
                                 conn.updateLastActivity(); // Update activity timestamp after error response
                                 reactor.removeConnection(event.fd);

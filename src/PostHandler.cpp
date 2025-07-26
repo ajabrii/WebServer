@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PostHandler.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/16 11:51:12 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/26 19:25:36 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,8 @@ void writeFile(const std::string& path, const std::string& content)
 
 void writeKeyValuesToFile(const std::string& path, const std::map<std::string,std::string>& fields)
 {
-    std::ofstream out(path.c_str());
+    // open out with append mode
+    std::ofstream out(path.c_str(), std::ios::trunc);
     if (!out)
         throw std::runtime_error("Error: Failed to write file: " + path);
     for (std::map<std::string,std::string>::const_iterator it=fields.begin(); it!=fields.end(); ++it)
@@ -163,7 +164,8 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig& rout
         else if (ct.find("application/x-www-form-urlencoded") != std::string::npos)
         {
             std::map<std::string,std::string> fields = parseFormUrlEncoded(req.body);
-            std::string filepath = route.uploadDir + "/form_" + Utils::toString(std::time(0)) + ".txt";
+            std::string filepath = route.uploadDir +  "/" + req.SessionId + ".database";
+            const_cast<std::string&>(req.FileDataBase) = filepath;
             writeKeyValuesToFile(filepath, fields);
             resp.version = "HTTP/1.1";
             resp.body = "Form data saved to: " + filepath;

@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:26 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 17:31:42 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/26 19:06:05 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ public:
     int statusCode;
     std::string statusText;
     std::map<std::string, std::string> headers;
-    std::map<std::string, std::string> CookiesHeaders;
+    std::multimap<std::string, std::string> CookiesHeaders;
     std::string body;
     std::string SessionPath;
 

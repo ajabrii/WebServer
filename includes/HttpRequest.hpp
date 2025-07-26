@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 16:52:21 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/26 19:08:03 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,8 @@ public:
     std::map<std::string, std::string> cookies;
     std::map<std::string, std::string> sessionData;
     std::string sessionPath;
+    std::string SessionId;
+    std::string FileDataBase;
 
     HttpRequest();
 
