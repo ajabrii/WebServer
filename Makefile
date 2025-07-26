@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX       = c++
-CPPFLAGS  = -Wall -Wextra -Werror -std=c++98
+CPPFLAGS  = -Wall -Wextra -Werror -std=c++98 #-fsanitize=address -g3
 # Uncomment for debugging/sanitizers
 # CPPFLAGS += -fsanitize=address -g3
 

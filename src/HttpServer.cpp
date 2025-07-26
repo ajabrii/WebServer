@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 09:43:54 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/26 10:29:34 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,8 +72,10 @@ void HttpServer::setup()
         addr.sin_port = htons(config.port[i]);
         addr.sin_addr.s_addr = inet_addr(config.host.c_str()); // this function is not int the in subject !!!
 
-        if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
+        if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
             throw std::runtime_error("Error: bind failed on port " + Utils::toString(config.port[i]));
+            // exit(1);
+        }
 
         if (listen(fd, CLIENT_QUEUE) < 0)
             throw std::runtime_error("Error: listen failed");
