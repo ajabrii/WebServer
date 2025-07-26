@@ -1,147 +1,280 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Webserv Test Portal</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-900 text-white min-h-screen">
-
-  <main class="max-w-2xl mx-auto p-4 space-y-8">
-
-    <header class="text-center">
-      <h1 class="text-3xl font-bold text-white mb-2">Webserv Test Portal</h1>
-      <p class="text-gray-400">A clean interface to test GET, POST, DELETE, CGI, and more.</p>
-    </header>
-
-    <!-- Form POST -->
-    <section class="bg-gray-800 p-4 rounded">
-      <h2 class="text-xl font-semibold mb-2">Form POST (application/x-www-form-urlencoded)</h2>
-      <form action="/uploads" method="post" class="space-y-2">
-        <input name="username" placeholder="Username" class="w-full p-2 rounded bg-gray-700 border border-gray-600" />
-        <input name="email" type="email" placeholder="Email" class="w-full p-2 rounded bg-gray-700 border border-gray-600" />
-        <button type="submit" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-white">Submit</button>
-      </form>
-    </section>
-
-    <!-- JSON POST -->
-    <section class="bg-gray-800 p-4 rounded">
-      <h2 class="text-xl font-semibold mb-2">JSON POST</h2>
-      <textarea id="jsonInput" rows="4" class="w-full p-2 rounded bg-gray-700 border border-gray-600" placeholder='{"key":"value"}'></textarea>
-      <button onclick="sendJson()" class="bg-green-600 hover:bg-green-500 px-4 py-2 mt-2 rounded text-white">Send JSON</button>
-    </section>
-
-    <!-- Plain Text POST -->
-    <section class="bg-gray-800 p-4 rounded">
-      <h2 class="text-xl font-semibold mb-2">Plain Text POST</h2>
-      <textarea id="textInput" rows="3" class="w-full p-2 rounded bg-gray-700 border border-gray-600" placeholder="Some text..."></textarea>
-      <button onclick="sendText()" class="bg-yellow-600 hover:bg-yellow-500 px-4 py-2 mt-2 rounded text-white">Send Text</button>
-    </section>
-
-    <!-- File Upload -->
-    <section class="bg-gray-800 p-4 rounded">
-      <h2 class="text-xl font-semibold mb-2">File Upload (multipart/form-data)</h2>
-      <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" name="fileToUpload" id="fileToUpload" class="block w-full text-sm text-gray-300 mb-2" />
-        <div class="w-full bg-gray-600 rounded h-2 mb-2">
-          <div id="progressBar" class="h-2 bg-blue-400 w-0 rounded"></div>
-        </div>
-        <button class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded text-white">Upload File</button>
-      </form>
-    </section>
-
-    <!-- DELETE -->
-    <section class="bg-gray-800 p-4 rounded">
-      <h2 class="text-xl font-semibold mb-2">DELETE</h2>
-      <div class="flex gap-2">
-        <input type="text" id="deletePath" class="flex-1 p-2 rounded bg-gray-700 border border-gray-600" placeholder="/uploads/file.txt" />
-        <button onclick="sendDelete()" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-white">Delete</button>
-      </div>
-    </section>
-
-    <!-- CGI -->
-    <section class="bg-gray-800 p-4 rounded">
-      <h2 class="text-xl font-semibold mb-2">CGI Scripts</h2>
-      <div class="space-x-2">
-        <a href="/cgi-bin/1.py" class="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600">Python CGI</a>
-        <a href="/cgi-bin/1.php" class="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600">PHP CGI</a>
-        <a href="/cgi-bin/1.sh" class="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600">Shell CGI</a>
-      </div>
-    </section>
-
-  </main>
-
-  <script>
-    async function sendJson() {
-      const json = document.getElementById('jsonInput').value;
-      try {
-        const resp = await fetch('/uploads', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: json
-        });
-        alert(await resp.text());
-      } catch (e) {
-        alert('JSON POST failed: ' + e.message);
-      }
-    }
-
-    async function sendText() {
-      const text = document.getElementById('textInput').value;
-      try {
-        const resp = await fetch('/uploads', {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: text
-        });
-        alert(await resp.text());
-      } catch (e) {
-        alert('Text POST failed: ' + e.message);
-      }
-    }
-
-    async function sendDelete() {
-      const path = document.getElementById('deletePath').value;
-      if (!path) return alert('Please enter a path!');
-      try {
-        const resp = await fetch(path, { method: 'DELETE' });
-        alert(await resp.text());
-      } catch (e) {
-        alert('DELETE failed: ' + e.message);
-      }
-    }
-
-    document.getElementById('uploadForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const file = document.getElementById('fileToUpload').files[0];
-      if (!file) return alert('Please choose a file!');
-
-      const formData = new FormData();
-      formData.append('fileToUpload', file);
-
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/uploads', true);
-
-      xhr.upload.onprogress = function (e) {
-        if (e.lengthComputable) {
-          const percent = (e.loaded / e.total) * 100;
-          document.getElementById('progressBar').style.width = percent + '%';
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebServ Testing Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      };
 
-      xhr.onload = function () {
-        alert(xhr.status === 200 ? 'Upload complete!\n' + xhr.responseText : 'Upload failed');
-        document.getElementById('progressBar').style.width = '0%';
-      };
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
 
-      xhr.onerror = function () {
-        alert('Error during upload');
-        document.getElementById('progressBar').style.width = '0%';
-      };
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
 
-      xhr.send(formData);
-    });
-  </script>
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            font-weight: 300;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .test-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .test-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .test-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .get-icon { background: #e8f5e8; color: #27ae60; }
+        .post-icon { background: #fef5e7; color: #f39c12; }
+        .delete-icon { background: #fdeaea; color: #e74c3c; }
+        .cgi-icon { background: #eaf2ff; color: #3498db; }
+
+        .test-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .test-description {
+            color: #7f8c8d;
+            margin-bottom: 1rem;
+        }
+
+        .test-features {
+            list-style: none;
+        }
+
+        .test-features li {
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 0.3rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .test-features li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #bdc3c7;
+        }
+
+        .server-info {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #27ae60;
+            margin-right: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .test-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .test-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>WebServ Testing Suite</h1>
+            <p class="subtitle">HTTP/1.1 Server Implementation Test Interface</p>
+        </header>
+
+        <div class="server-info">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Server Status</div>
+                    <div class="info-value">
+                        <span class="status-indicator"></span>Running
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Protocol</div>
+                    <div class="info-value">HTTP/1.1</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Port</div>
+                    <div class="info-value">8080</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Max Body Size</div>
+                    <div class="info-value">1MB</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-grid">
+            <a href="test-get.html" class="test-card">
+                <div class="test-icon get-icon">📄</div>
+                <h3 class="test-title">GET Method</h3>
+                <p class="test-description">Test static file serving and directory operations</p>
+                <ul class="test-features">
+                    <li>Static file serving</li>
+                    <li>Directory listing</li>
+                    <li>MIME type detection</li>
+                    <li>Error page handling</li>
+                </ul>
+            </a>
+
+            <a href="test-post.html" class="test-card">
+                <div class="test-icon post-icon">📤</div>
+                <h3 class="test-title">POST Method</h3>
+                <p class="test-description">Test file uploads and form data submission</p>
+                <ul class="test-features">
+                    <li>File uploads</li>
+                    <li>Multipart form data</li>
+                    <li>JSON data handling</li>
+                    <li>Body size validation</li>
+                </ul>
+            </a>
+
+            <a href="test-delete.html" class="test-card">
+                <div class="test-icon delete-icon">🗑️</div>
+                <h3 class="test-title">DELETE Method</h3>
+                <p class="test-description">Test file deletion and resource management</p>
+                <ul class="test-features">
+                    <li>File deletion</li>
+                    <li>Path security</li>
+                    <li>Permission checking</li>
+                    <li>URL decoding</li>
+                </ul>
+            </a>
+
+            <a href="test-cgi.html" class="test-card">
+                <div class="test-icon cgi-icon">⚙️</div>
+                <h3 class="test-title">CGI Scripts</h3>
+                <p class="test-description">Test Common Gateway Interface execution</p>
+                <ul class="test-features">
+                    <li>Python scripts</li>
+                    <li>PHP execution</li>
+                    <li>Shell scripts</li>
+                    <li>Environment variables</li>
+                </ul>
+            </a>
+        </div>
+
+        <footer>
+            <p>WebServ HTTP/1.1 Server • Built with C++98 • 42 School Project</p>
+        </footer>
+    </div>
+
+    <script>
+        // Simple server status check
+        fetch('/')
+            .then(() => {
+                document.querySelector('.status-indicator').style.background = '#27ae60';
+            })
+            .catch(() => {
+                document.querySelector('.status-indicator').style.background = '#e74c3c';
+                document.querySelector('.info-value').innerHTML = 
+                    '<span class="status-indicator"></span>Offline';
+            });
+    </script>
 </body>
 </html>

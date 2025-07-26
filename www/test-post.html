@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POST Method Testing - WebServ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f39c12;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #f39c12;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-back {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .nav-back:hover {
+            color: #f39c12;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .test-button {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .test-button:hover {
+            background: #d68910;
+        }
+
+        .test-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .file-input {
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #f39c12;
+            width: 0%;
+            transition: width 0.3s ease;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .result-area {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            min-height: 150px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .test-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .upload-zone {
+            border: 2px dashed #f39c12;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-zone:hover {
+            border-color: #d68910;
+            background: #fef9e7;
+        }
+
+        .upload-zone.dragover {
+            border-color: #d68910;
+            background: #fef9e7;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="nav-back">← Back to Home</a>
+        
+        <div class="header">
+            <h1>📤 POST Method Testing</h1>
+            <p>Test file uploads, form data submission, and POST functionality</p>
+        </div>
+
+        <!-- File Upload -->
+        <div class="section">
+            <h2>File Upload (multipart/form-data)</h2>
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                <p>📁 Click or drag files here to upload</p>
+                <p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">Max size: 1MB</p>
+            </div>
+            <input type="file" id="fileInput" style="display: none;" multiple>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+            <button class="test-button" onclick="uploadFiles()">Upload Selected Files</button>
+            <div id="selectedFiles" style="margin-top: 1rem; font-size: 0.9rem; color: #666;"></div>
+        </div>
+
+        <!-- Form Data -->
+        <div class="section">
+            <h2>Form Data (application/x-www-form-urlencoded)</h2>
+            <form id="formDataForm" onsubmit="submitFormData(event)">
+                <div class="form-group">
+                    <label class="form-label">Username:</label>
+                    <input type="text" name="username" class="form-input" placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email:</label>
+                    <input type="email" name="email" class="form-input" placeholder="Enter email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Message:</label>
+                    <textarea name="message" class="form-textarea" placeholder="Enter your message"></textarea>
+                </div>
+                <button type="submit" class="test-button">Submit Form</button>
+            </form>
+        </div>
+
+        <!-- JSON Data -->
+        <div class="section">
+            <h2>JSON Data (application/json)</h2>
+            <div class="form-group">
+                <label class="form-label">JSON Content:</label>
+                <textarea id="jsonInput" class="form-textarea" placeholder='{"key": "value", "number": 42}'>{"username": "testuser", "message": "Hello WebServ!", "timestamp": 1234567890}</textarea>
+            </div>
+            <button class="test-button" onclick="sendJSON()">Send JSON</button>
+            <button class="test-button" onclick="formatJSON()">Format JSON</button>
+        </div>
+
+        <!-- Plain Text -->
+        <div class="section">
+            <h2>Plain Text (text/plain)</h2>
+            <div class="form-group">
+                <label class="form-label">Text Content:</label>
+                <textarea id="textInput" class="form-textarea" placeholder="Enter plain text content">This is a plain text POST request to WebServ server.</textarea>
+            </div>
+            <button class="test-button" onclick="sendText()">Send Text</button>
+        </div>
+
+        <!-- Test Cases -->
+        <div class="section">
+            <h2>Special Test Cases</h2>
+            <div class="test-grid">
+                <div class="test-item">
+                    <h4>Large Data</h4>
+                    <button class="test-button" onclick="testLargeData()">Test 1MB</button>
+                    <button class="test-button" onclick="testOversizeData()">Test 2MB</button>
+                </div>
+                <div class="test-item">
+                    <h4>Empty Data</h4>
+                    <button class="test-button" onclick="testEmptyPost()">Empty POST</button>
+                    <button class="test-button" onclick="testNoContentType()">No Content-Type</button>
+                </div>
+                <div class="test-item">
+                    <h4>Special Characters</h4>
+                    <button class="test-button" onclick="testUnicodeData()">Unicode Data</button>
+                    <button class="test-button" onclick="testBinaryData()">Binary Data</button>
+                </div>
+                <div class="test-item">
+                    <h4>Multiple Files</h4>
+                    <button class="test-button" onclick="testMultipleFiles()">Create & Upload</button>
+                    <button class="test-button" onclick="testConcurrentUploads()">Concurrent</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="section">
+            <h2>Test Results</h2>
+            <div id="results" class="result-area">Ready to test POST requests...\nClick any test button above to see results here.</div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFiles = [];
+
+        function log(message) {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.textContent += `[${timestamp}] ${message}\n`;
+            results.scrollTop = results.scrollHeight;
+        }
+
+        // File Upload Handling
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files);
+            updateSelectedFiles();
+            log(`Selected ${files.length} file(s) for upload`);
+        }
+
+        function updateSelectedFiles() {
+            const container = document.getElementById('selectedFiles');
+            if (selectedFiles.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            const fileList = selectedFiles.map(file => 
+                `${file.name} (${formatFileSize(file.size)})`
+            ).join(', ');
+            container.innerHTML = `Selected: ${fileList}`;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function uploadFiles() {
+            if (selectedFiles.length === 0) {
+                log('No files selected');
+                return;
+            }
+
+            const formData = new FormData();
+            selectedFiles.forEach((file, index) => {
+                formData.append(`file${index}`, file);
+            });
+
+            log(`Uploading ${selectedFiles.length} file(s) to /uploads/`);
+            
+            try {
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        const progressFill = document.getElementById('progressFill');
+                        progressFill.style.width = percent + '%';
+                        progressFill.textContent = percent + '%';
+                    }
+                };
+
+                xhr.onload = () => {
+                    const progressFill = document.getElementById('progressFill');
+                    progressFill.style.width = '100%';
+                    progressFill.textContent = '100%';
+                    
+                    log(`Upload completed: ${xhr.status} ${xhr.statusText}`);
+                    log(`Response: ${xhr.responseText}`);
+                    
+                    // Show response in new tab
+                    const mockResponse = {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        ok: xhr.status >= 200 && xhr.status < 300,
+                        headers: new Map([
+                            ['content-type', xhr.getResponseHeader('content-type') || 'text/plain'],
+                            ['content-length', xhr.getResponseHeader('content-length') || '0']
+                        ]),
+                        type: 'basic',
+                        redirected: false
+                    };
+                    showResponseInNewTab('POST (Upload)', '/uploads/', mockResponse, xhr.responseText);
+                    
+                    setTimeout(() => {
+                        progressFill.style.width = '0%';
+                        progressFill.textContent = '0%';
+                    }, 2000);
+                };
+
+                xhr.onerror = () => {
+                    log('Upload failed: Network error');
+                };
+
+                xhr.open('POST', '/uploads/');
+                xhr.send(formData);
+                
+            } catch (error) {
+                log(`Upload error: ${error.message}`);
+            }
+        }
+
+        async function submitFormData(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            log('Submitting form data to /uploads/');
+            
+            try {
+                const response = await fetch('/uploads/', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                log(`Response: ${response.status} ${response.statusText}`);
+                const responseText = await response.clone().text();
+                log(`Response body: ${responseText}`);
+                
+                // Show response in new tab
+                showResponseInNewTab('POST (Form)', '/uploads/', response, responseText);
+                
+            } catch (error) {
+                log(`Form submission error: ${error.message}`);
+                showErrorInNewTab('POST (Form)', '/uploads/', error);
+            }
+        }
+
+        async function sendJSON() {
+            const jsonInput = document.getElementById('jsonInput').value.trim();
+            
+            if (!jsonInput) {
+                log('Please enter JSON data');
+                return;
+            }
+
+            try {
+                JSON.parse(jsonInput); // Validate JSON
+                log('Sending JSON data to /uploads/');
+                
+                const response = await fetch('/uploads/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: jsonInput
+                });
+                
+                log(`Response: ${response.status} ${response.statusText}`);
+                const responseText = await response.clone().text();
+                log(`Response body: ${responseText}`);
+                
+                // Show response in new tab
+                showResponseInNewTab('POST (JSON)', '/uploads/', response, responseText);
+                
+            } catch (error) {
+                if (error instanceof SyntaxError) {
+                    log(`Invalid JSON: ${error.message}`);
+                } else {
+                    log(`JSON POST error: ${error.message}`);
+                    showErrorInNewTab('POST (JSON)', '/uploads/', error);
+                }
+            }
+        }
+
+        async function sendText() {
+            const textInput = document.getElementById('textInput').value;
+            
+            if (!textInput.trim()) {
+                log('Please enter text content');
+                return;
+            }
+
+            log('Sending plain text to /uploads/');
+            
+            try {
+                const response = await fetch('/uploads/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: textInput
+                });
+                
+                log(`Response: ${response.status} ${response.statusText}`);
+                const responseText = await response.clone().text();
+                log(`Response body: ${responseText}`);
+                
+                // Show response in new tab
+                showResponseInNewTab('POST (Text)', '/uploads/', response, responseText);
+                
+            } catch (error) {
+                log(`Text POST error: ${error.message}`);
+                showErrorInNewTab('POST (Text)', '/uploads/', error);
+            }
+        }
+
+        function formatJSON() {
+            const jsonInput = document.getElementById('jsonInput');
+            try {
+                const parsed = JSON.parse(jsonInput.value);
+                jsonInput.value = JSON.stringify(parsed, null, 2);
+                log('JSON formatted successfully');
+            } catch (error) {
+                log(`JSON format error: ${error.message}`);
+            }
+        }
+
+        // Test Cases
+        async function testLargeData() {
+            const largeData = 'A'.repeat(1024 * 1024); // 1MB
+            log('Testing 1MB POST request...');
+            
+            try {
+                const response = await fetch('/uploads/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: largeData
+                });
+                
+                log(`Large data response: ${response.status} ${response.statusText}`);
+                const responseText = await response.clone().text();
+                
+                // Show response in new tab
+                showResponseInNewTab('POST (Large Data)', '/uploads/', response, responseText);
+                
+            } catch (error) {
+                log(`Large data error: ${error.message}`);
+                showErrorInNewTab('POST (Large Data)', '/uploads/', error);
+            }
+        }
+
+        async function testOversizeData() {
+            const oversizeData = 'B'.repeat(2 * 1024 * 1024); // 2MB
+            log('Testing 2MB POST request (should exceed limit)...');
+            
+            try {
+                const response = await fetch('/uploads/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: oversizeData
+                });
+                
+                log(`Oversize data response: ${response.status} ${response.statusText}`);
+                const responseText = await response.clone().text();
+                
+                // Show response in new tab
+                showResponseInNewTab('POST (Oversize)', '/uploads/', response, responseText);
+                
+            } catch (error) {
+                log(`Oversize data error: ${error.message}`);
+                showErrorInNewTab('POST (Oversize)', '/uploads/', error);
+            }
+        }
+
+        async function testEmptyPost() {
+            log('Testing empty POST request...');
+            
+            try {
+                const response = await fetch('/uploads/', {
+                    method: 'POST',
+                    body: ''
+                });
+                
+                log(`Empty POST response: ${response.status} ${response.statusText}`);
+                const responseText = await response.clone().text();
+                
+                // Show response in new tab
+                showResponseInNewTab('POST (Empty)', '/uploads/', response, responseText);
+                
+            } catch (error) {
+                log(`Empty POST error: ${error.message}`);
+                showErrorInNewTab('POST (Empty)', '/uploads/', error);
+            }
+        }
+
+        async function testNoContentType() {
+            log('Testing POST without Content-Type header...');
+            
+            try {
+                const response = await fetch('/uploads/', {
+                    method: 'POST',
+                    body: 'Test data without content type'
+                });
+                
+                log(`No Content-Type response: ${response.status} ${response.statusText}`);
+                const responseText = await response.clone().text();
+                
+                // Show response in new tab
+                showResponseInNewTab('POST (No Content-Type)', '/uploads/', response, responseText);
+                
+            } catch (error) {
+                log(`No Content-Type error: ${error.message}`);
+                showErrorInNewTab('POST (No Content-Type)', '/uploads/', error);
+            }
+        }
+
+        async function testUnicodeData() {
+            const unicodeData = '{"message": "Hello 世界! 🌍 Ñoël Café"}';
+            log('Testing Unicode data...');
+            
+            try {
+                const response = await fetch('/uploads/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                    body: unicodeData
+                });
+                
+                log(`Unicode data response: ${response.status} ${response.statusText}`);
+                const responseText = await response.clone().text();
+                
+                // Show response in new tab
+                showResponseInNewTab('POST (Unicode)', '/uploads/', response, responseText);
+                
+            } catch (error) {
+                log(`Unicode data error: ${error.message}`);
+                showErrorInNewTab('POST (Unicode)', '/uploads/', error);
+            }
+        }
+
+        async function testBinaryData() {
+            const binaryData = new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+            log('Testing binary data...');
+            
+            try {
+                const response = await fetch('/uploads/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/octet-stream' },
+                    body: binaryData
+                });
+                
+                log(`Binary data response: ${response.status} ${response.statusText}`);
+                const responseText = await response.clone().text();
+                
+                // Show response in new tab
+                showResponseInNewTab('POST (Binary)', '/uploads/', response, responseText);
+                
+            } catch (error) {
+                log(`Binary data error: ${error.message}`);
+                showErrorInNewTab('POST (Binary)', '/uploads/', error);
+            }
+        }
+
+        async function testMultipleFiles() {
+            log('Creating multiple test files and uploading...');
+            
+            const files = [
+                new File(['Test file 1 content'], 'test1.txt', { type: 'text/plain' }),
+                new File(['Test file 2 content'], 'test2.txt', { type: 'text/plain' }),
+                new File(['{"test": "json"}'], 'test.json', { type: 'application/json' })
+            ];
+            
+            const formData = new FormData();
+            files.forEach((file, index) => {
+                formData.append(`testfile${index}`, file);
+            });
+            
+            try {
+                const response = await fetch('/uploads/', {
+                    method: 'POST',
+                    body: formData
+                });
+                log(`Multiple files response: ${response.status} ${response.statusText}`);
+            } catch (error) {
+                log(`Multiple files error: ${error.message}`);
+            }
+        }
+
+        async function testConcurrentUploads() {
+            log('Testing concurrent uploads...');
+            
+            const promises = [];
+            for (let i = 0; i < 3; i++) {
+                const formData = new FormData();
+                formData.append('file', new File([`Concurrent file ${i}`], `concurrent${i}.txt`));
+                
+                promises.push(
+                    fetch('/uploads/', {
+                        method: 'POST',
+                        body: formData
+                    })
+                );
+            }
+            
+            try {
+                const responses = await Promise.all(promises);
+                responses.forEach((response, index) => {
+                    log(`Concurrent upload ${index}: ${response.status} ${response.statusText}`);
+                });
+            } catch (error) {
+                log(`Concurrent uploads error: ${error.message}`);
+            }
+        }
+
+        // Function to show server response in new tab
+        function showResponseInNewTab(method, url, response, responseText) {
+            const newTab = window.open('about:blank', '_blank');
+            if (!newTab) {
+                log('Popup blocked - unable to open response in new tab');
+                return;
+            }
+            
+            const timestamp = new Date().toISOString();
+            const headers = [];
+            
+            if (response.headers && response.headers.entries) {
+                for (const [key, value] of response.headers.entries()) {
+                    headers.push(`${key}: ${value}`);
+                }
+            } else if (response.headers && response.headers.forEach) {
+                response.headers.forEach((value, key) => {
+                    headers.push(`${key}: ${value}`);
+                });
+            }
+            
+            const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${method} Response - ${response.status}</title>
+                    <style>
+                        body { font-family: monospace; margin: 20px; background: #f8f9fa; }
+                        .header { background: #f39c12; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+                        .status { font-size: 1.5em; margin-bottom: 10px; }
+                        .section { background: white; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 4px solid #f39c12; }
+                        .section h3 { margin-top: 0; color: #2c3e50; }
+                        .response-body { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; white-space: pre-wrap; overflow-x: auto; max-height: 400px; overflow-y: auto; }
+                        .success { border-left-color: #27ae60; }
+                        .error { border-left-color: #e74c3c; }
+                        .warning { border-left-color: #f39c12; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div class="status">📤 POST Request Response</div>
+                        <div><strong>Status:</strong> ${response.status} ${response.statusText}</div>
+                        <div><strong>URL:</strong> ${url}</div>
+                        <div><strong>Time:</strong> ${timestamp}</div>
+                    </div>
+                    
+                    <div class="section ${response.ok ? 'success' : 'error'}">
+                        <h3>Response Headers</h3>
+                        <div>${headers.length > 0 ? headers.join('<br>') : 'No headers received'}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>Response Body</h3>
+                        <div class="response-body">${responseText || '(empty response)'}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>Request Details</h3>
+                        <div><strong>Method:</strong> POST</div>
+                        <div><strong>URL:</strong> ${url}</div>
+                        <div><strong>Success:</strong> ${response.ok ? 'Yes' : 'No'}</div>
+                        <div><strong>Type:</strong> ${response.type || 'N/A'}</div>
+                        <div><strong>Redirected:</strong> ${response.redirected ? 'Yes' : 'No'}</div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            newTab.document.write(html);
+            newTab.document.close();
+        }
+
+        // Function to show error in new tab
+        function showErrorInNewTab(method, url, error) {
+            const newTab = window.open('about:blank', '_blank');
+            if (!newTab) {
+                log('Popup blocked - unable to open error in new tab');
+                return;
+            }
+            
+            const timestamp = new Date().toISOString();
+            
+            const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${method} Error</title>
+                    <style>
+                        body { font-family: monospace; margin: 20px; background: #f8f9fa; }
+                        .header { background: #e74c3c; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+                        .section { background: white; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 4px solid #e74c3c; }
+                        .section h3 { margin-top: 0; color: #2c3e50; }
+                        .error-message { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div style="font-size: 1.5em;">❌ ${method} Request Error</div>
+                        <div><strong>URL:</strong> ${url}</div>
+                        <div><strong>Time:</strong> ${timestamp}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>Error Details</h3>
+                        <div class="error-message">${error.message}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>Possible Causes</h3>
+                        <ul>
+                            <li>Network connectivity issues</li>
+                            <li>Server not responding</li>
+                            <li>CORS policy restrictions</li>
+                            <li>Server configuration problems</li>
+                            <li>Request payload too large</li>
+                            <li>Invalid content type</li>
+                        </ul>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            newTab.document.write(html);
+            newTab.document.close();
+        }
+    </script>
+</body>
+</html>

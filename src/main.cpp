@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 10:37:37 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/26 11:10:41 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ int main(int ac, char **av, char **envp)
         return 1;
     }
 
-    std::vector<HttpServer *> servers; // Move to main function scope
+    std::vector<HttpServer *> servers;
     g_servers = &servers;
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
