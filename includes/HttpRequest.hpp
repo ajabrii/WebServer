@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/25 18:40:48 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/26 16:52:21 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ public:
     bool headersParsed;
     std::map<std::string, std::string> cookies;
     std::map<std::string, std::string> sessionData;
+    std::string sessionPath;
 
     HttpRequest();
 

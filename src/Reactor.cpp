@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/25 18:07:56 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/26 15:33:34 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,6 +152,10 @@ void Reactor::cgiRemover(Connection *conn)
     }
     else
         conn->closeConnection();
+    // delete cgi; // Clean up CGI state
+    // conn->setCgiState(NULL);
+    
+    std::cerr << "\033[1;34m[CGI]\033[0m CGI state cleaned up for fd: " << conn->getFd() << std::endl;
 }
 
 

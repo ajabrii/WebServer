@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/25 20:50:24 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/26 17:07:46 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,7 +196,10 @@ int main(int ac, char **av, char **envp)
                             for (std::map<std::string, std::string>::const_iterator it = req.headers.begin(); it != req.headers.end(); ++it) {
                                 std::cout << "  " << it->first << ": " << it->second << std::endl;
                             }
+
                             
+                            // read form session file if exist or create it if not exist and save incoming cookies to it
+                            SessionManager sessionManager;
                             if (req.headers.find("Cookie") != req.headers.end()) 
                             {
                                 std::cout << "\033[1;33m[Session]\033[0m Cookies found in request" << std::endl;
@@ -215,10 +218,21 @@ int main(int ac, char **av, char **envp)
                                 {
                                     std::cout << "\033[1;33m[Session]\033[0m Session ID found in cookies" << std::endl;
                                     std::string sessionId = cookies["session_id"];
-                                    SessionManager sessionManager;
-                                    std::map<std::string, std::string> sessionData = sessionManager.load(sessionId);
-                                    req.sessionData = sessionData; // Store session data in request
-                                    std::cout << "\033[1;33m[Session]\033[0m Session ID: " << sessionId << std::endl;
+
+                                    //check if session file that is his name the given ID is exist or not , if not create it if exist load it
+                                    // check /tmp/sessions/session_id if can open or not
+                                    
+                                    
+                                    if (access(sessionManager.buildSessionFilePath(sessionId).c_str(), F_OK) == 0)
+                                    {
+                                        std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << sessionId << std::endl;
+                                    }
+                                    else
+                                    {
+                                        std::cout << "\033[1;33m[Session]\033[0m Session ID does not exist, creating new session" << std::endl;
+                                        // Create a new session file
+                                        sessionManager.save(sessionId, req.cookies);
+                                    }
                                 }
                                 else
                                 {
@@ -226,11 +240,20 @@ int main(int ac, char **av, char **envp)
                                     // Generate a new session ID if not present
                                     std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
                                     req.cookies["session_id"] = newSessionId;
-                                    SessionManager sessionManager;
-                                    sessionManager.save(newSessionId, std::map<std::string, std::string>());
-                                    std::cout << "\033[1;33m[Session]\033[0m New Session ID generated: " << newSessionId << std::endl;
-                                }
                                     
+                                    if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) == 0)
+                                    {
+                                        std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << newSessionId << std::endl;
+                                    }
+                                    else
+                                    {
+                                        std::cout << "\033[1;33m[Session]\033[0m Session ID does not exist, creating new session" << std::endl;
+                                        // Create a new session file
+                                        sessionManager.save(newSessionId, req.cookies);
+                                    }
+                                }
+                                req.sessionPath = sessionManager.buildSessionFilePath(req.cookies["session_id"]);
+                                req.sessionData = sessionManager.load(req.cookies["session_id"]);
                             } // if not set-cookie
                             else 
                             {
@@ -238,9 +261,19 @@ int main(int ac, char **av, char **envp)
                                 // Generate a new session ID if no cookies are present
                                 std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
                                 req.cookies["session_id"] = newSessionId;
-                                SessionManager sessionManager;
-                                sessionManager.save(newSessionId, std::map<std::string, std::string>());
-                                std::cout << "\033[1;33m[Session]\033[0m New Session ID generated: " << newSessionId << std::endl;
+                                
+                                if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) == 0)
+                                {
+                                    std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << newSessionId << std::endl;
+                                }
+                                else
+                                {
+                                    std::cout << "\033[1;33m[Session]\033[0m Session ID does not exist, creating new session" << std::endl;
+                                    // Create a new session file
+                                    sessionManager.save(newSessionId, req.cookies);
+                                }
+                                req.sessionData = sessionManager.load(req.cookies["session_id"]);
+                                req.sessionPath = sessionManager.buildSessionFilePath(req.cookies["session_id"]);
                             }
                             
 
@@ -326,12 +359,11 @@ int main(int ac, char **av, char **envp)
                                 resp.headers["content-type"] = "text/html";
                                 resp.body = Error::loadErrorPage(404, server->getConfig());
                                 // set set-cookie header for session management
-                                if (req.cookies.find("session_id") != req.cookies.end()) 
+                                if (req.cookies.find("session_id") != req.cookies.end())
                                 {
                                     resp.headers["set-cookie"] = "session_id=" + req.cookies["session_id"] + "; Path=/; HttpOnly";
                                     // set mode to dark
-                                    resp.headers["mode"] = (std::string)"dark" + "; Path=/; HttpOnly" ;
-                                    
+                                    resp.headers["mode"] = (std::string)"dark" + "; Path=/; HttpOnly";
                                 }
                                 
                                 // C++98 compatible string conversion
@@ -354,12 +386,7 @@ int main(int ac, char **av, char **envp)
                             
                             // Send the response
                             setConnectionHeaders(resp, conn.isKeepAlive());
-                            // if no cookie header is set, set it
-                            if (req.cookies.find("session_id") != req.cookies.end()) 
-                            {
-                                resp.headers["set-cookie"] = "session_id=" + req.cookies["session_id"] + "; Path=/; HttpOnly";
-                                resp.headers["mode"] = (std::string)"dark" + "; Path=/; HttpOnly" ;
-                            }
+                            resp.SetCookieHeaders(req.cookies, req.sessionData);
                             conn.writeData(resp.toString());
                             conn.reset(); //m7i lkhra mn connection bach nwjdo request lakhra la kant connection keep alive
                             conn.updateLastActivity(); // Update activity timestamp after sending response
@@ -400,11 +427,7 @@ int main(int ac, char **av, char **envp)
                                 
                         //         // Always close connection on parse errors
                                 setConnectionHeaders(errorResp, false);
-                            if (req.cookies.find("session_id") != req.cookies.end()) 
-                            {
-                                errorResp.headers["set-cookie"] = "session_id=" + req.cookies["session_id"] + "; Path=/; HttpOnly";
-                                errorResp.headers["mode"] = (std::string)"dark" + "; Path=/; HttpOnly" ;
-                            }
+                                errorResp.SetCookieHeaders(req.cookies, req.sessionData);
                                 conn.writeData(errorResp.toString());
                                 conn.updateLastActivity(); // Update activity timestamp after error response
                                 reactor.removeConnection(event.fd);
@@ -438,14 +461,7 @@ int main(int ac, char **av, char **envp)
                         timeoutResponse.headers["Content-Type"] = "text/plain";
                         timeoutResponse.headers["Content-Length"] = Utils::toString(timeoutResponse.body.size());
                         setConnectionHeaders(timeoutResponse, conn->isKeepAlive());
-                        // if no cookie header is set, set it
-                        if (conn->getCurrentRequest().cookies.find("session_id") != conn->getCurrentRequest().cookies.end()) 
-                        {
-                            timeoutResponse.headers["set-cookie"] = "session_id=" + conn->getCurrentRequest().cookies["session_id"] + "; Path=/; HttpOnly";
-                            timeoutResponse.headers["Set-Cookie"] = "mode=dark; Path=/; HttpOnly";
-
-                        }
-                        conn->writeData(timeoutResponse.toString());
+                        timeoutResponse.SetCookieHeaders(conn->getCurrentRequest());
                         
                         reactor.removeConnection(conn->getFd());
                         delete conn; // Clean up connection object
