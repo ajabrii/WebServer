@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:03:57 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 17:00:38 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/26 18:11:23 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 
 class ConfigInterpreter {
     private:
@@ -38,19 +39,17 @@ class ConfigInterpreter {
         void getConfigData(std::string filePath);
         void parse();
         const std::vector<ServerConfig>& getServerConfigs() const;
-        void checkValues() const;
+        void checkValues();
         std::string getPathForCGI(char **envp) const;
     
     private:
-        // void parseServerBlock(const std::vector<std::string>& lines, size_t& i);
-        // void parseRouteBlock(ServerConfig& server, const std::vector<std::string>& lines, size_t& i);
-        void parseRouteLine(RouteConfig& route, const std::string& line);
+        void parseRouteBlock(RouteConfig& route, const std::string& line);
         void parseRouteOption(RouteConfig& route, const std::string& key, const std::string& value);
         void parseMethodsOption(RouteConfig& route, const std::string& value);
         void parseDirectoryListingOption(RouteConfig& route, const std::string& value);
         void parseUploadPathOption(RouteConfig& route, const std::string& value);
         void parseCgiOption(RouteConfig& route, const std::string& value);
-        void parseServerLine(ServerConfig& server, const std::string& line);
+        void parseServerBlock(ServerConfig& server, const std::string& line);
         void parseServerOption(ServerConfig& server, const std::string& key, const std::string& value, const std::string& line);
         void parseHostOption(ServerConfig& server, const std::string& value);
         void parsePortOption(ServerConfig& server, const std::string& value);

@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/25 17:07:41 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/26 18:35:18 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ void HttpRequest::parseHeaderLine(const std::string& line, int& hostFlag)
 
     this->headers[key] = value;
 
-    if (toLower(key) == "host") {
+    if (key == "host") {
         if (value.empty()) {
             throwHttpError(400, "Bad request: Host header value empty");
         }

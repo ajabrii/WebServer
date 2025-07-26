@@ -18,6 +18,7 @@ SRC = \
 	$(SRCDIR)/CgiHandler.cpp \
 	$(SRCDIR)/CgiData.cpp \
 	$(SRCDIR)/ConfigInterpreter.cpp \
+	$(SRCDIR)/ConfigServerParser.cpp \
 	$(SRCDIR)/Connection.cpp \
 	$(SRCDIR)/HttpRequest.cpp \
 	$(SRCDIR)/HttpResponse.cpp \

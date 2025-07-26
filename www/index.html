@@ -131,8 +131,13 @@
       };
 
       xhr.onload = function () {
-        alert(xhr.status === 200 ? 'Upload complete!\n' + xhr.responseText : 'Upload failed');
-        document.getElementById('progressBar').style.width = '0%';
+        if (xhr.status === 200 || xhr.status === 201) {
+          alert('Upload complete!\n' + xhr.responseText);
+          document.getElementById('progressBar').style.width = '0%';
+        } else {
+          // For error responses, replace page content with error page
+          document.documentElement.innerHTML = xhr.responseText;
+        }
       };
 
       xhr.onerror = function () {
