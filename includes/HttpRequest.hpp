@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/25 17:01:13 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/26 20:18:57 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,11 @@ public:
     bool isChunked;
     long bodyReceived;
     bool headersParsed;
+    std::map<std::string, std::string> cookies;
+    std::map<std::string, std::string> sessionData;
+    std::string sessionPath;
+    std::string SessionId;
+    std::string FileDataBase;
 
     HttpRequest();
 

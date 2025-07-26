@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 11:34:55 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/26 20:15:16 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +56,8 @@ void writeFile(const std::string &path, const std::string &content)
 
 void writeKeyValuesToFile(const std::string &path, const std::map<std::string, std::string> &fields)
 {
-    std::cout << "file path: `" << path << "'" << std::endl;
-    std::ofstream out(path.c_str());
+    // open out with append mode
+    std::ofstream out(path.c_str(), std::ios::trunc);
     if (!out)
     {
         throw std::runtime_error("Error: Failed to write file: " + path);
@@ -254,8 +254,9 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
         }
         else if (ct.find("application/x-www-form-urlencoded") != std::string::npos)
         {
-            std::map<std::string, std::string> fields = parseFormUrlEncoded(req.body);
-            std::string filepath = route.uploadDir + "/form_" + Utils::toString(std::time(0)) + ".txt";
+            std::map<std::string,std::string> fields = parseFormUrlEncoded(req.body);
+            std::string filepath = route.uploadDir +  "/" + req.SessionId + ".database";
+            const_cast<std::string&>(req.FileDataBase) = filepath;
             writeKeyValuesToFile(filepath, fields);
             resp.version = "HTTP/1.1";
             resp.body = "<html><head><title>Uploads</title></head><body><h1>File uploaded: " + filepath + "</h1></body></html>";

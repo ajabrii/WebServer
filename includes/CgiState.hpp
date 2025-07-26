@@ -4,10 +4,13 @@
 #include <sys/wait.h>
 #include <iostream>
 
+
+typedef class Connection Connection;
+typedef class Reactor Reactor;
 class CgiState
 {
     public:
-        CgiState() : pid(-1), output_fd(-1), input_fd(-1), startTime(0), headersParsed(false), bodySent(false) {};
+        CgiState() : pid(-1), output_fd(-1), input_fd(-1),rawOutput("") ,startTime(0), headersParsed(false), bodySent(false), bytesWritten(0), script_path("") {};
         ~CgiState() 
         {
             std::cerr << "\n\033[1;34m[CGI]\033[0m Cleaning up CGI state for PID: " << pid << std::endl;
@@ -36,9 +39,10 @@ class CgiState
         time_t startTime;
         bool headersParsed;
         bool bodySent;
+        size_t bytesWritten;
             // Optional:
-        std::string headerBuffer;
-        std::string bodyBuffer;
         std::string script_path;
-        std::string pendingBody;
+        Connection* connection;
+        void writeToScript(Connection& conn);
+        void readFromScript(Connection& conn , Reactor& reactor);
 };

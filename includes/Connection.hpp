@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/07/22 12:51:03 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/26 20:18:44 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,9 +58,13 @@ class Connection
         int getFd() const;
         void readData(HttpServer* server);
         void writeData(const std::string& response) const;
+        std::string getClientIP() const;
         void closeConnection();
 
         void updateLastActivity();
+        time_t getLastActivity() const{
+            return lastActivityTime;
+        }
         bool isKeepAlive() const;
         void setKeepAlive(bool keepAlive);
         bool isTimedOut() const;

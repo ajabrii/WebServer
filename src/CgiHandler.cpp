@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/19 18:43:03 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/23 18:23:50 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include <unistd.h> 
 #include <sys/epoll.h>
 #include <ctime>
+// # include <Errors.hpp>
 
 
 CgiHandler::CgiHandler() {}
@@ -65,18 +66,24 @@ char **convert_env(std::map<std::string, std::string> env)
 }
 
 
-char **CgiHandler::set_env(void)
+char **CgiHandler::set_env(Connection &conn)
 {
     std::map<std::string, std::string> env_map; // Use env_map for clarity
     std::string host;
     
     for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it) 
     {
-        std::string header_name = it->first;
-        std::transform(header_name.begin(), header_name.end(), header_name.begin(), ::toupper); // Convert to uppercase
-        std::replace(header_name.begin(), header_name.end(), '-', '_'); // Replace hyphens with underscores
-        env_map[header_name] = it->second;
+        std::string key = it->first;
+        std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+        std::replace(key.begin(), key.end(), '-', '_');
+        
+        if (key != "CONTENT_TYPE" && key != "CONTENT_LENGTH") {
+            key = "HTTP_" + key;
+        }
+        
+        env_map[key] = it->second;
     }
+
     host = _req.GetHeader("host");
 
     env_map["REQUEST_METHOD"] = _req.method;
@@ -95,7 +102,7 @@ char **CgiHandler::set_env(void)
         env_map["SERVER_NAME"] = host.substr(0, host.find(":"));
     }
         
-    // env_map["REMOTE_ADDR"] =; // Get client IP address // 
+    env_map["REMOTE_ADDR"] = conn.getClientIP();
     env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
     env_map["SERVER_PROTOCOL"] = "HTTP/1.1";
     // std::cout << "SERVER NAME: " << host.substr(0, host.find(":")) << ", PORT: " << host.substr(host.find(":") + 1) << std::endl; // REMOVE
@@ -169,6 +176,21 @@ CgiData CgiHandler::check_cgi(void) // cgi-bin/file.extns/path/path?var=value
     bool is_query = false;
     bool is_pathInfo = false;
     size_t query_pose;
+
+    // loop for Methods and check if the method is allowed from config
+    if (std::find(_route.allowedMethods.begin(), _route.allowedMethods.end(), _req.method) == _route.allowedMethods.end())
+    {
+        std::cerr << "Method not allowed: " << _req.method << std::endl;
+        _errResponse.statusCode = 405;
+        _errResponse.statusText = "Method Not Allowed";
+        _errResponse.headers["Content-Type"] = "text/html";
+        // _errResponse.body = Error::loadErrorPage(405, _serverData);
+        std::stringstream ss;
+        ss << _errResponse.body.size();
+        _errResponse.headers["Content-Length"] = ss.str();
+        return (data);
+        throw HttpRequest::HttpException(405, "Method Not Allowed");
+    }
 
     query_pose =  _req.uri.find('?');
     if (query_pose != std::string::npos)
@@ -302,8 +324,10 @@ std::string GetKey(std::map<std::string, std::string> map ,std::string target)
 }
 
 
-CgiState *CgiHandler::execCgi(void)
+CgiState *CgiHandler::execCgi(Connection &conn)
 {
+    conn.updateLastActivity();
+    std::cerr << "last activity time: " << conn.getLastActivity() << std::endl;
     CgiState *f = new CgiState();
     std::string cmd;
     std::string fp; // Full path to interpreter
@@ -323,7 +347,7 @@ CgiState *CgiHandler::execCgi(void)
         delete f; // Clean up before returning
         return NULL;
     }
-    env = set_env(); // Environment variables prepared
+    env = set_env(conn); // Environment variables prepared
 
     // Determine command to pass to execve
     if (_data.CgiInterp.find("/") != std::string::npos)
@@ -422,7 +446,18 @@ CgiState *CgiHandler::execCgi(void)
             close(pfd_in[0]); // Close read end in child
             close(pfd_in[1]); // Close write end in child
         }
-        
+        else
+        {
+            // For GET or others, connect an empty pipe to stdin
+            int null_fd[2];
+            if (pipe(null_fd) == -1)
+                exit(1); // Pipe failure
+
+            dup2(null_fd[0], STDIN_FILENO); // Child will read EOF
+            close(null_fd[0]);
+            close(null_fd[1]);
+        }       
+                
         // **CRITICAL: Set up proper working directory and script path**
         // Convert URI path to filesystem path
         std::string filesystem_script_path = _data.script_path;
@@ -482,9 +517,10 @@ CgiState *CgiHandler::execCgi(void)
         else
             f->input_fd = -1; // No input for GET requests
         f->pid = pid;
+        f->bodySent = false;
         f->script_path = _data.script_path;
-        f->headerBuffer.clear();
-        f->bodyBuffer.clear();
+        f->startTime = std::time(0);
+        f->connection = &conn; // Store the connection for later use
         for (int i = 0; env[i] != NULL; ++i) 
             delete[] env[i];
         delete[] env;

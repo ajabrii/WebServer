@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 13:18:01 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/26 20:21:00 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,21 +38,10 @@ namespace Utils
 }
 bool shouldKeepAlive(const HttpRequest& request);
 void setConnectionHeaders(HttpResponse& response, bool keepAlive);
-HttpResponse createErrorResponse(int statusCode, const std::string &statusText, const ServerConfig &ServerConfig);
-void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv);
-void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server,
-                        const Event &event, const std::string &cgiEnv);
-void handleCgiRequest(Reactor &reactor, Connection &conn, CgiHandler &cgi, const ServerConfig &ServerConfig);
-void handleHttpResponse(Reactor &reactor, Connection &conn, HttpResponse &resp,
-                        const HttpRequest &req);
-void handleHttpException(Reactor &reactor, Connection &conn, HttpServer *server,
-                         const std::runtime_error &e);
-void handleErrorEvent(const Event &event);
-void handleNewConnection(Reactor &reactor, const Event &event);
-void handleCgiState(Reactor &reactor, Connection &conn, CgiState *cgiState, const Event &event);
-HttpResponse parseCgiOutput(const std::string &raw);
-void ltrim(std::string &s);
-std::string toLower(const std::string &s);
+std::string toLower(const std::string& s);
 
+void ltrim(std::string& s);
+HttpResponse parseCgiOutput(const std::string& raw);
+std::string buildSetCookieHeader(const std::string& session_id);
 
 #endif
