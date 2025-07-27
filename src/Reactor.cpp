@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 18:38:22 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/27 18:44:21 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -231,6 +231,12 @@ std::vector<Event> Reactor::getReadyEvents() const
 {
     return readyEvents;
 }
+
+std::vector<pollfd> Reactor::getPollFds() const
+{
+    return pollFDs;
+}
+
 
 Connection& Reactor::getConnection(int fd)
 {
