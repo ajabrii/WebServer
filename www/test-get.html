@@ -152,7 +152,7 @@
 <body>
     <div class="container">
         <a href="index.html" class="nav-back">← Back to Home</a>
-        
+
         <div class="header">
             <h1>📄 GET Method Testing</h1>
             <p>Test static file serving, directory listing, and HTTP GET functionality</p>
@@ -169,7 +169,12 @@
                 </div>
                 <div class="test-item">
                     <h4>Image Files</h4>
-                    <a href="/uploads/placeholder.svg" class="test-button">SVG Image</a>
+                    <a href="/uploads/favicon.ico" class="test-button">favicon Image</a>
+                    <button class="test-button" onclick="testFile('/uploads/test.jpg')">JPG Test</button>
+                </div>
+                <div class="test-item">
+                    <h4>Webserv subjects</h4>
+                    <a href="/uploads/en.subject.pdf" class="test-button">English Subject</a>
                     <button class="test-button" onclick="testFile('/uploads/test.jpg')">JPG Test</button>
                 </div>
                 <div class="test-item">
@@ -258,17 +263,17 @@
             log(`Testing GET request to: ${url}`);
             try {
                 const response = await fetch(url);
-                const statusClass = response.status === 200 ? 'status-200' : 
+                const statusClass = response.status === 200 ? 'status-200' :
                                   response.status === 404 ? 'status-404' : 'status-403';
-                
+
                 log(`Response: ${response.status} ${response.statusText}`);
                 log(`Content-Type: ${response.headers.get('content-type') || 'not specified'}`);
                 log(`Content-Length: ${response.headers.get('content-length') || 'not specified'}`);
-                
+
                 // Show response in new tab
                 const responseText = await response.clone().text();
                 showResponseInNewTab('GET', url, response, responseText);
-                
+
                 if (response.ok) {
                     const contentType = response.headers.get('content-type');
                     if (contentType && contentType.includes('text')) {
@@ -293,14 +298,14 @@
             try {
                 const response = await fetch(url);
                 log(`Response: ${response.status} ${response.statusText}`);
-                
+
                 if (response.ok) {
                     const html = await response.text();
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
                     const links = doc.querySelectorAll('a');
                     log(`Found ${links.length} items in directory`);
-                    
+
                     links.forEach((link, index) => {
                         if (index < 10) { // Show first 10 items
                             log(`  - ${link.textContent}`);
@@ -352,10 +357,10 @@
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
                     const links = doc.querySelectorAll('a');
-                    
+
                     const fileBrowser = document.getElementById('fileBrowser');
                     fileBrowser.innerHTML = '';
-                    
+
                     links.forEach(link => {
                         const href = link.getAttribute('href');
                         if (href && href !== '../' && href !== './') {
@@ -368,7 +373,7 @@
                             fileBrowser.appendChild(fileItem);
                         }
                     });
-                    
+
                     if (fileBrowser.children.length === 0) {
                         fileBrowser.innerHTML = '<div class="file-item"><span>No files found</span></div>';
                     }
@@ -390,13 +395,13 @@
                 log('Popup blocked - unable to open response in new tab');
                 return;
             }
-            
+
             const timestamp = new Date().toISOString();
             const headers = [];
             for (const [key, value] of response.headers.entries()) {
                 headers.push(`${key}: ${value}`);
             }
-            
+
             const html = `
                 <!DOCTYPE html>
                 <html>
@@ -421,17 +426,17 @@
                         <div><strong>URL:</strong> ${url}</div>
                         <div><strong>Time:</strong> ${timestamp}</div>
                     </div>
-                    
+
                     <div class="section ${response.ok ? 'success' : 'error'}">
                         <h3>Response Headers</h3>
                         <div>${headers.length > 0 ? headers.join('<br>') : 'No headers received'}</div>
                     </div>
-                    
+
                     <div class="section">
                         <h3>Response Body</h3>
                         <div class="response-body">${responseText || '(empty response)'}</div>
                     </div>
-                    
+
                     <div class="section">
                         <h3>Request Details</h3>
                         <div><strong>Method:</strong> GET</div>
@@ -443,7 +448,7 @@
                 </body>
                 </html>
             `;
-            
+
             newTab.document.write(html);
             newTab.document.close();
         }
@@ -455,9 +460,9 @@
                 log('Popup blocked - unable to open error in new tab');
                 return;
             }
-            
+
             const timestamp = new Date().toISOString();
-            
+
             const html = `
                 <!DOCTYPE html>
                 <html>
@@ -477,12 +482,12 @@
                         <div><strong>URL:</strong> ${url}</div>
                         <div><strong>Time:</strong> ${timestamp}</div>
                     </div>
-                    
+
                     <div class="section">
                         <h3>Error Details</h3>
                         <div class="error-message">${error.message}</div>
                     </div>
-                    
+
                     <div class="section">
                         <h3>Possible Causes</h3>
                         <ul>
@@ -496,7 +501,7 @@
                 </body>
                 </html>
             `;
-            
+
             newTab.document.write(html);
             newTab.document.close();
         }
