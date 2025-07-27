@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 18:30:15 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/27 18:34:19 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,10 +103,7 @@ int main(int ac, char **av, char **envp)
         {
             try 
             {
-                reactor.poll(); //? hna kan3mer wa7d struct smitha Event ghatl9awha f reactor class
-                
-                // Cleanup timed-out connections periodically
-                
+                reactor.poll();
                 std::vector<Event> events = reactor.getReadyEvents(); //? Hna kangeti dik struct li fiha evensts li 3mrathom poll (kernel li 3merhom poll it's system call you for more infos go to reactor.cpp > void Reactor::poll())
 
                 for (size_t i = 0; i < events.size(); ++i)

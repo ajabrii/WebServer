@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 18:18:39 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/27 18:35:44 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,22 +187,10 @@ void Reactor::removeConnection(int fd)
     clientToServerMap.erase(fd);
 }
 
-/*
-=== this function is where the multiplexing magic happens ===
-
-*(x) poll() : lets the kernel ! multiple fds at once (monitoring for read/write events).
-@ It blocks until at least one fd is ready (here we block forever with -1).
-@ The kernel sets pfd.revents flags to show which events happened (e.g., POLLIN, POLLOUT).
-
-*(x) We loop over pollFDs:
-? If pfd.revents shows readable or writable, we create an Event struct to describe it.
-@ This way, our reactor collects all ready events so we can handle them later.
-*/
- //TODO: I should check if POLLERR or POLLHUB happend close the fd ... 
 void Reactor::poll()
 {
     readyEvents.clear();
-    int ret = ::poll(pollFDs.data(), pollFDs.size(), 1000); // 1 second timeout for keep-alive cleanup
+    int ret = ::poll(pollFDs.data(), pollFDs.size(), 1000);
     if (ret < 0)
     {
         if ( errno == EINTR )
@@ -212,21 +200,18 @@ void Reactor::poll()
     for (size_t i = 0; i < pollFDs.size(); ++i)
     {
         pollfd& pfd = pollFDs[i];
-        if (pfd.revents == 0) continue; // No events on this fd
-        
+        if (pfd.revents == 0)
+            continue;    
         Event evt;
         evt.fd = pfd.fd;
         
-        // Check for error conditions FIRST (highest priority)
         if (pfd.revents & (POLLERR | POLLNVAL))
         {
             evt.isError = true;
             evt.errorType = pfd.revents;
             readyEvents.push_back(evt);
-            continue; // Don't process other events for this fd
+            continue;
         }
-        
-        // Check for normal events
         if (pfd.revents & (POLLIN | POLLOUT))
         {
             evt.isReadable = (pfd.revents & POLLIN);
