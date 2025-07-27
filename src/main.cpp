@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 15:26:11 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/27 18:30:15 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ int main(int ac, char **av, char **envp)
         Error::logs("Usage: " + std::string(av[0]) + " <config_file>");
         return 1;
     }
-
+    
     try
     {
         ConfigInterpreter parser;
@@ -73,17 +73,17 @@ int main(int ac, char **av, char **envp)
         parser.parse();
         parser.checkValues();
         std::string cgiEnv = parser.getPathForCGI(envp);
-
+        
         std::cout << "[✔] Config loaded" << std::endl;
-
+        
         std::vector<ServerConfig> configs = parser.getServerConfigs();
         std::vector<HttpServer*> servers;
-
+    
         // Setup signal handlers for graceful shutdown
         signal(SIGINT, signalHandler);
         signal(SIGTERM, signalHandler);
         g_servers = &servers;
-
+        
         //* === Setup servers === (done 100%)
         for (size_t i = 0; i < configs.size(); ++i) {
             HttpServer* server = new HttpServer(configs[i]);
@@ -97,42 +97,25 @@ int main(int ac, char **av, char **envp)
         for (size_t i = 0; i < servers.size(); ++i)
             reactor.registerServer(*servers[i]);
 
-        std::vector<Connection*> connections;
+        // std::vector<Connection*> connections; // Bader
         //* === Event loop ===
         while (!g_shutdown)
         {
-            try {
+            try 
+            {
                 reactor.poll(); //? hna kan3mer wa7d struct smitha Event ghatl9awha f reactor class
                 
                 // Cleanup timed-out connections periodically
-                reactor.cleanupTimedOutConnections();
                 
                 std::vector<Event> events = reactor.getReadyEvents(); //? Hna kangeti dik struct li fiha evensts li 3mrathom poll (kernel li 3merhom poll it's system call you for more infos go to reactor.cpp > void Reactor::poll())
 
-                //? hna kanlopi ela ga3 events struct kola wahd o chno khasni ndir lih/bih isnewconnection isReadble (POLLIN) isWritble
                 for (size_t i = 0; i < events.size(); ++i)
-            {
-                Event event = events[i];
-                // Handle error events FIRST (highest priority)
-                if (event.isNewConnection)
                 {
-                    std::cout << "\033[1;32m[+]\033[0m New connection detected on fd: " << event.fd << std::endl;
-                    HttpServer* server = reactor.getServerByListeningFd(event.fd); //? hna kanchof ina server t connecta m3ah l client bach nchof ina route khsni nmchi lih mn ber3d
-                    if (server)
+                    Event event = events[i];
+                    if (event.isNewConnection)
                     {
-                        Connection* conn = new Connection(server->acceptConnection(event.fd)); //? hna kan 9ad wahd object dial connection kan constructih b client object li kay creah (acceptih) server
-                        conn->updateLastActivity(); // Initialize activity timestamp for new connection
-                        reactor.addConnection(conn, server);
-                        std::cout << NEW_CLIENT_CON << std::endl;
-                        // add the new connection to the connections vector
-                        bool keepAlive = shouldKeepAlive(conn->getCurrentRequest());      
-                            // Limit number of requests per connection to prevent resource exhaustion
-                        if (conn->getRequestCount() >= REQUEST_LIMIT_PER_CONNECTION)
-                            keepAlive = false;
-                        conn->setKeepAlive(keepAlive);
-                        connections.push_back(conn);
+                        handleNewConnection(reactor, event);
                     }
-                }
                 else if (event.isReadable || event.isPullHUP)
                 {
                     Connection &conn = reactor.getConnection(event.fd);
@@ -315,7 +298,8 @@ int main(int ac, char **av, char **envp)
                 
                 
             } // End of for loop
-            HandleTimeOut(connections, reactor);
+            // HandleTimeOut(connections, reactor);
+            reactor.cleanupTimedOutConnections();
             } catch (const std::exception& e) {
                 std::cerr << "Event loop error: " << e.what() << std::endl;
                 // Continue with next iteration

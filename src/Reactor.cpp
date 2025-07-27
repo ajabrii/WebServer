@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Reactor.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 20:25:52 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/27 18:18:39 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ Event::Event() : fd(-1), isReadable(false), isWritable(false),
 
 void Reactor::cleanup() {
     // Clean up all connections
+    std::cout << "{debugin ________________________}reactor clean up\n";
     for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) 
     {
         if (it->second->getCgiState())
@@ -172,7 +173,7 @@ void Reactor::removeConnection(int fd)
             cgiRemover(connIt->second);
             return;
         }
-        // delete connIt->second;
+        delete connIt->second;
         connectionMap.erase(connIt);
     }
     for (std::vector<pollfd>::iterator it = pollFDs.begin(); it != pollFDs.end(); ++it)
@@ -203,7 +204,11 @@ void Reactor::poll()
     readyEvents.clear();
     int ret = ::poll(pollFDs.data(), pollFDs.size(), 1000); // 1 second timeout for keep-alive cleanup
     if (ret < 0)
+    {
+        if ( errno == EINTR )
+            return;
         throw std::runtime_error("Error: poll failed");
+    }
     for (size_t i = 0; i < pollFDs.size(); ++i)
     {
         pollfd& pfd = pollFDs[i];

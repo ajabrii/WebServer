@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 15:24:11 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/27 18:27:39 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,8 @@ void ltrim(std::string& s);
 HttpResponse parseCgiOutput(const std::string& raw);
 std::string buildSetCookieHeader(const std::string& session_id);
 void HandleCookies(Connection& conn, HttpRequest& req);
-void HandleTimeOut( std::vector<Connection*>& connections, Reactor &reactor);
+// void HandleTimeOut( std::vector<Connection*>& connections, Reactor &reactor);
+void handleNewConnection(Reactor &reactor, const Event &event);
+
 
 #endif

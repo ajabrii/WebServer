@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 15:23:58 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/27 18:28:20 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -285,5 +285,24 @@ void HandleTimeOut( std::vector<Connection*>& connections, Reactor &reactor)
             connections.erase(connections.begin() + j);
             --j; // Adjust index after removal
         }
+    }
+}
+
+// ============================================
+
+void handleNewConnection(Reactor &reactor, const Event &event)
+{
+    HttpServer* server = reactor.getServerByListeningFd(event.fd);
+    std::cout << "\033[1;32m[+]\033[0m New connection detected on fd: " << event.fd << std::endl;
+    if (server)
+    {
+        Connection* conn = new Connection(server->acceptConnection(event.fd));
+        conn->updateLastActivity();
+        reactor.addConnection(conn, server);
+        std::cout << NEW_CLIENT_CON << std::endl;
+        bool keepAlive = shouldKeepAlive(conn->getCurrentRequest());      
+        if (conn->getRequestCount() >= REQUEST_LIMIT_PER_CONNECTION)
+            keepAlive = false;
+        conn->setKeepAlive(keepAlive);
     }
 }
