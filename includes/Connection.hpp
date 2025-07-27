@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/07/26 20:18:44 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/27 11:22:50 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #define CONNECTION_HPP
 
 #include "../includes/HttpRequest.hpp"
-#include "../includes/HttpRequest.hpp"
+#include "../includes/SessionInfos.hpp"
 #include <string>
 #include <netinet/in.h>
 #include <ctime>
@@ -49,12 +49,15 @@ class Connection
         bool isChunked;
         HttpRequest currentRequest;
         CgiState* cgiState;
+        SessionInfos sessionInfos;
+        
 
-    public:
+        
+        public:
         Connection();
         Connection(int fd, const sockaddr_in& addr);
         ~Connection();
-
+        
         int getFd() const;
         void readData(HttpServer* server);
         void writeData(const std::string& response) const;
@@ -78,6 +81,7 @@ class Connection
         void reset();
         CgiState* getCgiState() const;
         void setCgiState(CgiState* cgiState);
+        void setSessionInfos(const SessionInfos& sessionInfos);
+        SessionInfos& getSessionInfos();
 };
-
 #endif

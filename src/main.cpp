@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 20:24:11 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/27 15:26:11 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,156 +162,18 @@ int main(int ac, char **av, char **envp)
     
                        if (conn.isRequestComplete()) 
                        {
-                            
-                            // std::cout << "dekhel" << std::endl;
-                            std::cout << "\033[1;36m[>] Full Request Received and Parsed:\033[0m\n";
-                            
-    
                             HttpRequest& req = conn.getCurrentRequest();
-    
-                                // std::cout << "Method: " << req.method << std::endl;
-                                // std::cout << "URI: " << req.uri << std::endl;
-                                // std::cout << "Version: " << req.version << std::endl;
-                                // if (!req.body.empty()) {
-                                //     std::cout << "Body Length: " << req.body.length() << std::endl;
-                                    // std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
-                                // }
-                                // std::cout << RECEV_COMPLETE << std::endl;
                                 
                         try
                         {
-                            // HttpServer* server = reactor.getServerForClient(event.fd);
-                            // HttpRequest& req = conn.getCurrentRequest();
-                            //  std::cout << "Method: " << req.method << std::endl;
-                            //     std::cout << "URI: " << req.uri << std::endl;
-                            //     std::cout << "Version: " << req.version << std::endl;
-                            //     if (!req.body.empty()) {
-                            //         std::cout << "Body Length: " << req.body.length() << std::endl;
-                            //         std::cout << "Body (first 100 chars): " << req.body.substr(0, 100) << "..." << std::endl;
-                            //     }
-                            // parse cookies if present
-                            // print all headres of request no auto
-                            
-                            std::cout << "Headers:" << std::endl;
-                            for (std::map<std::string, std::string>::const_iterator it = req.headers.begin(); it != req.headers.end(); ++it) {
-                                std::cout << "  " << it->first << ": " << it->second << std::endl;
-                            }
-
-                            
-                            // read form session file if exist or create it if not exist and save incoming cookies to it
-                            SessionManager sessionManager;
-                            if (req.headers.find("Cookie") != req.headers.end()) 
-                            {
-                                std::cout << "\033[1;33m[Session]\033[0m Cookies found in request" << std::endl;
-                                std::string cookieHeader = req.headers["Cookie"];
-                                std::map<std::string, std::string> cookies = CookieParser::parse(cookieHeader);
-                                // print cookies
-
-                                std::cout << "Parsed Cookies:" << std::endl;
-                                for (std::map<std::string, std::string>::const_iterator it = cookies.begin(); it != cookies.end(); ++it) {
-                                    std::cout << "  " << it->first << ": " << it->second << std::endl;
-                                }
-
-                                req.cookies = cookies; // Store parsed cookies in request
-                                // fetch session ID from cookies
-                                if (cookies.find("session_id") != cookies.end())
-                                {
-                                    std::cout << "\033[1;33m[Session]\033[0m Session ID found in cookies" << std::endl;
-                                    std::string sessionId = cookies["session_id"];
-
-                                    //check if session file that is his name the given ID is exist or not , if not create it if exist load it
-                                    // check /tmp/sessions/session_id if can open or not
-                                    
-                                    
-                                    if (access(sessionManager.buildSessionFilePath(sessionId).c_str(), F_OK) == 0)
-                                    {
-                                        std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << sessionId << std::endl;
-                                    }
-                                    else
-                                    {
-                                        std::cout << "\033[1;33m[Session]\033[0m Session ID does not exist, creating new session" << std::endl;
-                                        // Create a new session file
-                                        sessionManager.save(sessionId, req.cookies);
-                                    }
-                                }
-                                else
-                                {
-                                    std::cout << "\033[1;33m[Session]\033[0m No session ID found in cookies" << std::endl;
-                                    // Generate a new session ID if not present
-                                    std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
-                                    req.cookies["session_id"] = newSessionId;
-                                    
-                                    if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) == 0)
-                                    {
-                                        std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << newSessionId << std::endl;
-                                    }
-                                    else
-                                    {
-                                        std::cout << "\033[1;33m[Session]\033[0m Session ID does not exist, creating new session" << std::endl;
-                                        // Create a new session file
-                                        sessionManager.save(newSessionId, req.cookies);
-                                    }
-                                }
-                                req.sessionPath = sessionManager.buildSessionFilePath(req.cookies["session_id"]);
-                                req.sessionData = sessionManager.load(req.cookies["session_id"]);
-                                req.SessionId = req.cookies["session_id"];
-                            } // if not set-cookie
-                            else 
-                            {
-                                std::cout << "\033[1;33m[Session]\033[0m No cookies found in request" << std::endl;
-                                // Generate a new session ID if no cookies are present
-                                std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
-                                req.cookies["session_id"] = newSessionId;
-                                
-                                if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) == 0)
-                                {
-                                    std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << newSessionId << std::endl;
-                                }
-                                else
-                                {
-                                    std::cout << "\033[1;33m[Session]\033[0m Session ID does not exist, creating new session" << std::endl;
-                                    // Create a new session file
-                                    sessionManager.save(newSessionId, req.cookies);
-                                }
-                                req.sessionData = sessionManager.load(req.cookies["session_id"]);
-                                req.sessionPath = sessionManager.buildSessionFilePath(req.cookies["session_id"]);
-                            }
-                            
-
+                            HandleCookies(conn, req);
                             Router router;
                             const RouteConfig* route = router.match(req, server->getConfig());
                             HttpResponse resp;
-                            
-                            // Print all request details here
-                            // std::cout << "----- FULL REQUEST DETAILS -----" << std::endl;
-                            // std::cout << "Method: " << req.method << std::endl;
-                            // std::cout << "URI: " << req.uri << std::endl;
-                            // std::cout << "Version: " << req.version << std::endl;
-                            // std::cout << "Headers:" << std::endl;
-                            // for (std::map<std::string, std::string>::const_iterator it = req.headers.begin(); it != req.headers.end(); ++it) {
-                            //     std::cout << "  " << it->first << ": " << it->second << std::endl;
-                            // }
-                            // if (!req.body.empty()) {
-                            //     std::cout << "Body Length: " << req.body.length() << std::endl;
-                            //     std::cout << "Body: " << req.body << std::endl;
-                            // }
-                            
-                            // exit(0);
                             if (route) 
                             {
                                 CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
-                                // try {
-                                //     if (cgi.IsCgi())
-                                //         handleCgi(conn);
-                                // }
-                                // catch (const std::runtime_error& e) {
-                                //     HttpResponse errResp;
-                                //     errResp.statusCode = e.statusCode();
-                                //     errResp.statusText = getStatusText(e.statusCode()); // e.g. 403 -> "Forbidden"
-                                //     errResp.body = e.what();
-                                //     conn.writeData(errResp.toString());
-                                //     return;
-                                // }
+
                                 if (cgi.IsCgi())
                                 {
                                          std::cerr << "DEBUG: 0 ----------------------------------------------------------------------" << std::endl;
@@ -347,11 +209,13 @@ int main(int ac, char **av, char **envp)
                                 }
                                 else
                                 {
+                                    
                                     RequestDispatcher dispatcher;
                                     resp = dispatcher.dispatch(req, *route, server->getConfig());
                                 }
                             } 
-                            else {
+                            else 
+                            {
                                 // No route found - return 404
                                 std::cout << "::::::::::::::::::::::::::::::::::NOT-FOUND:::::::::::::::::::::::::::::::::::::" << std::endl;
                                 resp.version = "HTTP/1.1";  // Fix: Set HTTP version
@@ -360,11 +224,10 @@ int main(int ac, char **av, char **envp)
                                 resp.headers["content-type"] = "text/html";
                                 resp.body = Error::loadErrorPage(404, server->getConfig());
                                 // set set-cookie header for session management
-                                if (req.cookies.find("session_id") != req.cookies.end())
+                                
+                                if(conn.getSessionInfos().getCookies().find("session_id") != conn.getSessionInfos().getCookies().end())
                                 {
-                                    resp.headers["set-cookie"] = "session_id=" + req.cookies["session_id"] + "; Path=/; HttpOnly";
-                                    // set mode to dark
-                                    resp.headers["mode"] = (std::string)"dark" + "; Path=/; HttpOnly";
+                                    resp.headers["set-cookie"] = "session_id=" + conn.getSessionInfos().getCookies()["session_id"] + "; Path=/; HttpOnly";
                                 }
                                 
                                 // C++98 compatible string conversion
@@ -375,7 +238,6 @@ int main(int ac, char **av, char **envp)
                                 std::cout << "\033[1;33m[Main]\033[0m No route found for URI: " << req.uri << " - returning 404" << std::endl;
                             }
 
-                            std::cerr << "DEBUG:  1 ----------------------------------------------------------------------" << std::endl;
                             // Determine if we should keep the connection alive
                             bool keepAlive = shouldKeepAlive(req);
                             
@@ -386,8 +248,9 @@ int main(int ac, char **av, char **envp)
                             setConnectionHeaders(resp, keepAlive);
                             
                             // Send the response
+                            // req.UploadDirectory =
                             setConnectionHeaders(resp, conn.isKeepAlive());
-                            resp.SetCookieHeaders(req);
+                            resp.SetCookieHeaders(conn);
                             conn.writeData(resp.toString());
                             conn.reset(); //m7i lkhra mn connection bach nwjdo request lakhra la kant connection keep alive
                             conn.updateLastActivity(); // Update activity timestamp after sending response
@@ -407,12 +270,16 @@ int main(int ac, char **av, char **envp)
                                 reactor.removeConnection(event.fd);
                                 std::cout << "\033[1;31m[-]\033[0m Connection closed" << std::endl;
                             }
-                            }
-                        catch (const std::runtime_error& e) {
+                        }
+                        catch (const std::runtime_error& e) 
+                        {
                             std::string msg = e.what();
-                            if (msg.find("incomplete body") != std::string::npos) {
+                            if (msg.find("incomplete body") != std::string::npos) 
+                            {
                                 continue;
-                            } else {
+                            } 
+                            else 
+                            {
                                 std::cerr << "Parse error: " << msg << std::endl;
                                 HttpResponse errorResp;
                                 errorResp.version = "HTTP/1.1";
@@ -428,7 +295,7 @@ int main(int ac, char **av, char **envp)
                                 
                         //         // Always close connection on parse errors
                                 setConnectionHeaders(errorResp, false);
-                                errorResp.SetCookieHeaders(req);
+                                errorResp.SetCookieHeaders(conn);
                                 conn.writeData(errorResp.toString());
                                 conn.updateLastActivity(); // Update activity timestamp after error response
                                 reactor.removeConnection(event.fd);
@@ -448,42 +315,7 @@ int main(int ac, char **av, char **envp)
                 
                 
             } // End of for loop
-            for (size_t j = 0; j < connections.size(); ++j) 
-                {
-                    Connection* conn = connections[j];
-                    if (conn->isTimedOut()) 
-                    {
-                        std::cerr << "\033[1;31m[!]\033[0m Connection timed out: " << conn->getFd() << std::endl;
-                        // send 408 Request Timeout response
-                        HttpResponse timeoutResponse;
-                        timeoutResponse.statusCode = 408;
-                        timeoutResponse.statusText = "Request Timeout";
-                        timeoutResponse.body = "Your request has timed out due to inactivity.";
-                        timeoutResponse.headers["Content-Type"] = "text/plain";
-                        timeoutResponse.headers["Content-Length"] = Utils::toString(timeoutResponse.body.size());
-                        setConnectionHeaders(timeoutResponse, conn->isKeepAlive());
-                        timeoutResponse.SetCookieHeaders(conn->getCurrentRequest());
-                        
-                        reactor.removeConnection(conn->getFd());
-                        delete conn; // Clean up connection object
-                        connections.erase(connections.begin() + j);
-                        --j; // Adjust index after removal
-                    }
-                    else if (conn->getFd() != -1)
-                    {
-                        // curent vs last activity print and KEEP_ALIVE_TIMEOUT - last activity and limit of timeout
-                        std::cout << "Connection fd: " << conn->getFd()
-                                  << ", Keep-alive: " << (conn->isKeepAlive() ? "Yes" : "No") <<
-                                  ", Time still to time out: " << (KEEP_ALIVE_TIMEOUT - (time(NULL) - conn->getLastActivity())) << " seconds" << std::endl;
-                        
-                    }
-                    else
-                    {
-                        delete conn; // Clean up invalid connection object
-                        connections.erase(connections.begin() + j);
-                        --j; // Adjust index after removal
-                    }
-                }
+            HandleTimeOut(connections, reactor);
             } catch (const std::exception& e) {
                 std::cerr << "Event loop error: " << e.what() << std::endl;
                 // Continue with next iteration

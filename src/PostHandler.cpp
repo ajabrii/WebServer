@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PostHandler.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 20:15:16 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/27 14:55:21 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,13 +57,58 @@ void writeFile(const std::string &path, const std::string &content)
 void writeKeyValuesToFile(const std::string &path, const std::map<std::string, std::string> &fields)
 {
     // open out with append mode
+    // std::cerr << "DEBUG: Writing key-values to file: " << path << std::endl;
+    // std::ofstream out(path.c_str(), std::ios::trunc);
+    // if (!out)
+    // {
+    //     throw std::runtime_error("Error: Failed to write file: " + path);
+    // }
+    // for (std::map<std::string, std::string>::const_iterator it = fields.begin(); it != fields.end(); ++it)
+    //     out << it->first << "=" << it->second << "\n";
+
+    // convert file content to map then merge map with fields
+    std::map<std::string, std::string> existingFields;
+    std::ifstream in(path.c_str());
+    if (in)
+    {
+        std::string line;
+        while (std::getline(in, line))
+        {
+            size_t eq = line.find('=');
+            if (eq != std::string::npos)
+            {
+                existingFields[line.substr(0, eq)] = line.substr(eq + 1);
+            }
+        }
+    }
+
+    std::cerr << "DEBUG: Existing fields in file: " << path << std::endl;
+    for (std::map<std::string, std::string>::const_iterator it = existingFields.begin(); it != existingFields.end(); ++it)
+    {
+        std::cerr << "  " << it->first << ": " << it->second << std::endl;
+    }
+
+    // Merge existing fields with new fields
+    for (std::map<std::string, std::string>::const_iterator it = fields.begin(); it != fields.end(); ++it)
+    {
+        existingFields[it->first] = it->second;
+    }
+    std::cerr << "DEBUG: Merged fields to write to file: " << path << std::endl;
+    for (std::map<std::string, std::string>::const_iterator it = existingFields.begin(); it != existingFields.end(); ++it)
+    {
+        std::cerr << "  " << it->first << ": " << it->second << std::endl;
+    }
+
+    // Write merged fields back to file
     std::ofstream out(path.c_str(), std::ios::trunc);
     if (!out)
     {
         throw std::runtime_error("Error: Failed to write file: " + path);
     }
-    for (std::map<std::string, std::string>::const_iterator it = fields.begin(); it != fields.end(); ++it)
+    for (std::map<std::string, std::string>::const_iterator it = existingFields.begin(); it != existingFields.end(); ++it)
+    {
         out << it->first << "=" << it->second << "\n";
+    }
 }
 
 // improve later on
@@ -255,8 +300,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
         else if (ct.find("application/x-www-form-urlencoded") != std::string::npos)
         {
             std::map<std::string,std::string> fields = parseFormUrlEncoded(req.body);
-            std::string filepath = route.uploadDir +  "/" + req.SessionId + ".database";
-            const_cast<std::string&>(req.FileDataBase) = filepath;
+            std::string filepath = "./session/" + req.SessionId;
             writeKeyValuesToFile(filepath, fields);
             resp.version = "HTTP/1.1";
             resp.body = "<html><head><title>Uploads</title></head><body><h1>File uploaded: " + filepath + "</h1></body></html>";

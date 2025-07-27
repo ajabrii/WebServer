@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:11 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 19:18:51 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/27 15:19:43 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,47 +37,51 @@ std::string HttpResponse::toString() const
 }
 
 
-void HttpResponse::SetCookieHeaders(HttpRequest &req)
+void HttpResponse::SetCookieHeaders(Connection &conn)
 {
-    std::map<std::string, std::string> sessionData = req.sessionData;
-    const std::map<std::string, std::string> &cookies = req.cookies;
-    const std::string &sessionPath = req.sessionPath;
+    // conn.getSessionInfos().DbugPrint();
 
-    // Merge cookies into sessionData
-    for (std::map<std::string, std::string>::const_iterator it = cookies.begin(); it != cookies.end(); ++it)
-    {
-        sessionData[it->first] = it->second;
-    }
+    // Load existing cookies and session path
+    std::map<std::string, std::string> cookies = conn.getSessionInfos().getCookies();
+    std::map<std::string, std::string> sessionData;
+    const std::string sessionPath = "./session/" + conn.getSessionInfos().getSessionId();
 
-    std::ifstream ifs(req.FileDataBase.c_str());
+    // Step 1: Load session file data (if exists)
+    std::ifstream ifs(sessionPath.c_str());
     if (ifs)
     {
         std::string line;
         while (std::getline(ifs, line))
         {
-            size_t pos = line.find('=');
-            if (pos != std::string::npos)
+            size_t sep = line.find('=');
+            if (sep != std::string::npos)
             {
-                std::string key = line.substr(0, pos);
-                std::string value = line.substr(pos + 1);
-                sessionData[key] = value;
+                std::string key = line.substr(0, sep);
+                std::string val = line.substr(sep + 1);
+                sessionData[key] = val;
             }
         }
         ifs.close();
     }
 
-    // Add Set-Cookie headers
-    for (std::map<std::string, std::string>::const_iterator it = sessionData.begin(); it != sessionData.end(); ++it)
+    // Step 2: Overwrite cookie values with session data
+    for (std::map<std::string, std::string>::iterator it = sessionData.begin(); it != sessionData.end(); ++it)
     {
-        this->CookiesHeaders.insert(
-        std::make_pair("Set-Cookie", it->first + "=" + it->second + "; Path=/; HttpOnly"));
+        cookies[it->first] = it->second;
     }
 
-    // Save sessionData back to session file
+    // Step 3: Set Set-Cookie headers from final cookie map
+    for (std::map<std::string, std::string>::const_iterator it = cookies.begin(); it != cookies.end(); ++it)
+    {
+        this->CookiesHeaders.insert(
+            std::make_pair("Set-Cookie", it->first + "=" + it->second + "; Path=/; HttpOnly"));
+    }
+
+    // Step 4: Save merged cookies back to session file
     std::ofstream ofs(sessionPath.c_str(), std::ios::trunc);
     if (ofs)
     {
-        for (std::map<std::string, std::string>::const_iterator it = sessionData.begin(); it != sessionData.end(); ++it)
+        for (std::map<std::string, std::string>::const_iterator it = cookies.begin(); it != cookies.end(); ++it)
         {
             ofs << it->first << "=" << it->second << "\n";
         }
@@ -88,5 +92,6 @@ void HttpResponse::SetCookieHeaders(HttpRequest &req)
         std::cerr << "Error: Could not open session file for writing: " << sessionPath << std::endl;
     }
 }
+
 
 

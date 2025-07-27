@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 18:17:21 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/27 15:20:06 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -325,7 +325,8 @@ void ConfigInterpreter::parseRouteBlock(RouteConfig& route, const std::string& l
 
     std::string key = clean_line(line.substr(0, equal));
     std::string value = clean_line(line.substr(equal + 1));
-    key = toLower(key); // bach n9bel kolchi
+    key = toLower(key); 
+    // bach n9bel kolchi
     parseRouteOption(route, key, value);
 }
 

@@ -16,7 +16,7 @@ class SessionManager
         std::map<std::string, std::string> load(const std::string& session_id);
         std::string buildSessionFilePath(const std::string& session_id) const 
         {
-            return sessionDir + "/" + session_id;
+            return  "./session/" + session_id;
         }
 };
 

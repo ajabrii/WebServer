@@ -3,15 +3,25 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 20:16:44 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/27 15:23:58 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Utils.hpp"
 #include "../includes/ResponseBuilder.hpp"
+#include "../includes/SessionManager.hpp"
+#include "../includes/SessionID.hpp"
+#include "../includes/CookieParser.hpp"
+#include "../includes/Connection.hpp"
+#include "../includes/HttpRequest.hpp"
+#include <string>
+#include <map>
+#include <algorithm>
+
+
 
 std::string clean_line(std::string line)
 {
@@ -32,7 +42,6 @@ bool shouldKeepAlive(const HttpRequest &request)
 
     if (connection == "close")
         return false;
-    std::cerr << "-------------------------------------------------------> Connection header: " << connection << std::endl;
     return true;
 }
 
@@ -161,4 +170,120 @@ HttpResponse parseCgiOutput(const std::string& raw)
 std::string buildSetCookieHeader(const std::string& session_id) 
 {
     return "Set-Cookie: session_id=" + session_id + "; Path=/; HttpOnly\r\n";
+}
+
+
+void HandleCookies(Connection& conn, HttpRequest& req)
+{
+    SessionManager sessionManager;
+    SessionInfos& sessionInfos = conn.getSessionInfos();
+        
+    if (req.headers.find("cookie") != req.headers.end()) 
+    {
+        std::string cookieHeader = req.headers["cookie"];
+        std::map<std::string, std::string> cookies = CookieParser::parse(cookieHeader);
+
+        sessionInfos.setCookies(cookies);
+
+        if (cookies.find("session_id") != cookies.end())
+        {
+            // std::cout << "\033[1;33m[Session]\033[0m Session ID found in cookies" << std::endl;
+            std::string sessionId = cookies["session_id"];
+                
+            if (access(sessionManager.buildSessionFilePath(sessionId).c_str(), F_OK) == 0)
+            {
+                // std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << sessionId << std::endl;
+                ;
+            }
+            else
+            {
+                // std::cout << "\033[1;33m[Session]\033[0m Session ID does not exist, creating new session" << std::endl;
+                    // Create a new session file
+                sessionManager.save(sessionId, sessionInfos.getCookies());
+            }
+        }
+        else
+        {
+            // std::cout << "\033[1;33m[Session]\033[0m No session ID found in cookies" << std::endl;
+            // Generate a new session ID if not present
+            std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
+            sessionInfos.getCookies()["session_id"] = newSessionId;
+                
+            if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) == 0)
+            {
+                // std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << newSessionId << std::endl;
+                ;
+            }
+            else
+            {
+                // std::cout << "\033[1;33m[Session]\033[0m Session ID does not exist, creating new session" << std::endl;
+                    // Create a new session file
+                sessionManager.save(newSessionId, sessionInfos.getCookies());
+            }
+        }
+    } // if not set-cookie
+    else 
+    {
+        std::cout << "\033[1;33m[Session]\033[0m No cookies found in request" << std::endl;
+        // Generate a new session ID if no cookies are present
+        std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
+        sessionInfos.getCookies()["session_id"] = newSessionId;
+
+        if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) == 0)
+        {
+                // std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << newSessionId << std::endl;
+                ;
+        }
+        else
+        {
+                // std::cout << "\033[1;33m[Session]\033[0m Session ID does not exist, creating new session" << std::endl;
+                // Create a new session file
+                sessionManager.save(newSessionId, sessionInfos.getCookies());
+        }
+    }
+    sessionInfos.setSessionPath(sessionManager.buildSessionFilePath(sessionInfos.getSessionId()));
+    sessionInfos.setSessionId(sessionInfos.getCookies()["session_id"]);
+    conn.getCurrentRequest().SessionId = conn.getSessionInfos().getSessionId();
+    sessionInfos.setSessionData(sessionManager.load(sessionInfos.getSessionId()));
+        
+}
+
+void HandleTimeOut( std::vector<Connection*>& connections, Reactor &reactor)
+{
+    for (size_t j = 0; j < connections.size(); ++j) 
+    {
+        Connection* conn = connections[j];
+        if (conn->isTimedOut()) 
+        {
+            std::cerr << "\033[1;31m[!]\033[0m Connection timed out: " << conn->getFd() << std::endl;
+            // send 408 Request Timeout response
+            HttpResponse timeoutResponse;
+            timeoutResponse.statusCode = 408;
+            timeoutResponse.statusText = "Request Timeout";
+            timeoutResponse.body = "Your request has timed out due to inactivity.";
+            timeoutResponse.headers["Content-Type"] = "text/plain";
+            timeoutResponse.headers["Content-Length"] = Utils::toString(timeoutResponse.body.size());
+            setConnectionHeaders(timeoutResponse, conn->isKeepAlive());
+            timeoutResponse.SetCookieHeaders(*conn);
+                
+            reactor.removeConnection(conn->getFd());
+            delete conn; // Clean up connection object
+            connections.erase(connections.begin() + j);
+            --j; // Adjust index after removal
+        }
+        else if (conn->getFd() != -1)
+        {
+            ;
+                // curent vs last activity print and KEEP_ALIVE_TIMEOUT - last activity and limit of timeout
+                // std::cout << "Connection fd: " << conn->getFd()
+                //           << ", Keep-alive: " << (conn->isKeepAlive() ? "Yes" : "No") <<
+                //           ", Time still to time out: " << (KEEP_ALIVE_TIMEOUT - (time(NULL) - conn->getLastActivity())) << " seconds" << std::endl;
+        }
+        else
+        {
+            delete conn; // Clean up invalid connection object
+            connections.erase(connections.begin() + j);
+            --j; // Adjust index after removal
+        }
+    }
 }

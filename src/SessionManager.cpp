@@ -1,6 +1,7 @@
 #include "../includes/SessionManager.hpp"
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 SessionManager::SessionManager(const std::string& directory)
 : sessionDir(directory) {}
@@ -10,7 +11,8 @@ SessionManager::SessionManager()
 
 void SessionManager::save(const std::string& session_id, const std::map<std::string, std::string>& data) 
 {
-    std::ofstream file((sessionDir + "/" + session_id).c_str());
+    std::cerr << "->>>>>>>>>>>>>>>>>>SAVE>>>>>>>>>>>>>>>>>>>>>>>>>>   ./session/" + session_id << std::endl;
+    std::ofstream file(("./session/" + session_id).c_str());
     if (!file) 
         return;
     for (std::map<std::string, std::string>::const_iterator it = data.begin(); it != data.end(); ++it) 
@@ -21,8 +23,10 @@ void SessionManager::save(const std::string& session_id, const std::map<std::str
 
 std::map<std::string, std::string> SessionManager::load(const std::string& session_id) 
 {
+    std::cerr << "->>>>>>>>>>>>>>>>>>LOAD>>>>>>>>>>>>>>>>>>>>>>>>>>   ./session/" + session_id << std::endl;
+
     std::map<std::string, std::string> data;
-    std::ifstream file((sessionDir + "/" + session_id).c_str());
+    std::ifstream file(("./session/" + session_id).c_str());
 
     if (!file)
         return data;

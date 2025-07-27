@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 20:17:59 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/27 10:42:21 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -237,4 +237,13 @@ std::string ipToString(uint32_t ip_net_order)
 std::string Connection::getClientIP() const
 {
     return ipToString(client_addr.sin_addr.s_addr);
+}
+
+SessionInfos& Connection::getSessionInfos()
+{
+    return sessionInfos;
+}
+void Connection::setSessionInfos(const SessionInfos& sessionInfos)
+{
+    this->sessionInfos = sessionInfos;
 }

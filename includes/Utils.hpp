@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 20:21:00 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/27 15:24:11 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,5 +43,7 @@ std::string toLower(const std::string& s);
 void ltrim(std::string& s);
 HttpResponse parseCgiOutput(const std::string& raw);
 std::string buildSetCookieHeader(const std::string& session_id);
+void HandleCookies(Connection& conn, HttpRequest& req);
+void HandleTimeOut( std::vector<Connection*>& connections, Reactor &reactor);
 
 #endif
