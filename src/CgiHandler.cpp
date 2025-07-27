@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/23 18:23:50 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/27 20:06:02 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,6 +190,7 @@ CgiData CgiHandler::check_cgi(void) // cgi-bin/file.extns/path/path?var=value
         _errResponse.headers["Content-Length"] = ss.str();
         return (data);
         throw HttpRequest::HttpException(405, "Method Not Allowed");
+        // return NULL;
     }
 
     query_pose =  _req.uri.find('?');
@@ -345,6 +346,7 @@ CgiState *CgiHandler::execCgi(Connection &conn)
         // f.body = "CGI : Script file not found, path: {" + check_existing + "}" ;
         // return f;
         delete f; // Clean up before returning
+        conn.getCurrentRequest().throwHttpError(404, "Script file not found, path: {" + check_existing + "}");
         return NULL;
     }
     env = set_env(conn); // Environment variables prepared
@@ -370,7 +372,8 @@ CgiState *CgiHandler::execCgi(Connection &conn)
             delete[] env[i];
         delete[] env;
         delete f;
-        return NULL; // Return NULL to indicate error
+        conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
+        return NULL;
     }
     
     str = _data.script_path.substr(1);
@@ -390,7 +393,8 @@ CgiState *CgiHandler::execCgi(Connection &conn)
         // f.body = "Server pipe creation failed.";
         // return f;
         delete f;
-        return NULL; // Return NULL to indicate error
+        conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
+        return NULL;
     }
 
     if (_req.method == POST && pipe(pfd_in) == -1) // Pipe for stdin to CGI (only for POST)
@@ -407,7 +411,8 @@ CgiState *CgiHandler::execCgi(Connection &conn)
         // f.body = "Server pipe creation failed.";
         // return f;
         delete f;
-        return NULL; // Return NULL to indicate error
+        conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
+        return NULL;
     }
 
     pid = fork();
@@ -429,7 +434,8 @@ CgiState *CgiHandler::execCgi(Connection &conn)
         // f.body = "Server fork failed.";
         // return f;
         delete f;
-        return NULL; // Return NULL to indicate error
+        conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
+        return NULL;
     }
     else if (pid == 0) // Child process (CGI)
     {

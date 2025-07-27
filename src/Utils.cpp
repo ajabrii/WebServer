@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 18:28:20 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/27 20:00:51 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -305,4 +305,139 @@ void handleNewConnection(Reactor &reactor, const Event &event)
             keepAlive = false;
         conn->setKeepAlive(keepAlive);
     }
+}
+
+
+void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv)
+{
+    Connection &conn = reactor.getConnection(event.fd);
+    CgiState *cgiState = conn.getCgiState();
+
+    if (cgiState)
+    {
+        cgiState->writeToScript(conn);
+        cgiState->readFromScript(conn, reactor);
+        // return ;  if something is not working check this return maybe its causing problems
+    }
+    else
+    {
+        HttpServer *server = reactor.getServerForClient(event.fd);
+        if (!server)
+        {
+            reactor.removeConnection(event.fd);
+            std::cerr << "Error: No server found for client fd: " << event.fd << std::endl;
+        }
+        try {
+            conn.readData(server);
+        } catch (const HttpRequest::HttpException &e) {
+            std::cerr << "Connection read error: " << e.what() << std::endl;
+            HttpResponse errorResp = createErrorResponse(e.getStatusCode(), e.what(), server->getConfig());
+            conn.writeData(errorResp.toString());
+            reactor.removeConnection(event.fd);
+            return;
+        }
+    
+        // Process complete requests
+        if (conn.isRequestComplete())
+        {
+            processHttpRequest(reactor, conn, server, event, cgiEnv);
+        }
+    }
+}
+
+HttpResponse createErrorResponse(int statusCode, const std::string &statusText, const ServerConfig &ServerConfig)
+{
+    return ResponseBuilder::createErrorResponse(statusCode, statusText, ServerConfig);
+}
+
+void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, const Event &event, const std::string &cgiEnv)
+{
+    HttpRequest &req = conn.getCurrentRequest();
+    try {
+        HandleCookies(conn, req);
+        Router router;
+        const RouteConfig *route = router.match(req, server->getConfig());
+        HttpResponse resp;
+        if (route)
+        {
+            CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
+
+            if (cgi.IsCgi())
+            {
+                try
+                {
+                    
+                    conn.setCgiState(cgi.execCgi(conn));
+                    reactor.watchCgi(&conn);
+                }   
+                catch (const HttpRequest::HttpException &e)
+                {
+                    std::cerr << "[CGI ERROR] read error: " << e.what() << std::endl;
+                    HttpResponse errorResp = createErrorResponse(e.getStatusCode(), e.what(), server->getConfig());
+                    conn.writeData(errorResp.toString());
+                    reactor.removeConnection(event.fd);
+                    return;
+                }
+            }
+            else
+            {
+                RequestDispatcher dispatcher;
+                resp = dispatcher.dispatch(req, *route, server->getConfig());
+            }
+        }
+        else
+        {
+            resp = createErrorResponse(404, "Not Found", server->getConfig());
+            conn.writeData(resp.toString());
+            reactor.removeConnection(event.fd);
+        }
+
+    handleHttpResponse(reactor, conn, resp, req);
+    } catch (const std::runtime_error &e) {
+        handleHttpException(reactor, conn, server, e);
+    }
+}
+
+
+void handleHttpResponse(Reactor &reactor, Connection &conn, HttpResponse &resp, const HttpRequest &req)
+{
+    bool keepAlive = shouldKeepAlive(req);
+    if (conn.getRequestCount() >= REQUEST_LIMIT_PER_CONNECTION)
+    {
+        keepAlive = false;
+    }
+
+    setConnectionHeaders(resp, keepAlive);
+    resp.SetCookieHeaders(conn);
+    conn.writeData(resp.toString());
+    conn.reset();
+    conn.updateLastActivity();
+    if (keepAlive)
+    {
+        conn.setKeepAlive(true);
+        conn.incrementRequestCount();
+        conn.resetForNextRequest();
+        std::cout << "\033[1;32m[+]\033[0m Connection kept alive (request #"
+                  << conn.getRequestCount() << ")" << std::endl;
+    }
+    else
+    {
+        reactor.removeConnection(conn.getFd());
+        std::cout << "\033[1;31m[-]\033[0m Connection closed" << std::endl;
+    }
+}
+
+void handleHttpException(Reactor &reactor, Connection &conn, HttpServer *server, const std::runtime_error &e)
+{
+    std::string msg = e.what();
+
+    if (msg.find("incomplete body") != std::string::npos)
+    {
+        return;
+    }
+    HttpResponse errorResp = createErrorResponse(400, "Bad Request", server->getConfig());
+    setConnectionHeaders(errorResp, false);
+    errorResp.SetCookieHeaders(conn);
+    conn.writeData(errorResp.toString());
+    reactor.removeConnection(conn.getFd());
 }

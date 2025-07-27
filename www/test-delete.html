@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DELETE Method Testing - WebServ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e74c3c;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #e74c3c;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-back {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .nav-back:hover {
+            color: #e74c3c;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .test-button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .test-button:hover {
+            background: #c0392b;
+        }
+
+        .test-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .create-button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .create-button:hover {
+            background: #219a52;
+        }
+
+        .file-list {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-item:hover {
+            background: #e9ecef;
+        }
+
+        .file-item.selected {
+            background: #fef9e7;
+            border-left: 3px solid #f39c12;
+            border-radius: 4px;
+        }
+
+        .file-checkbox {
+            margin-right: 0.75rem;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .file-path {
+            font-size: 0.8rem;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .result-area {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            min-height: 150px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .test-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid #ffeaa7;
+            margin-bottom: 1rem;
+        }
+
+        .refresh-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .refresh-btn:hover {
+            background: #2980b9;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="nav-back">← Back to Home</a>
+        
+        <div class="header">
+            <h1>🗑️ DELETE Method Testing</h1>
+            <p>Test file deletion, path security, and DELETE functionality</p>
+        </div>
+
+        <div class="warning">
+            ⚠️ <strong>Warning:</strong> DELETE operations will permanently remove files from the server. 
+            Use test files only and be careful with your selections.
+            
+            <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #f5c6cb; font-size: 0.9rem;">
+                <strong>💡 How to select files:</strong>
+                <ul style="margin: 0.5rem 0 0 1.5rem;">
+                    <li>✅ <strong>Click checkboxes</strong> to select individual files</li>
+                    <li>🖱️ <strong>Click file rows</strong> to toggle selection</li>
+                    <li>⌨️ <strong>Ctrl+A</strong> to select all files</li>
+                    <li>⌨️ <strong>Delete key</strong> to delete selected files</li>
+                    <li>⌨️ <strong>Escape</strong> to clear selection</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- File Browser -->
+        <div class="section">
+            <h2>📁 File Browser (/uploads/)</h2>
+            <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <button class="refresh-btn" onclick="loadFiles()">🔄 Refresh File List</button>
+                <button class="create-button" onclick="createTestFiles()">📄 Create Test Files</button>
+                <div style="flex: 1;"></div>
+                <small style="color: #666; font-style: italic;">Click checkboxes to select files for batch operations</small>
+            </div>
+            <div id="fileList" class="file-list">
+                <p style="text-align: center; color: #666;">Click "Refresh File List" to load files</p>
+            </div>
+        </div>
+
+        <!-- Manual Delete -->
+        <div class="section">
+            <h2>Manual File Delete</h2>
+            <div class="form-group">
+                <label class="form-label">File Path (relative to /uploads/):</label>
+                <input type="text" id="deleteInput" class="form-input" placeholder="example.txt or subfolder/file.txt">
+            </div>
+            <button class="test-button" onclick="deleteFile()">Delete File</button>
+            <button class="test-button" onclick="deleteWithConfirm()">Delete with Confirmation</button>
+        </div>
+
+        <!-- Batch Operations -->
+        <div class="section">
+            <h2>📋 Batch File Operations</h2>
+            <div id="selectedFiles" style="margin-bottom: 1rem; padding: 0.75rem; background: #f8f9fa; border-radius: 6px; border: 2px dashed #dee2e6; font-size: 0.9rem; color: #666;">
+                ✅ No files selected - Click checkboxes above to select files for batch operations
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <button class="test-button" onclick="deleteSelected()" id="deleteSelectedBtn" disabled style="font-size: 1rem; padding: 1rem 2rem;">
+                    🗑️ DELETE ALL SELECTED FILES
+                </button>
+                <button class="test-button" onclick="deleteAllSelected()" id="deleteAllBtn" style="background: #dc3545; font-size: 1rem; padding: 1rem 2rem;" onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#dc3545'">
+                    💀 DELETE ALL SELECTED (NO CONFIRMATION)
+                </button>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <button class="test-button" onclick="clearSelection()" style="background: #6c757d; padding: 0.75rem 1.5rem;" onmouseover="this.style.background='#5a6268'" onmouseout="this.style.background='#6c757d'">❌ Clear Selection</button>
+                <button class="test-button" onclick="selectAll()" style="background: #17a2b8; padding: 0.75rem 1.5rem;" onmouseover="this.style.background='#138496'" onmouseout="this.style.background='#17a2b8'">☑️ Select All</button>
+            </div>
+        </div>
+
+        <!-- Security Tests -->
+        <div class="section">
+            <h2>Security & Edge Case Tests</h2>
+            <div class="test-grid">
+                <div class="test-item">
+                    <h4>Path Traversal</h4>
+                    <button class="test-button" onclick="testPathTraversal()">../../../etc/passwd</button>
+                    <button class="test-button" onclick="testRelativePath()">../../www/index.html</button>
+                </div>
+                <div class="test-item">
+                    <h4>Special Characters</h4>
+                    <button class="test-button" onclick="testSpacesInPath()">File with spaces</button>
+                    <button class="test-button" onclick="testSpecialChars()">Special chars</button>
+                </div>
+                <div class="test-item">
+                    <h4>Non-existent Files</h4>
+                    <button class="test-button" onclick="testNonExistent()">Missing file</button>
+                    <button class="test-button" onclick="testEmptyPath()">Empty path</button>
+                </div>
+                <div class="test-item">
+                    <h4>URL Encoding</h4>
+                    <button class="test-button" onclick="testUrlEncoded()">%20encoded.txt</button>
+                    <button class="test-button" onclick="testDoubleEncoded()">Double encoded</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="section">
+            <h2>Test Results</h2>
+            <div id="results" class="result-area">Ready to test DELETE requests...\nClick any test button above to see results here.</div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFiles = new Set();
+        let fileList = [];
+
+        function log(message) {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.textContent += `[${timestamp}] ${message}\n`;
+            results.scrollTop = results.scrollHeight;
+        }
+
+        async function loadFiles() {
+            log('Loading file list from /uploads/...');
+            
+            try {
+                const response = await fetch('/uploads/');
+                
+                if (response.ok) {
+                    const html = await response.text();
+                    parseFileList(html);
+                    displayFiles();
+                    log(`Loaded ${fileList.length} files`);
+                } else {
+                    log(`Failed to load files: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                log(`Error loading files: ${error.message}`);
+            }
+        }
+
+        function parseFileList(html) {
+            fileList = [];
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Try to find file links (adjust based on your server's directory listing format)
+            const links = doc.querySelectorAll('a[href]');
+            
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                const text = link.textContent.trim();
+                
+                // Skip parent directory and empty links
+                if (href && href !== '../' && text && text !== '..') {
+                    // Clean the href to remove any leading slashes or uploads path
+                    const cleanHref = href.replace(/^\/+uploads\/+/, '').replace(/^\/+/, '');
+                    fileList.push({
+                        name: text,
+                        path: cleanHref,  // Store clean path without /uploads/
+                        url: `/uploads/${cleanHref}`
+                    });
+                }
+            });
+            
+            // If parsing failed, create some mock data for testing
+            if (fileList.length === 0) {
+                log('Could not parse directory listing, using mock data');
+                fileList = [
+                    { name: 'test.txt', path: 'test.txt', url: '/uploads/test.txt' },
+                    { name: 'example.json', path: 'example.json', url: '/uploads/example.json' }
+                ];
+            }
+        }
+
+        function displayFiles() {
+            const container = document.getElementById('fileList');
+            
+            if (fileList.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">No files found in /uploads/</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            fileList.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.onclick = (e) => {
+                    if (e.target.type !== 'checkbox' && e.target.tagName !== 'BUTTON') {
+                        toggleFileSelection(index);
+                    }
+                };
+                
+                if (selectedFiles.has(index)) {
+                    fileItem.classList.add('selected');
+                }
+                
+                fileItem.innerHTML = `
+                    <input type="checkbox" class="file-checkbox" ${selectedFiles.has(index) ? 'checked' : ''} 
+                           onchange="toggleFileSelection(${index})">
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-path">${file.path}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteFileByIndex(${index}, event)">Delete</button>
+                `;
+                
+                container.appendChild(fileItem);
+            });
+            
+            updateSelectedCount();
+        }
+
+        function toggleFileSelection(index) {
+            if (selectedFiles.has(index)) {
+                selectedFiles.delete(index);
+            } else {
+                selectedFiles.add(index);
+            }
+            displayFiles();
+        }
+
+        function updateSelectedCount() {
+            const container = document.getElementById('selectedFiles');
+            const deleteBtn = document.getElementById('deleteSelectedBtn');
+            const deleteAllBtn = document.getElementById('deleteAllBtn');
+            const count = selectedFiles.size;
+            
+            if (count === 0) {
+                container.innerHTML = '✅ No files selected - Click checkboxes above to select files for batch operations';
+                container.style.borderColor = '#dee2e6';
+                container.style.color = '#666';
+                container.style.background = '#f8f9fa';
+                
+                if (deleteBtn) {
+                    deleteBtn.disabled = true;
+                    deleteBtn.style.opacity = '0.6';
+                }
+                if (deleteAllBtn) {
+                    deleteAllBtn.disabled = true;
+                    deleteAllBtn.style.opacity = '0.6';
+                }
+            } else {
+                const names = Array.from(selectedFiles).map(i => fileList[i].name);
+                const displayNames = names.length > 3 
+                    ? names.slice(0, 3).join(', ') + ` and ${names.length - 3} more`
+                    : names.join(', ');
+                
+                container.innerHTML = `🗂️ <strong>${count} file${count > 1 ? 's' : ''} selected for deletion:</strong><br>
+                                     <span style="font-family: monospace; font-size: 0.85em;">${displayNames}</span><br>
+                                     <small style="color: #dc3545; font-weight: bold;">⚠️ These files will be permanently deleted!</small>`;
+                container.style.borderColor = '#dc3545';
+                container.style.color = '#721c24';
+                container.style.background = '#f8d7da';
+                
+                if (deleteBtn) {
+                    deleteBtn.disabled = false;
+                    deleteBtn.style.opacity = '1';
+                }
+                if (deleteAllBtn) {
+                    deleteAllBtn.disabled = false;
+                    deleteAllBtn.style.opacity = '1';
+                }
+            }
+        }
+
+        async function deleteFile(filePath = null) {
+            const path = filePath || document.getElementById('deleteInput').value.trim();
+            
+            if (!path) {
+                log('Please enter a file path to delete');
+                return;
+            }
+            
+            log(`Attempting to delete: ${path}`);
+            
+            try {
+                // Clean the path and create URL for the delete request
+                const cleanPath = path.replace(/^\/+uploads\/+/, '').replace(/^\/+/, '');
+                const deleteUrl = `/uploads/${cleanPath}`;
+                
+                log(`DELETE URL: ${deleteUrl}`);
+                
+                const response = await fetch(deleteUrl, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': '*/*',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                log(`DELETE response: ${response.status} ${response.statusText}`);
+                
+                // Show response in new tab
+                showResponseInNewTab('DELETE', deleteUrl, response, await response.clone().text());
+                
+                if (response.ok) {
+                    log(`Successfully deleted: ${path}`);
+                    setTimeout(() => loadFiles(), 500); // Refresh file list with delay
+                } else {
+                    const responseText = await response.text();
+                    log(`Delete failed: ${responseText}`);
+                }
+                
+            } catch (error) {
+                log(`Delete error: ${error.message}`);
+                // Still show error response in new tab
+                const cleanPath = path.replace(/^\/+uploads\/+/, '').replace(/^\/+/, '');
+                showErrorInNewTab('DELETE', `/uploads/${cleanPath}`, error);
+            }
+        }
+
+        async function deleteWithConfirm() {
+            const path = document.getElementById('deleteInput').value.trim();
+            
+            if (!path) {
+                log('Please enter a file path to delete');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to delete "${path}"?`)) {
+                await deleteFile(path);
+            } else {
+                log(`Delete cancelled for: ${path}`);
+            }
+        }
+
+        async function deleteFileByIndex(index, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
+            const file = fileList[index];
+            if (!file) return;
+            
+            if (confirm(`Delete "${file.name}"?`)) {
+                await deleteFile(file.path);
+            }
+        }
+
+        async function deleteSelected() {
+            if (selectedFiles.size === 0) {
+                log('No files selected for deletion');
+                return;
+            }
+            
+            const fileNames = Array.from(selectedFiles).map(i => fileList[i].name);
+            
+            if (!confirm(`Delete ${selectedFiles.size} selected files?\n\n${fileNames.join('\n')}`)) {
+                log('Batch delete cancelled');
+                return;
+            }
+            
+            log(`Starting batch delete of ${selectedFiles.size} files...`);
+            
+            const promises = Array.from(selectedFiles).map(async (index) => {
+                const file = fileList[index];
+                try {
+                    // Clean the path and create URL for the delete request
+                    const cleanPath = file.path.replace(/^\/+uploads\/+/, '').replace(/^\/+/, '');
+                    const deleteUrl = `/uploads/${cleanPath}`;
+                    
+                    const response = await fetch(deleteUrl, {
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': '*/*',
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    
+                    // Show individual response in new tab for batch operations
+                    const responseText = await response.clone().text();
+                    showResponseInNewTab('DELETE (Batch)', deleteUrl, response, responseText);
+                    
+                    log(`${file.name}: ${response.status} ${response.statusText}`);
+                    return { file: file.name, success: response.ok };
+                } catch (error) {
+                    log(`${file.name}: Error - ${error.message}`);
+                    const cleanPath = file.path.replace(/^\/+uploads\/+/, '').replace(/^\/+/, '');
+                    showErrorInNewTab('DELETE (Batch)', `/uploads/${cleanPath}`, error);
+                    return { file: file.name, success: false, error: error.message };
+                }
+            });
+            
+            const results = await Promise.all(promises);
+            const successful = results.filter(r => r.success).length;
+            const failed = results.length - successful;
+            
+            log(`Batch delete completed: ${successful} successful, ${failed} failed`);
+            
+            selectedFiles.clear();
+            setTimeout(() => loadFiles(), 1000); // Refresh with delay
+        }
+
+        function clearSelection() {
+            selectedFiles.clear();
+            displayFiles();
+            log('Selection cleared');
+        }
+
+        function selectAll() {
+            selectedFiles.clear();
+            fileList.forEach((_, index) => selectedFiles.add(index));
+            displayFiles();
+            log(`Selected all ${fileList.length} files`);
+        }
+
+        async function deleteAllSelected() {
+            if (selectedFiles.size === 0) {
+                log('No files selected for deletion');
+                return;
+            }
+            
+            log(`⚠️ DANGER: Starting immediate deletion of ${selectedFiles.size} files without confirmation...`);
+            
+            const promises = Array.from(selectedFiles).map(async (index) => {
+                const file = fileList[index];
+                try {
+                    // Clean the path and create URL for the delete request
+                    const cleanPath = file.path.replace(/^\/+uploads\/+/, '').replace(/^\/+/, '');
+                    const deleteUrl = `/uploads/${cleanPath}`;
+                    
+                    const response = await fetch(deleteUrl, {
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': '*/*',
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    
+                    // Show individual response in new tab for batch operations
+                    const responseText = await response.clone().text();
+                    showResponseInNewTab('DELETE (No Confirmation)', deleteUrl, response, responseText);
+                    
+                    log(`${file.name}: ${response.status} ${response.statusText}`);
+                    return { file: file.name, success: response.ok };
+                } catch (error) {
+                    log(`${file.name}: Error - ${error.message}`);
+                    const cleanPath = file.path.replace(/^\/+uploads\/+/, '').replace(/^\/+/, '');
+                    showErrorInNewTab('DELETE (No Confirmation)', `/uploads/${cleanPath}`, error);
+                    return { file: file.name, success: false, error: error.message };
+                }
+            });
+            
+            const results = await Promise.all(promises);
+            const successful = results.filter(r => r.success).length;
+            const failed = results.length - successful;
+            
+            log(`💀 IMMEDIATE DELETE completed: ${successful} successful, ${failed} failed`);
+            
+            selectedFiles.clear();
+            setTimeout(() => loadFiles(), 1000); // Refresh with delay
+        }
+
+        async function createTestFiles() {
+            log('Creating test files for deletion testing...');
+            
+            const testFiles = [
+                { name: 'delete_test_1.txt', content: 'Test file 1 for deletion' },
+                { name: 'delete test 2.txt', content: 'Test file with spaces' },
+                { name: 'test_special_chars_!@#.txt', content: 'File with special characters' },
+                { name: 'test_encoded_%20file.txt', content: 'File with encoded characters' },
+                { name: 'subfolder_test.json', content: '{"test": "json file for deletion"}' }
+            ];
+            
+            const promises = testFiles.map(async (file) => {
+                try {
+                    const response = await fetch('/uploads/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: file.content
+                    });
+                    
+                    // Since we can't control the filename in POST, we'll just log the attempt
+                    log(`Created test file: ${file.name} (${response.status})`);
+                    
+                } catch (error) {
+                    log(`Failed to create ${file.name}: ${error.message}`);
+                }
+            });
+            
+            await Promise.all(promises);
+            log('Test file creation completed');
+            setTimeout(loadFiles, 1000); // Refresh after a short delay
+        }
+
+        // Security and Edge Case Tests
+        async function testPathTraversal() {
+            log('Testing path traversal attack: ../../../etc/passwd');
+            await deleteFile('../../../etc/passwd');
+        }
+
+        async function testRelativePath() {
+            log('Testing relative path: ../../www/index.html');
+            await deleteFile('../../www/index.html');
+        }
+
+        async function testSpacesInPath() {
+            log('Testing file path with spaces');
+            await deleteFile('file with spaces.txt');
+        }
+
+        async function testSpecialChars() {
+            log('Testing file with special characters');
+            await deleteFile('test!@#$%^&*()file.txt');
+        }
+
+        async function testNonExistent() {
+            log('Testing deletion of non-existent file');
+            await deleteFile('definitely_does_not_exist_12345.txt');
+        }
+
+        async function testEmptyPath() {
+            log('Testing deletion with empty path');
+            await deleteFile('');
+        }
+
+        async function testUrlEncoded() {
+            log('Testing URL encoded filename: file%20name.txt');
+            await deleteFile('file%20name.txt');
+        }
+
+        async function testDoubleEncoded() {
+            log('Testing double URL encoded filename');
+            await deleteFile('file%2520name.txt');
+        }
+
+        // Load files on page load
+        window.addEventListener('load', loadFiles);
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+A or Cmd+A - Select All
+            if ((e.ctrlKey || e.metaKey) && e.key === 'a' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                selectAll();
+            }
+            
+            // Delete key - Delete selected files (with confirmation)
+            if (e.key === 'Delete' && selectedFiles.size > 0 && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                deleteSelected();
+            }
+            
+            // Escape key - Clear selection
+            if (e.key === 'Escape') {
+                clearSelection();
+            }
+        });
+
+        // Function to show server response in new tab
+        function showResponseInNewTab(method, url, response, responseText) {
+            const newTab = window.open('about:blank', '_blank');
+            if (!newTab) {
+                log('Popup blocked - unable to open response in new tab');
+                return;
+            }
+            
+            const timestamp = new Date().toISOString();
+            const headers = [];
+            for (const [key, value] of response.headers.entries()) {
+                headers.push(`${key}: ${value}`);
+            }
+            
+            const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${method} Response - ${response.status}</title>
+                    <style>
+                        body { font-family: monospace; margin: 20px; background: #f8f9fa; }
+                        .header { background: #2c3e50; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+                        .status { font-size: 1.5em; margin-bottom: 10px; }
+                        .section { background: white; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 4px solid #e74c3c; }
+                        .section h3 { margin-top: 0; color: #2c3e50; }
+                        .response-body { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; white-space: pre-wrap; overflow-x: auto; }
+                        .success { border-left-color: #27ae60; }
+                        .error { border-left-color: #e74c3c; }
+                        .warning { border-left-color: #f39c12; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div class="status">🗑️ DELETE Request Response</div>
+                        <div><strong>Status:</strong> ${response.status} ${response.statusText}</div>
+                        <div><strong>URL:</strong> ${url}</div>
+                        <div><strong>Time:</strong> ${timestamp}</div>
+                    </div>
+                    
+                    <div class="section ${response.ok ? 'success' : 'error'}">
+                        <h3>Response Headers</h3>
+                        <div>${headers.length > 0 ? headers.join('<br>') : 'No headers received'}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>Response Body</h3>
+                        <div class="response-body">${responseText || '(empty response)'}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>Request Details</h3>
+                        <div><strong>Method:</strong> DELETE</div>
+                        <div><strong>URL:</strong> ${url}</div>
+                        <div><strong>Success:</strong> ${response.ok ? 'Yes' : 'No'}</div>
+                        <div><strong>Type:</strong> ${response.type}</div>
+                        <div><strong>Redirected:</strong> ${response.redirected ? 'Yes' : 'No'}</div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            newTab.document.write(html);
+            newTab.document.close();
+        }
+
+        // Function to show error in new tab
+        function showErrorInNewTab(method, url, error) {
+            const newTab = window.open('about:blank', '_blank');
+            if (!newTab) {
+                log('Popup blocked - unable to open error in new tab');
+                return;
+            }
+            
+            const timestamp = new Date().toISOString();
+            
+            const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${method} Error</title>
+                    <style>
+                        body { font-family: monospace; margin: 20px; background: #f8f9fa; }
+                        .header { background: #e74c3c; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+                        .section { background: white; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 4px solid #e74c3c; }
+                        .section h3 { margin-top: 0; color: #2c3e50; }
+                        .error-message { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div style="font-size: 1.5em;">❌ ${method} Request Error</div>
+                        <div><strong>URL:</strong> ${url}</div>
+                        <div><strong>Time:</strong> ${timestamp}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>Error Details</h3>
+                        <div class="error-message">${error.message}</div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>Possible Causes</h3>
+                        <ul>
+                            <li>Network connectivity issues</li>
+                            <li>Server not responding</li>
+                            <li>CORS policy restrictions</li>
+                            <li>Server configuration problems</li>
+                            <li>File or path doesn't exist</li>
+                        </ul>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            newTab.document.write(html);
+            newTab.document.close();
+        }
+    </script>
+</body>
+</html>
