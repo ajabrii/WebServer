@@ -4,11 +4,13 @@
 
 (done) : fix the uncoded data for post
 
+DONE remove errno from read/write/recv/send
 
+
+========================================================================================================================
+
+addr.sin_addr.s_addr = inet_addr(config.host.c_str()); // this function is not int the in subject !!!
 
 server status in cgi part
 
 build website test suite
-
-
-remove errno from read/write/recv/send

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/28 12:19:20 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/07/28 12:59:45 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,7 +213,7 @@ void Connection::setCgiState(CgiState* cgiState)
         cgiState->rawOutput.clear();
     }
 }
-std::string ipToString(uint32_t ip_net_order)
+std::string Connection::ipToString(uint32_t ip_net_order) const // int 4 --> [0, 1, 2, 3]
 {
     unsigned char bytes[4];
     bytes[0] = (ip_net_order >> 24) & 0xFF;

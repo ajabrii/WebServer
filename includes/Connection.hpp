@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/07/27 11:22:50 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/28 12:58:53 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,5 +83,6 @@ class Connection
         void setCgiState(CgiState* cgiState);
         void setSessionInfos(const SessionInfos& sessionInfos);
         SessionInfos& getSessionInfos();
+        std::string ipToString(uint32_t ip_net_order) const;
 };
 #endif
