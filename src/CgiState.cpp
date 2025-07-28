@@ -68,19 +68,13 @@ void CgiState::readFromScript(Connection& conn , Reactor& reactor)
     else if (n == 0) 
     {
         std::cout << "\033[1;34m[CGI]\033[0m CGI output EOF detected\n";
-        // for (std::map<int, Connection*>::iterator it = reactor.getConnectionMap().begin(); it != reactor.getConnectionMap().end(); ++it) 
-        // {
-        //  std::cerr << "Connection fd: " << it->first << " at address: " << it->second << std::endl;
-        // }
 
         HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput);
         setConnectionHeaders(resp, conn.isKeepAlive());
         conn.writeData(resp.toString());
 
         conn.getCgiState()->connection->updateLastActivity();
-        //print fd of conn and cgi->connection
         std::cerr << "CONN FD is : " << conn.getFd() << ", cgi connection fd is : " << conn.getCgiState()->connection->getFd() << std::endl;
-        // print all connectionMap of reactor <int, Connection *>  , id and address \n in c++98, using iterator
         reactor.removeConnection(conn.getFd()); // 8 
         // delete cgiState;
         // conn.setCgiState(NULL);
@@ -91,8 +85,6 @@ void CgiState::readFromScript(Connection& conn , Reactor& reactor)
     else 
     {
         perror("CGI read error");
-        // reactor.removeConnection(conn.getCgiState()->output_fd);
-        // cleanupCgi(conn);
         reactor.removeConnection(conn.getFd());
     }
 }
