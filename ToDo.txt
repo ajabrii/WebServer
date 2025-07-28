@@ -1,9 +1,14 @@
 //ToDo
 
-1. void Reactor::cleanupTimedOutConnections() --> void HandleTimeOut( std::vector<Connection*>& connections, Reactor &reactor);
+1.(done) void Reactor::cleanupTimedOutConnections() --> void HandleTimeOut( std::vector<Connection*>& connections, Reactor &reactor);
 
-fix the uncoded data for post
+(done) : fix the uncoded data for post
+
 
 
 server status in cgi part
 
+build website test suite
+
+
+remove errno from read/write/recv/send

@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 14:55:21 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/28 11:22:03 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 #include <iostream>
 #include "../includes/Errors.hpp"
 
-std::string extractBoundary(const std::string &ct)
+std::string PostHandler::extractBoundary(const std::string &ct) const
 {
     size_t pos = ct.find("boundary=");
     if (pos != std::string::npos)
@@ -46,7 +46,7 @@ std::string extractBoundary(const std::string &ct)
     return "";
 }
 
-void writeFile(const std::string &path, const std::string &content)
+void PostHandler::writeFile(const std::string &path, const std::string &content) const
 {
     std::ofstream out(path.c_str(), std::ios::binary);
     if (!out)
@@ -54,9 +54,9 @@ void writeFile(const std::string &path, const std::string &content)
     out << content;
 }
 
-void writeKeyValuesToFile(const std::string &path, const std::map<std::string, std::string> &fields)
+void PostHandler::writeKeyValuesToFile(const std::string &path, const std::map<std::string, std::string> &fields) const
 {
-    // open out with append mode
+  // open out with append mode
     // std::cerr << "DEBUG: Writing key-values to file: " << path << std::endl;
     // std::ofstream out(path.c_str(), std::ios::trunc);
     // if (!out)
@@ -107,12 +107,11 @@ void writeKeyValuesToFile(const std::string &path, const std::map<std::string, s
     }
     for (std::map<std::string, std::string>::const_iterator it = existingFields.begin(); it != existingFields.end(); ++it)
     {
-        out << it->first << "=" << it->second << "\n";
+        out << DataDecode(it->first) << "=" << DataDecode(it->second) << "\n";
     }
 }
-
 // improve later on
-std::vector<Part> parseMultipart(const std::string &body, const std::string &boundary)
+std::vector<Part> PostHandler::parseMultipart(const std::string &body, const std::string &boundary) const
 {
     std::vector<Part> parts;
     std::string sep = "--" + boundary; // boundaries are prefixed with -- according to RFC 2046
@@ -222,7 +221,7 @@ std::vector<Part> parseMultipart(const std::string &body, const std::string &bou
     return parts;
 }
 
-std::map<std::string, std::string> parseFormUrlEncoded(const std::string &body)
+std::map<std::string, std::string> PostHandler::parseFormUrlEncoded(const std::string &body) const
 {
     std::map<std::string, std::string> fields;
     std::istringstream ss(body);
@@ -240,7 +239,7 @@ std::map<std::string, std::string> parseFormUrlEncoded(const std::string &body)
     return fields;
 }
 
-HttpResponse makeErrorResponse(int code, const std::string &text, const ServerConfig &serverConfig)
+HttpResponse PostHandler::makeErrorResponse(int code, const std::string &text, const ServerConfig &serverConfig) const
 {
     HttpResponse resp;
     resp.statusCode = code;
@@ -264,7 +263,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
     std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower);
     if (route.uploadDir.empty())
     {
-        return makeErrorResponse(403, "Upload directory not configured.", serverConfig); //! check the code status
+        return makeErrorResponse(500, "Upload directory not configured.", serverConfig); //! check the code status
     }
     try
     {
@@ -299,7 +298,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
         }
         else if (ct.find("application/x-www-form-urlencoded") != std::string::npos)
         {
-            std::map<std::string,std::string> fields = parseFormUrlEncoded(req.body);
+            std::map<std::string, std::string> fields = parseFormUrlEncoded(req.body);
             std::string filepath = "./session/" + req.SessionId;
             writeKeyValuesToFile(filepath, fields);
             resp.version = "HTTP/1.1";
@@ -328,4 +327,43 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
     resp.headers["content-type"] = "text/html; charset=UTF-8";
     resp.headers["content-length"] = Utils::toString(resp.body.size());
     return resp;
+}
+
+
+std::string PostHandler::DataDecode(const std::string &encoded) const
+{
+    std::string decoded;
+
+    for (size_t i = 0; i < encoded.length(); ++i)
+    {
+        if (encoded[i] == '%' && i + 2 < encoded.length())
+        {
+            // Get the two hex digits after %
+            std::string hexStr = encoded.substr(i + 1, 2);
+            char *endPtr;
+            long int value = std::strtol(hexStr.c_str(), &endPtr, 16);
+
+            // Check if conversion was successful and value is valid
+            if (endPtr == hexStr.c_str() + 2 && value >= 0 && value <= 255)
+            {
+                decoded += static_cast<char>(value);
+                i += 2; // Skip the two hex digits
+            }
+            else
+            {
+                // Invalid hex sequence, keep the % as is
+                decoded += encoded[i];
+            }
+        }
+        else if (encoded[i] == '+')
+        {
+            decoded += ' ';
+        }
+        else
+        {
+            decoded += encoded[i];
+        }
+    }
+
+    return decoded;
 }

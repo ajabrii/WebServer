@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 18:44:21 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/28 11:38:27 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@ Event::Event() : fd(-1), isReadable(false), isWritable(false),
 
 void Reactor::cleanup() {
     // Clean up all connections
-    std::cout << "{debugin ________________________}reactor clean up\n";
     for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) 
     {
         if (it->second->getCgiState())
