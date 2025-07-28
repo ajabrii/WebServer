@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 10:42:21 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/28 12:19:20 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,14 +70,7 @@ void Connection::readData(HttpServer* server)
     ssize_t bytesRead = recv(client_fd, tmp, sizeof(tmp), 0);
 
     if (bytesRead < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) { // fcheck wakha machi forbidden hit khdamin b poll
-            // No data available right now. Not an error.
             return;
-        } else {
-            // A real error occurred with recv
-            // Consider logging the actual errno value for debugging
-            throw std::runtime_error("Failed to read from client socket: " + std::string(strerror(errno)));
-        }
     }
     // Append the received data to the connection's buffer
     buffer.append(tmp, bytesRead);
