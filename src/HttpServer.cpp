@@ -6,13 +6,14 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 09:43:54 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/28 13:25:46 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 # include "../includes/HttpServer.hpp"
 #include "../includes/Utils.hpp"
 #include <stdexcept>
+#include <netdb.h>
 
 HttpServer::HttpServer(const ServerConfig& cfg) : config(cfg)
 {
@@ -70,7 +71,7 @@ void HttpServer::setup()
         std::memset(&addr, 0, sizeof(addr));
         addr.sin_family = AF_INET;
         addr.sin_port = htons(config.port[i]);
-        addr.sin_addr.s_addr = inet_addr(config.host.c_str()); // this function is not int the in subject !!!
+        addr.sin_addr.s_addr = inet_addr(config.host.c_str()); // this function is not int the in subject !!! this function should be replaced with getaddrinfo
 
         if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
             throw std::runtime_error("Error: bind failed on port " + Utils::toString(config.port[i]));
@@ -79,10 +80,10 @@ void HttpServer::setup()
             throw std::runtime_error("Error: listen failed");
 
         listen_fds.push_back(fd);
-
-        std::cout << "\033[1;33m[*]\033[0m "
-                  << "[HttpServer] Listening on [\033[1;36mhttp://"
-                  << config.host << ":" << config.port[i] << "\033[0m]" << std::endl;
+        ServerLog(i);
+        // std::cout << "\033[1;33m[*]\033[0m "
+        //           << "[HttpServer] Listening on [\033[1;36mhttp://"
+        //           << config.host << ":" << config.port[i] << "\033[0m]" << std::endl;
     }
 }
 
@@ -114,4 +115,12 @@ const std::vector<int>& HttpServer::getFds() const
 const ServerConfig& HttpServer::getConfig() const
 {
     return config;
+}
+
+
+void HttpServer::ServerLog(size_t i) const
+{
+    std::cout << "\033[1;33m[*]\033[0m "
+                << "[HttpServer] Listening on [\033[1;36mhttp://"
+                << config.host << ":" << config.port[i] << "\033[0m]" << std::endl;
 }

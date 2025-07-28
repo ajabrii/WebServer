@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 19:35:23 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/28 12:23:15 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ void signalHandler(int signum) {
 void handleErrorEvent(const Event& event)
 {
     std::string errorMsg = "Connection error on fd " + Utils::toString(event.fd) + ": ";
-    
+
     if (event.errorType & POLLHUP) {
         errorMsg += "Client disconnected (POLLHUP)";
     }
@@ -92,7 +92,7 @@ int main(int ac, char **av, char **envp)
 
         while (!g_shutdown)
         {
-            try 
+            try
             {
                 reactor.poll();
                 std::vector<Event> events = reactor.getReadyEvents();
@@ -113,8 +113,8 @@ int main(int ac, char **av, char **envp)
                         std::cerr << "\033[1;31m[!]\033[0m Error event on fd: " << event.fd << std::endl;
                         handleErrorEvent(event);
                     }
-                
-                
+
+
             }
             reactor.cleanupTimedOutConnections();
             } catch (const std::exception& e) {
@@ -130,9 +130,6 @@ int main(int ac, char **av, char **envp)
 
     } catch (const std::exception& e) {
         std::cerr << "Fatal: " << e.what() << std::endl;
-        
-        // Emergency cleanup
-
         if (g_servers) {
             for (size_t i = 0; i < g_servers->size(); ++i) {
                 delete (*g_servers)[i];
