@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 17:44:31 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/28 11:09:40 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 #include <iostream>
 #include "../includes/Errors.hpp"
 
-std::string extractBoundary(const std::string &ct)
+std::string PostHandler::extractBoundary(const std::string &ct) const
 {
     size_t pos = ct.find("boundary=");
     if (pos != std::string::npos)
@@ -46,7 +46,7 @@ std::string extractBoundary(const std::string &ct)
     return "";
 }
 
-void writeFile(const std::string &path, const std::string &content)
+void PostHandler::writeFile(const std::string &path, const std::string &content) const
 {
     std::ofstream out(path.c_str(), std::ios::binary);
     if (!out)
@@ -54,7 +54,7 @@ void writeFile(const std::string &path, const std::string &content)
     out << content;
 }
 
-void writeKeyValuesToFile(const std::string &path, const std::map<std::string, std::string> &fields)
+void PostHandler::writeKeyValuesToFile(const std::string &path, const std::map<std::string, std::string> &fields) const
 {
     std::cout << "file path: `" << path << "'" << std::endl;
     std::ofstream out(path.c_str());
@@ -63,11 +63,11 @@ void writeKeyValuesToFile(const std::string &path, const std::map<std::string, s
         throw std::runtime_error("Error: Failed to write file: " + path);
     }
     for (std::map<std::string, std::string>::const_iterator it = fields.begin(); it != fields.end(); ++it)
-        out << it->first << "=" << it->second << "\n";
+        out << DataDecode(it->first) << "=" << DataDecode(it->second) << "\n";
 }
 
 // improve later on
-std::vector<Part> parseMultipart(const std::string &body, const std::string &boundary)
+std::vector<Part> PostHandler::parseMultipart(const std::string &body, const std::string &boundary) const
 {
     std::vector<Part> parts;
     std::string sep = "--" + boundary; // boundaries are prefixed with -- according to RFC 2046
@@ -177,7 +177,7 @@ std::vector<Part> parseMultipart(const std::string &body, const std::string &bou
     return parts;
 }
 
-std::map<std::string, std::string> parseFormUrlEncoded(const std::string &body)
+std::map<std::string, std::string> PostHandler::parseFormUrlEncoded(const std::string &body) const
 {
     std::map<std::string, std::string> fields;
     std::istringstream ss(body);
@@ -195,7 +195,7 @@ std::map<std::string, std::string> parseFormUrlEncoded(const std::string &body)
     return fields;
 }
 
-HttpResponse makeErrorResponse(int code, const std::string &text, const ServerConfig &serverConfig)
+HttpResponse PostHandler::makeErrorResponse(int code, const std::string &text, const ServerConfig &serverConfig) const
 {
     HttpResponse resp;
     resp.statusCode = code;
@@ -283,4 +283,43 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
     resp.headers["content-type"] = "text/html; charset=UTF-8";
     resp.headers["content-length"] = Utils::toString(resp.body.size());
     return resp;
+}
+
+
+std::string PostHandler::DataDecode(const std::string &encoded) const
+{
+    std::string decoded;
+
+    for (size_t i = 0; i < encoded.length(); ++i)
+    {
+        if (encoded[i] == '%' && i + 2 < encoded.length())
+        {
+            // Get the two hex digits after %
+            std::string hexStr = encoded.substr(i + 1, 2);
+            char *endPtr;
+            long int value = std::strtol(hexStr.c_str(), &endPtr, 16);
+
+            // Check if conversion was successful and value is valid
+            if (endPtr == hexStr.c_str() + 2 && value >= 0 && value <= 255)
+            {
+                decoded += static_cast<char>(value);
+                i += 2; // Skip the two hex digits
+            }
+            else
+            {
+                // Invalid hex sequence, keep the % as is
+                decoded += encoded[i];
+            }
+        }
+        else if (encoded[i] == '+')
+        {
+            decoded += ' ';
+        }
+        else
+        {
+            decoded += encoded[i];
+        }
+    }
+
+    return decoded;
 }
