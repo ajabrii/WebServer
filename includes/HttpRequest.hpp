@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 16:40:08 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/27 13:03:19 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ public:
     bool isChunked;
     long bodyReceived;
     bool headersParsed;
+    std::string UploadDirectory;
+    std::string SessionId;
 
     HttpRequest();
 
@@ -40,7 +42,9 @@ public:
 
     bool parseBody(std::string& connectionBuffer, long maxBodySize); // Will be called incrementally
 
-    bool decodeChunked(std::string& buffer, std::string& decodedOutput);
+    bool decodeChunked(std::string& buffer, std::string& decodedOutput, long maxBodySize);
+    bool parseChunkSize(const std::string& sizeHex, long& chunkSize);
+    bool skipTrailerHeaders(std::string& buffer, size_t startPos);
     void throwHttpError(int statusCode, const std::string& message);
     std::string GetHeader(std::string target) const;
 

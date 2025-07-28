@@ -1,12 +1,18 @@
 #!/bin/bash
 
 printf "Content-Type: text/html\r\n\r\n"
-
+sleep 0.1
 # Read POST data
+# if [ "$REQUEST_METHOD" != "POST" ]; then
+#     echo "Only POST supported"
+#     exit 1
+# fi
+
 read POST_DATA
 
-# Optional: escape double quotes if needed for JSON
+# # Optional: escape double quotes if needed for JSON
 ESCAPED_POST_DATA=$(printf '%s' "$POST_DATA" | sed 's/"/\\"/g')
+# "text": "'"$ESCAPED_POST_DATA"'"
 
 # Make the curl call
 curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent" \

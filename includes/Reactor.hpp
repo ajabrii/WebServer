@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Reactor.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 11:41:47 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/27 18:44:36 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,11 @@
 #include <map>
 #include <poll.h>
 
+
+ /*
+ the changes are simply std::vector<pollfd> pollFDs is public here but it should be private
+ we should bbuild a getter for it
+ */
 struct Event {
     int fd;
     bool isReadable;
@@ -34,29 +39,30 @@ struct Event {
 class Reactor
 {
     private:
-        std::vector<pollfd> pollFDs;
-        std::map<int, HttpServer*> serverMap;
-        std::map<int, Connection*> connectionMap;
-        std::map<int, HttpServer*> clientToServerMap;
-        std::vector<Event> readyEvents;
-
-
+    std::vector<pollfd> pollFDs;
+    std::map<int, HttpServer*> serverMap;
+    std::map<int, Connection*> connectionMap;
+    std::map<int, HttpServer*> clientToServerMap;
+    std::vector<Event> readyEvents;
+    
+    
     public:
-        Reactor();
-        ~Reactor();
-        void registerServer(HttpServer& server);
-        void addConnection(Connection* conn, HttpServer* server);
-        void removeConnection(int fd);
-        void poll();
-        std::vector<Event> getReadyEvents() const;
-        Connection& getConnection(int fd);
-        HttpServer* getServerByListeningFd(int fd);
-        HttpServer* getServerForClient(int clientFd);
-        std::map<int, Connection*> getConnectionMap(void) const;
-        void watchCgi(Connection* conn);
-        void cgiRemover(Connection *conn);
-        void cleanup();
-        void cleanupTimedOutConnections();
+    Reactor();
+    ~Reactor();
+    void registerServer(HttpServer& server);
+    void addConnection(Connection* conn, HttpServer* server);
+    void removeConnection(int fd);
+    void poll();
+    std::vector<Event> getReadyEvents() const;
+    std::vector<pollfd> getPollFds() const;
+    Connection& getConnection(int fd);
+    HttpServer* getServerByListeningFd(int fd);
+    HttpServer* getServerForClient(int clientFd);
+    std::map<int, Connection*> getConnectionMap(void) const;
+    void watchCgi(Connection* conn);
+    void cgiRemover(Connection *conn);
+    void cleanup();
+    void cleanupTimedOutConnections();
 };
 
 #endif

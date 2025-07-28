@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX       = c++
-CPPFLAGS  = -Wall -Wextra -Werror -std=c++98
+CPPFLAGS  = -Wall -Wextra -Werror -std=c++98 #-fsanitize=address -g3
 # Uncomment for debugging/sanitizers
 # CPPFLAGS += -fsanitize=address -g3
 
@@ -31,7 +31,15 @@ SRC = \
 	$(SRCDIR)/RequestDispatcher.cpp \
 	$(SRCDIR)/RouteConfig.cpp \
 	$(SRCDIR)/ServerConfig.cpp \
-	$(SRCDIR)/Utils.cpp
+	$(SRCDIR)/Utils.cpp \
+	$(SRCDIR)/CookieParser.cpp \
+	$(SRCDIR)/SessionID.cpp \
+	$(SRCDIR)/CgiState.cpp \
+	$(SRCDIR)/SessionManager.cpp \
+	$(SRCDIR)/ConfigServerParser.cpp \
+	$(SRCDIR)/ResponseBuilder.cpp \
+	$(SRCDIR)/SessionInfos.cpp
+
 
 HEADERS = \
 	$(INCDIR)/CgiHandler.hpp \
@@ -50,7 +58,13 @@ HEADERS = \
 	$(INCDIR)/RequestDispatcher.hpp \
 	$(INCDIR)/RouteConfig.hpp \
 	$(INCDIR)/ServerConfig.hpp \
-	$(INCDIR)/Utils.hpp
+	$(INCDIR)/Utils.hpp \
+	$(INCDIR)/ResponseBuilder.hpp \
+	$(INCDIR)/SessionID.hpp \
+	$(INCDIR)/CgiState.hpp \
+	$(INCDIR)/SessionManager.hpp\
+	$(INCDIR)/SessionInfos.hpp
+
 # Object files
 OBJ = $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 

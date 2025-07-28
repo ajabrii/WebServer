@@ -3,16 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/22 12:51:53 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/27 10:42:21 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 
 # include "../includes/HttpServer.hpp"
+# include "../includes/Errors.hpp"
+# define CGI_TIMEOUT_MINUTES 10
 
 Connection::Connection()
     : client_fd(-1),
@@ -77,12 +79,6 @@ void Connection::readData(HttpServer* server)
             throw std::runtime_error("Failed to read from client socket: " + std::string(strerror(errno)));
         }
     }
-    else if (bytesRead == 0) {
-        // Client closed the connection gracefully
-        // For keep-alive connections, this is normal when client closes
-        throw std::runtime_error("Client disconnected (bytesRead == 0)"); // This should trigger connection cleanup
-    }
-
     // Append the received data to the connection's buffer
     buffer.append(tmp, bytesRead);
     // std::cout << "Debug: Read " << bytesRead << " bytes. Buffer size: " << buffer.length() << std::endl;
@@ -142,6 +138,10 @@ void Connection::setKeepAlive(bool ka) {
 }
 
 bool Connection::isTimedOut() const {
+    
+    if (cgiState && cgiState->pid != -1) {
+        return (std::time(0) - lastActivityTime) > CGI_TIMEOUT_MINUTES;
+    }
     return (std::time(0) - lastActivityTime) > KEEP_ALIVE_TIMEOUT;
 }
 
@@ -154,8 +154,16 @@ void Connection::incrementRequestCount() {
 }
 
 void Connection::resetForNextRequest() {
-    buffer.clear();
+    buffer.clear(); // can be removed becaue its all ready cleaned by conn.reset();
     updateLastActivity();
+    if (cgiState) {
+        delete cgiState;
+        cgiState = NULL;
+    }
+    currentRequest = HttpRequest(); // Reset request object
+    contentLength = 0;
+    isChunked = false;
+    requestState = READING_HEADERS; // Reset state machine
 }
 /*
 === this function writes data aka response to the client ==
@@ -211,4 +219,31 @@ void Connection::setCgiState(CgiState* cgiState)
         cgiState->headersParsed = false;
         cgiState->rawOutput.clear();
     }
+}
+std::string ipToString(uint32_t ip_net_order)
+{
+    unsigned char bytes[4];
+    bytes[0] = (ip_net_order >> 24) & 0xFF;
+    bytes[1] = (ip_net_order >> 16) & 0xFF;
+    bytes[2] = (ip_net_order >> 8) & 0xFF;
+    bytes[3] = ip_net_order & 0xFF;
+
+    std::ostringstream oss;
+    oss << (int)bytes[0] << "." << (int)bytes[1] << "." << (int)bytes[2] << "." << (int)bytes[3];
+    return oss.str();
+}
+
+
+std::string Connection::getClientIP() const
+{
+    return ipToString(client_addr.sin_addr.s_addr);
+}
+
+SessionInfos& Connection::getSessionInfos()
+{
+    return sessionInfos;
+}
+void Connection::setSessionInfos(const SessionInfos& sessionInfos)
+{
+    this->sessionInfos = sessionInfos;
 }
