@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 20:00:51 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/28 08:51:03 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -369,6 +369,7 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, 
                     
                     conn.setCgiState(cgi.execCgi(conn));
                     reactor.watchCgi(&conn);
+                    return ; // Exit early, cgi state will handle the response
                 }   
                 catch (const HttpRequest::HttpException &e)
                 {
@@ -376,7 +377,6 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, 
                     HttpResponse errorResp = createErrorResponse(e.getStatusCode(), e.what(), server->getConfig());
                     conn.writeData(errorResp.toString());
                     reactor.removeConnection(event.fd);
-                    return;
                 }
             }
             else
