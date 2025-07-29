@@ -14,3 +14,6 @@ addr.sin_addr.s_addr = inet_addr(config.host.c_str()); // this function is not i
 server status in cgi part
 
 build website test suite
+
+
+add default config file
