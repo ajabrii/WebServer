@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/28 08:51:03 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/29 17:13:47 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,7 +189,7 @@ void HandleCookies(Connection& conn, HttpRequest& req)
         {
             // std::cout << "\033[1;33m[Session]\033[0m Session ID found in cookies" << std::endl;
             std::string sessionId = cookies["session_id"];
-                
+            sessionInfos.setSessionId(sessionId);
             if (access(sessionManager.buildSessionFilePath(sessionId).c_str(), F_OK) == 0)
             {
                 // std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << sessionId << std::endl;
@@ -201,12 +201,14 @@ void HandleCookies(Connection& conn, HttpRequest& req)
                     // Create a new session file
                 sessionManager.save(sessionId, sessionInfos.getCookies());
             }
+            
         }
         else
         {
             // std::cout << "\033[1;33m[Session]\033[0m No session ID found in cookies" << std::endl;
             // Generate a new session ID if not present
             std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
+            sessionInfos.setSessionId(newSessionId);
             sessionInfos.getCookies()["session_id"] = newSessionId;
                 
             if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) == 0)
@@ -227,6 +229,7 @@ void HandleCookies(Connection& conn, HttpRequest& req)
         std::cout << "\033[1;33m[Session]\033[0m No cookies found in request" << std::endl;
         // Generate a new session ID if no cookies are present
         std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
+        sessionInfos.setSessionId(newSessionId);
         sessionInfos.getCookies()["session_id"] = newSessionId;
 
         if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) == 0)
@@ -242,7 +245,7 @@ void HandleCookies(Connection& conn, HttpRequest& req)
         }
     }
     sessionInfos.setSessionPath(sessionManager.buildSessionFilePath(sessionInfos.getSessionId()));
-    sessionInfos.setSessionId(sessionInfos.getCookies()["session_id"]);
+    sessionInfos.setSessionId(sessionInfos.getSessionId());
     conn.getCurrentRequest().SessionId = conn.getSessionInfos().getSessionId();
     sessionInfos.setSessionData(sessionManager.load(sessionInfos.getSessionId()));
         
@@ -368,6 +371,7 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, 
                 {
                     
                     conn.setCgiState(cgi.execCgi(conn));
+                    std::cout << "\033[1;34m[CGI]\033[0m Executing CGI script: " << std::endl;
                     reactor.watchCgi(&conn);
                     return ; // Exit early, cgi state will handle the response
                 }   
@@ -377,6 +381,7 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, 
                     HttpResponse errorResp = createErrorResponse(e.getStatusCode(), e.what(), server->getConfig());
                     conn.writeData(errorResp.toString());
                     reactor.removeConnection(event.fd);
+                    return ;
                 }
             }
             else

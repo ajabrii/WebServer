@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:11 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 15:19:43 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/29 17:02:00 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,8 @@ void HttpResponse::SetCookieHeaders(Connection &conn)
     const std::string sessionPath = "./session/" + conn.getSessionInfos().getSessionId();
 
     // Step 1: Load session file data (if exists)
+
+    std::cerr << "DEBUG: Loading session data from: " << sessionPath << std::endl;
     std::ifstream ifs(sessionPath.c_str());
     if (ifs)
     {

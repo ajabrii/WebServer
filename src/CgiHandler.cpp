@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/27 20:06:02 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/29 17:00:51 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,72 +240,6 @@ bool CgiHandler::IsCgi(void)
     return (_data.hasCgi);
 }
 
-// HttpResponse CgiHandler::execCgi(void)
-// {
-//     HttpResponse f;//
-//     std::string cmd;
-//     std::string fp;
-//     std::string str;
-//     pid_t pid;
-//     char **env;
-//     env = set_env();
-//     if (_data.CgiInterp.find("/") != std::string::npos)
-//         cmd = _data.CgiInterp.substr(_data.CgiInterp.find_last_of("/") + 1);
-//     else
-//         cmd = _data.CgiInterp;
-//     std::cout << "CMD: " << cmd << std::endl;
-//     fp  = full_path(_env_paths, _data.CgiInterp); // TO DO HANDLE ERROR
-//     std::cout << "FULL PATH: " << fp << std::endl;
-//     // if (fp.empty())
-//     //     return;
-//     str = _data.script_path.substr(1);
-//     char *argv[] = { (char *)cmd.c_str(), (char *)str.c_str() ,NULL };
-//     int pfd[2];
-//     if (pipe(pfd))
-//         exit(1);
-//     pid = fork();
-//     if (!pid)
-//     {
-//         dup2(pfd[1], 1);
-//         close(pfd[1]);
-//         close(pfd[0]);
-    
-//         execve(fp.c_str(), argv, env);
-//         perror("execve failed");
-//         _exit(1);
-//     }
-//     // listen to the output and store it to pipe
-//     else if (pid < 0)
-//     {
-//         std::cerr << "Fork failed" << std::endl;
-//         close(pfd[0]);
-//         close(pfd[1]);
-//         // return;
-//     }
-//     close(pfd[1]);
-    
-//     std::string cgi_output_str;
-//     char buffer[4096];
-//     ssize_t bytes_read;
-//     while ((bytes_read = read(pfd[0], buffer, 4096 - 1)) > 0) 
-//     {
-//         buffer[bytes_read] = '\0'; // Null-terminate the chunk
-//         cgi_output_str.append(buffer); // Append to the output string
-//     }
-//     if (bytes_read == -1)
-//     {
-//         perror("read from pipe_stdout failed");
-//     }
-//     close(pfd[0]);
-//     std::cout << "--------------------> " << cgi_output_str << std::endl;
-//     f.version = "HTTP/1.1";
-//     // f.headers["Content-Type"] = "text/html";
-//     f.statusCode = 200;
-//     f.body = cgi_output_str;
-//     wait(NULL);
-//     return f;   
-// }
-
 std::string GetKey(std::map<std::string, std::string> map ,std::string target)
 {
     std::string value;
@@ -341,80 +275,50 @@ CgiState *CgiHandler::execCgi(Connection &conn)
     check_existing = _data.script_path.substr(1);
     if (access((char *)check_existing.c_str(), F_OK) < 0)
     {
-        // f.statusCode = 404;
-        // f.statusText = "Internal Server Error";
-        // f.body = "CGI : Script file not found, path: {" + check_existing + "}" ;
-        // return f;
-        delete f; // Clean up before returning
+        delete f;
         conn.getCurrentRequest().throwHttpError(404, "Script file not found, path: {" + check_existing + "}");
         return NULL;
     }
-    env = set_env(conn); // Environment variables prepared
-
+    
     // Determine command to pass to execve
     if (_data.CgiInterp.find("/") != std::string::npos)
-        cmd = _data.CgiInterp.substr(_data.CgiInterp.find_last_of("/") + 1); // e.g., "php-cgi" from "/usr/bin/php-cgi"
+    cmd = _data.CgiInterp.substr(_data.CgiInterp.find_last_of("/") + 1); // e.g., "php-cgi" from "/usr/bin/php-cgi"
     else
-        cmd = _data.CgiInterp; // e.g., "python3"
-
-    fp  = full_path(_env_paths, _data.CgiInterp); // Get absolute path to interpreter
-    // IMPORTANT: Handle fp.empty() case - it means interpreter not found
+    cmd = _data.CgiInterp; // e.g., "python3"
+    
+    fp  = full_path(_env_paths, _data.CgiInterp);
     if (fp.empty())
     {
-        // Handle error: Interpreter not found (e.g., 500 Internal Server Error)
-        // Free env memory
-        // f.statusCode = 500;
-        // f.statusText = "Internal Server Error 1";
-        // f.body = "CGI Interpreter not found.";
-        // return f;
         std::cerr << "Error: CGI interpreter not found: " << _data.CgiInterp << std::endl;
-        for (int i = 0; env[i] != NULL; ++i) 
-            delete[] env[i];
-        delete[] env;
+        delete f;
+        conn.getCurrentRequest().throwHttpError(500, "Internal Server Error : interpreter not found.");
+        return NULL;
+    }
+    
+    str = _data.script_path.substr(1);
+    
+    int pfd[2]; // Pipe for CGI output
+    int pfd_in[2]; // Pipe for CGI input (for POST requests)
+    
+    if (pipe(pfd) == -1) // Pipe for stdout from CGI
+    {
+        perror("pipe stdout failed");
         delete f;
         conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
         return NULL;
     }
     
-    str = _data.script_path.substr(1);
-
-    int pfd[2]; // Pipe for CGI output
-    int pfd_in[2]; // Pipe for CGI input (for POST requests)
-
-    if (pipe(pfd) == -1) // Pipe for stdout from CGI
-    {
-        perror("pipe stdout failed");
-        // Clean up env
-        for (int i = 0; env[i] != NULL; ++i) 
-            delete[] env[i];
-        delete[] env;
-        // f.statusCode = 500;
-        // f.statusText = "Internal Server Error 2";
-        // f.body = "Server pipe creation failed.";
-        // return f;
-        delete f;
-        conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
-        return NULL;
-    }
-
     if (_req.method == POST && pipe(pfd_in) == -1) // Pipe for stdin to CGI (only for POST)
     {
         perror("pipe stdin failed");
         close(pfd[0]);
         close(pfd[1]);
-        // Clean up env
-        for (int i = 0; env[i] != NULL; ++i) 
-            delete[] env[i];
-        delete[] env;
-        // f.statusCode = 500;
-        // f.statusText = "Internal Server Error 3";
-        // f.body = "Server pipe creation failed.";
-        // return f;
         delete f;
         conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
         return NULL;
     }
-
+    
+    env = set_env(conn); // Environment variables prepared
     pid = fork();
     if (pid == -1) // Fork failed
     {
@@ -425,14 +329,9 @@ CgiState *CgiHandler::execCgi(Connection &conn)
             close(pfd_in[0]); 
             close(pfd_in[1]); 
         }
-        // Clean up env
         for (int i = 0; env[i] != NULL; ++i) 
             delete[] env[i];
         delete[] env;
-        // f.statusCode = 500;
-        // f.statusText = "Internal Server Error 4";
-        // f.body = "Server fork failed.";
-        // return f;
         delete f;
         conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
         return NULL;
