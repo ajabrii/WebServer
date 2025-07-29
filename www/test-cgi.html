@@ -713,118 +713,120 @@ Line 6: Unicode: 🚀🐍📊💻⚙️`;
                 <head>
                     <title>${method} Response - ${response.status}</title>
                     <style>
-                        * { margin: 0; padding: 0; box-sizing: border-box; }
                         body { 
-                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                            background: #f5f5f5;
-                            color: #333;
-                            line-height: 1.6;
-                            padding: 20px;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                            margin: 0; 
+                            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                            color: #f9fafb;
+                            min-height: 100vh;
                         }
                         .container {
-                            max-width: 1400px;
+                            max-width: 1200px;
                             margin: 0 auto;
+                            padding: 2rem;
                         }
                         .header { 
-                            background: white;
-                            border: 1px solid #ddd;
-                            border-radius: 8px;
-                            padding: 30px;
-                            margin-bottom: 20px;
-                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            background: rgba(31, 41, 55, 0.8);
+                            backdrop-filter: blur(10px);
+                            border: 1px solid rgba(55, 65, 81, 0.5);
+                            border-radius: 12px;
+                            padding: 2rem; 
+                            margin-bottom: 2rem; 
+                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
                         }
                         .status { 
-                            font-size: 24px;
+                            font-size: 1.5em; 
+                            margin-bottom: 1rem; 
+                            color: #9b59b6;
                             font-weight: 600;
-                            color: #2c3e50;
-                            margin-bottom: 20px;
                         }
                         .section { 
-                            background: white;
-                            border: 1px solid #ddd;
-                            border-radius: 8px;
-                            padding: 25px;
-                            margin-bottom: 20px;
-                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            background: rgba(31, 41, 55, 0.8);
+                            backdrop-filter: blur(10px);
+                            border: 1px solid rgba(55, 65, 81, 0.5);
+                            border-radius: 12px;
+                            padding: 1.5rem; 
+                            margin-bottom: 1.5rem; 
+                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                            border-left: 4px solid #9b59b6;
                         }
                         .section h3 { 
-                            color: #2c3e50;
-                            font-size: 18px;
-                            margin-bottom: 15px;
-                            border-bottom: 2px solid #3498db;
-                            padding-bottom: 8px;
+                            margin-top: 0; 
+                            color: #f9fafb; 
+                            font-size: 1.2rem;
+                            margin-bottom: 1rem;
                         }
                         .response-body { 
-                            background: #f8f9fa;
-                            border: 1px solid #e9ecef;
-                            border-radius: 4px;
-                            padding: 20px;
+                            background: rgba(17, 24, 39, 0.8);
+                            border: 1px solid rgba(75, 85, 99, 0.3);
+                            border-radius: 8px;
+                            padding: 1rem; 
+                            white-space: pre-wrap; 
+                            overflow-x: auto; 
                             font-family: 'Courier New', monospace;
-                            font-size: 14px;
-                            white-space: pre-wrap;
+                            color: #f9fafb;
+                            backdrop-filter: blur(5px);
                             max-height: 500px;
                             overflow-y: auto;
-                            color: #2c3e50;
                         }
                         .info-grid {
                             display: grid;
-                            grid-template-columns: 150px 1fr;
-                            gap: 15px 20px;
-                            font-size: 14px;
+                            grid-template-columns: auto 1fr;
+                            gap: 0.5rem 1rem;
+                            font-family: 'Courier New', monospace;
+                            font-size: 0.9rem;
                         }
                         .info-label {
                             font-weight: 600;
-                            color: #7f8c8d;
+                            color: #9ca3af;
                         }
                         .info-value {
-                            color: #2c3e50;
+                            color: #f9fafb;
                         }
-                        .status-ok { color: #27ae60; font-weight: 600; }
-                        .status-error { color: #e74c3c; font-weight: 600; }
                     </style>
                 </head>
                 <body>
                     <div class="container">
                         <div class="header">
-                            <div class="status">🔧 CGI Response</div>
+                            <div class="status">⚙️ CGI Request Response</div>
                             <div class="info-grid">
                                 <span class="info-label">Status:</span>
-                                <span class="info-value ${response.status < 400 ? 'status-ok' : 'status-error'}">${response.status} ${response.statusText}</span>
+                                <span class="info-value">${response.status} ${response.statusText}</span>
                                 <span class="info-label">URL:</span>
                                 <span class="info-value">${url}</span>
-                                <span class="info-label">Method:</span>
-                                <span class="info-value">${method}</span>
                                 <span class="info-label">Time:</span>
                                 <span class="info-value">${timestamp}</span>
+                                <span class="info-label">Method:</span>
+                                <span class="info-value">${method}</span>
                             </div>
                         </div>
                         
                         <div class="section">
-                            <h3>📄 Response Content</h3>
+                            <h3>📄 Response Body</h3>
                             <div class="response-body">${isHtmlContent(responseText) 
                                 ? responseText 
-                                : (responseText || '(No content received)')}</div>
+                                : (responseText || '(empty response)')}</div>
                         </div>
                         
                         <div class="section">
-                            <h3>📋 Headers</h3>
+                            <h3>📋 Response Headers</h3>
                             <div class="response-body">${headers.length > 0 ? headers.join('\n') : 'No headers received'}</div>
                         </div>
                         
                         <div class="section">
-                            <h3>ℹ️ Details</h3>
+                            <h3>🔍 Request Details</h3>
                             <div class="info-grid">
                                 <span class="info-label">Method:</span>
                                 <span class="info-value">${method}</span>
                                 <span class="info-label">URL:</span>
                                 <span class="info-value">${url}</span>
                                 <span class="info-label">Success:</span>
-                                <span class="info-value ${response.ok ? 'status-ok' : 'status-error'}">${response.ok ? 'Yes' : 'No'}</span>
+                                <span class="info-value">Yes</span>
                                 <span class="info-label">Type:</span>
                                 <span class="info-value">${response.type}</span>
                                 <span class="info-label">Redirected:</span>
                                 <span class="info-value">${response.redirected ? 'Yes' : 'No'}</span>
-                                <span class="info-label">Content Size:</span>
+                                <span class="info-label">Body Size:</span>
                                 <span class="info-value">${responseText ? responseText.length : 0} bytes</span>
                             </div>
                         </div>
@@ -859,75 +861,49 @@ Line 6: Unicode: 🚀🐍📊💻⚙️`;
                 newTab.document.write(responseText);
                 newTab.document.close();
             } else {
-                // If it's plain text, wrap it in clean HTML
+                // If it's plain text, wrap it in basic HTML with purple theme
                 const html = `
                     <!DOCTYPE html>
                     <html>
                     <head>
                         <title>CGI Error Response</title>
                         <style>
-                            * { margin: 0; padding: 0; box-sizing: border-box; }
                             body { 
-                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                                background: #f5f5f5;
-                                color: #333;
-                                line-height: 1.6;
-                                padding: 20px;
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                                margin: 2rem; 
+                                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                                color: #f9fafb;
+                                min-height: 100vh;
                             }
                             .container {
-                                max-width: 1200px;
+                                max-width: 800px;
                                 margin: 0 auto;
-                            }
-                            .error-header {
-                                background: #fff5f5;
-                                border: 1px solid #fed7d7;
-                                border-radius: 8px;
-                                padding: 30px;
-                                margin-bottom: 20px;
-                                text-align: center;
+                                padding: 2rem;
                             }
                             h1 {
-                                color: #e53e3e;
-                                font-size: 28px;
-                                font-weight: 600;
-                                margin-bottom: 10px;
-                            }
-                            .error-info {
-                                color: #718096;
-                                font-size: 16px;
-                            }
-                            .error-content {
-                                background: white;
-                                border: 1px solid #ddd;
-                                border-radius: 8px;
-                                padding: 25px;
-                                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                                color: #ef4444;
+                                border-bottom: 2px solid #ef4444;
+                                padding-bottom: 1rem;
+                                margin-bottom: 2rem;
                             }
                             pre {
-                                background: #f8f9fa;
-                                border: 1px solid #e9ecef;
-                                border-radius: 4px;
-                                padding: 20px;
-                                font-family: 'Courier New', monospace;
-                                font-size: 14px;
+                                background: rgba(31, 41, 55, 0.8);
+                                backdrop-filter: blur(10px);
+                                border: 1px solid rgba(55, 65, 81, 0.5);
+                                border-radius: 8px;
+                                padding: 1rem;
                                 white-space: pre-wrap;
                                 word-wrap: break-word;
-                                color: #2c3e50;
-                                max-height: 500px;
-                                overflow-y: auto;
-                                margin: 0;
+                                color: #fca5a5;
+                                font-family: 'Courier New', monospace;
+                                border-left: 4px solid #ef4444;
                             }
                         </style>
                     </head>
                     <body>
                         <div class="container">
-                            <div class="error-header">
-                                <h1>⚠️ CGI Error</h1>
-                                <div class="error-info">The CGI request encountered an error</div>
-                            </div>
-                            <div class="error-content">
-                                <pre>${responseText || '(No error details available)'}</pre>
-                            </div>
+                            <h1>⚙️ CGI Error Response</h1>
+                            <pre>${responseText || '(empty response)'}</pre>
                         </div>
                     </body>
                     </html>
