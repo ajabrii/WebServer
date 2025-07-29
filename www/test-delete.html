@@ -442,33 +442,6 @@
                     <button class="clear-button" onclick="clearSelection()">❌ Clear Selection</button>
                 </div>
             </div>
-
-            <!-- Security Tests -->
-            <div class="section">
-                <h2>🔒 Security & Edge Case Tests</h2>
-                <div class="test-grid">
-                    <div class="test-item">
-                        <h4>Path Traversal</h4>
-                        <button class="test-button" onclick="testPathTraversal()">../../../etc/passwd</button>
-                        <button class="test-button" onclick="testRelativePath()">../../www/index.html</button>
-                    </div>
-                    <div class="test-item">
-                        <h4>Special Characters</h4>
-                        <button class="test-button" onclick="testSpacesInPath()">File with spaces</button>
-                        <button class="test-button" onclick="testSpecialChars()">Special chars</button>
-                    </div>
-                    <div class="test-item">
-                        <h4>Non-existent Files</h4>
-                        <button class="test-button" onclick="testNonExistent()">Missing file</button>
-                        <button class="test-button" onclick="testEmptyPath()">Empty path</button>
-                    </div>
-                    <div class="test-item">
-                        <h4>URL Encoding</h4>
-                        <button class="test-button" onclick="testUrlEncoded()">%20encoded.txt</button>
-                        <button class="test-button" onclick="testDoubleEncoded()">Double encoded</button>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div class="right-panel">
@@ -793,47 +766,6 @@ Click any test button above to see results here.</div>
             await Promise.all(promises);
             log('📄 Test file creation completed');
             setTimeout(loadFiles, 1000); // Refresh after a short delay
-        }
-
-        // Security and Edge Case Tests
-        async function testPathTraversal() {
-            log('🔍 Testing path traversal attack: ../../../etc/passwd');
-            await deleteFile('../../../etc/passwd');
-        }
-
-        async function testRelativePath() {
-            log('🔍 Testing relative path: ../../www/index.html');
-            await deleteFile('../../www/index.html');
-        }
-
-        async function testSpacesInPath() {
-            log('🔍 Testing file path with spaces');
-            await deleteFile('file with spaces.txt');
-        }
-
-        async function testSpecialChars() {
-            log('🔍 Testing file with special characters');
-            await deleteFile('test!@#$%^&*()file.txt');
-        }
-
-        async function testNonExistent() {
-            log('🔍 Testing deletion of non-existent file');
-            await deleteFile('definitely_does_not_exist_12345.txt');
-        }
-
-        async function testEmptyPath() {
-            log('🔍 Testing deletion with empty path');
-            await deleteFile('');
-        }
-
-        async function testUrlEncoded() {
-            log('🔍 Testing URL encoded filename: file%20name.txt');
-            await deleteFile('file%20name.txt');
-        }
-
-        async function testDoubleEncoded() {
-            log('🔍 Testing double URL encoded filename');
-            await deleteFile('file%2520name.txt');
         }
 
         // Function to show server response in new tab (inspired by test-post.html)
