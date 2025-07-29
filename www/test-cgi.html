@@ -14,14 +14,30 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
+            color: #e4e6ea;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 1000px;
-            margin: 0 auto;
+            display: flex;
+            height: 100vh;
+            padding: 0;
+        }
+
+        .left-panel {
+            width: 50%;
             padding: 2rem;
+            overflow-y: auto;
+            border-right: 1px solid #2d3748;
+        }
+
+        .right-panel {
+            width: 50%;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         .header {
@@ -33,16 +49,17 @@
 
         .header h1 {
             font-size: 2rem;
-            color: #9b59b6;
+            color: #f9fafb;
             margin-bottom: 0.5rem;
         }
 
         .nav-back {
             display: inline-block;
             margin-bottom: 1rem;
-            color: #666;
+            color: #9ca3af;
             text-decoration: none;
             font-size: 0.9rem;
+            transition: color 0.3s ease;
         }
 
         .nav-back:hover {
@@ -50,15 +67,17 @@
         }
 
         .section {
-            background: white;
-            border-radius: 8px;
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            border-radius: 12px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .section h2 {
-            color: #2c3e50;
+            color: #f9fafb;
             margin-bottom: 1rem;
             font-size: 1.3rem;
         }
@@ -71,15 +90,29 @@
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
-            color: #555;
+            color: #f9fafb;
         }
 
         .form-input, .form-textarea, .form-select {
             width: 100%;
             padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: inherit;
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 8px;
+            background: rgba(17, 24, 39, 0.6);
+            color: #f9fafb;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: #9b59b6;
+            box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
+        }
+
+        .form-input::placeholder, .form-textarea::placeholder {
+            color: #9ca3af;
         }
 
         .form-textarea {
@@ -89,24 +122,31 @@
         }
 
         .test-button {
-            background: #9b59b6;
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
             color: white;
             border: none;
             padding: 0.75rem 1.5rem;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
             font-size: 0.9rem;
             margin-right: 0.5rem;
             margin-bottom: 0.5rem;
         }
 
         .test-button:hover {
-            background: #8e44ad;
+            background: linear-gradient(135deg, #8e44ad, #732d91);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(155, 89, 182, 0.4);
         }
 
         .test-button:disabled {
-            background: #bdc3c7;
+            background: #6b7280;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .cgi-grid {
@@ -117,10 +157,17 @@
         }
 
         .cgi-card {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
+            background: rgba(17, 24, 39, 0.6);
+            border: 1px solid rgba(75, 85, 99, 0.3);
             border-radius: 8px;
             padding: 1.5rem;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .cgi-card:hover {
+            border-color: rgba(155, 89, 182, 0.5);
+            box-shadow: 0 4px 16px rgba(155, 89, 182, 0.2);
         }
 
         .cgi-card h3 {
@@ -131,57 +178,95 @@
             gap: 0.5rem;
         }
 
-        .result-area {
-            background: #2c3e50;
-            color: #ecf0f1;
+        .warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
             padding: 1rem;
-            border-radius: 4px;
+            border-radius: 8px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            margin-bottom: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .results-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .results-header h2 {
+            color: #f9fafb;
+            font-size: 1.3rem;
+        }
+
+        .clear-button {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .clear-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+        }
+
+        .result-area {
+            background: rgba(17, 24, 39, 0.8);
+            color: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
             font-family: 'Courier New', monospace;
             font-size: 0.9rem;
-            min-height: 200px;
             white-space: pre-wrap;
-            overflow-x: auto;
-        }
-
-        .env-vars {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 1rem;
-            margin: 1rem 0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-        }
-
-        .env-var {
-            margin-bottom: 0.25rem;
-            padding: 0.25rem;
-            background: white;
-            border-radius: 3px;
+            overflow-y: auto;
+            flex: 1;
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            backdrop-filter: blur(5px);
         }
 
         .method-tabs {
             display: flex;
             margin-bottom: 1rem;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
         }
 
         .method-tab {
             padding: 0.75rem 1.5rem;
             border: none;
-            background: none;
+            background: rgba(17, 24, 39, 0.6);
+            color: #9ca3af;
             cursor: pointer;
-            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
             font-size: 0.9rem;
+            flex: 1;
+            backdrop-filter: blur(5px);
         }
 
         .method-tab.active {
             color: #9b59b6;
-            border-bottom-color: #9b59b6;
+            background: rgba(155, 89, 182, 0.2);
+            border-bottom: 2px solid #9b59b6;
         }
 
         .method-tab:hover {
-            background: #f8f9fa;
+            background: rgba(31, 41, 55, 0.8);
+            color: #f9fafb;
         }
 
         .tab-content {
@@ -194,11 +279,24 @@
 
         @media (max-width: 768px) {
             .container {
-                padding: 1rem;
+                flex-direction: column;
+                height: auto;
             }
+
+            .left-panel, .right-panel {
+                width: 100%;
+                min-height: auto;
+            }
+
+            .left-panel {
+                border-right: none;
+                border-bottom: 1px solid #2d3748;
+            }
+
             .cgi-grid {
                 grid-template-columns: 1fr;
             }
+
             .method-tabs {
                 flex-wrap: wrap;
             }
@@ -207,151 +305,161 @@
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="nav-back">← Back to Home</a>
-        
-        <div class="header">
-            <h1>⚙️ CGI Testing</h1>
-            <p>Test CGI scripts in Python, PHP, and Shell</p>
-        </div>
-
-        <!-- Available CGI Scripts -->
-        <div class="section">
-            <h2>Available CGI Scripts</h2>
-            <div class="cgi-grid">
-                <div class="cgi-card">
-                    <h3>🐍 Python Scripts</h3>
-                    <button class="test-button" onclick="testCgiScript('1.py', 'GET')">Test 1.py</button>
-                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
-                        Python CGI script with environment variables and form handling
-                    </p>
-                </div>
-                
-                <div class="cgi-card">
-                    <h3>🐘 PHP Scripts</h3>
-                    <button class="test-button" onclick="testCgiScript('1.php', 'GET')">Test 1.php</button>
-                    <button class="test-button" onclick="testCgiScript('f.php', 'GET')">Test f.php</button>
-                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
-                        PHP scripts with server info and form processing
-                    </p>
-                </div>
-                
-                <div class="cgi-card">
-                    <h3>🐚 Shell Scripts</h3>
-                    <button class="test-button" onclick="testCgiScript('1.sh', 'GET')">Test 1.sh</button>
-                    <button class="test-button" onclick="testCgiScript('haha.sh', 'GET')">Test haha.sh</button>
-                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
-                        Shell scripts with system information and environment
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Method Testing -->
-        <div class="section">
-            <h2>CGI Method Testing</h2>
-            <div class="method-tabs">
-                <button class="method-tab active" onclick="switchTab('get')">GET</button>
-                <button class="method-tab" onclick="switchTab('post')">POST</button>
-            </div>
-
-            <!-- GET Testing -->
-            <div id="get-tab" class="tab-content active">
-                <h3>GET Request Testing</h3>
-                <div class="form-group">
-                    <label class="form-label">CGI Script:</label>
-                    <select id="getScript" class="form-select">
-                        <option value="1.py">1.py (Python)</option>
-                        <option value="1.php">1.php (PHP)</option>
-                        <option value="f.php">f.php (PHP)</option>
-                        <option value="1.sh">1.sh (Shell)</option>
-                        <option value="haha.sh">haha.sh (Shell)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Query String:</label>
-                    <input type="text" id="queryString" class="form-input" placeholder="name=value&key=data" value="name=WebServ&test=CGI&method=GET">
-                </div>
-                <button class="test-button" onclick="testGetCgi()">Test GET Request</button>
-                <button class="test-button" onclick="testGetWithComplexQuery()">Complex Query</button>
-            </div>
-
-            <!-- POST Testing -->
-            <div id="post-tab" class="tab-content">
-                <h3>POST Request Testing</h3>
-                <div class="form-group">
-                    <label class="form-label">CGI Script:</label>
-                    <select id="postScript" class="form-select">
-                        <option value="1.py">1.py (Python)</option>
-                        <option value="1.php">1.php (PHP)</option>
-                        <option value="f.php">f.php (PHP)</option>
-                        <option value="1.sh">1.sh (Shell)</option>
-                        <option value="haha.sh">haha.sh (Shell)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Content Type:</label>
-                    <select id="contentType" class="form-select" onchange="updatePostData()">
-                        <option value="application/x-www-form-urlencoded">Form URL Encoded</option>
-                        <option value="application/json">JSON</option>
-                        <option value="text/plain">Plain Text</option>
-                        <option value="multipart/form-data">Multipart Form</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">POST Data:</label>
-                    <textarea id="postData" class="form-textarea" placeholder="Enter POST data">name=WebServ&message=Hello+CGI&method=POST</textarea>
-                </div>
-                <button class="test-button" onclick="testPostCgi()">Test POST Request</button>
-                <button class="test-button" onclick="testPostWithFile()">POST with File</button>
-            </div>
-        </div>
-
-        <!-- Environment Variables Testing -->
-        <div class="section">
-            <h2>Environment Variables</h2>
-            <p style="margin-bottom: 1rem; color: #666;">
-                Test how CGI scripts receive and process environment variables
-            </p>
-            <button class="test-button" onclick="testEnvironmentVars()">Show Environment</button>
-            <button class="test-button" onclick="testCustomHeaders()">Custom Headers</button>
-            <button class="test-button" onclick="testUserAgent()">User Agent Test</button>
+        <div class="left-panel">
+            <a href="index.html" class="nav-back">← Back to Home</a>
             
-            <div id="envVars" class="env-vars" style="display: none;">
-                <!-- Environment variables will be displayed here -->
+            <div class="header">
+                <h1>⚙️ CGI Testing</h1>
+                <p>Test CGI scripts in Python, PHP, and Shell with modern interface</p>
+            </div>
+
+            <div class="warning">
+                ⚠️ <strong>CGI Testing Guide:</strong> Test various CGI scripts with different parameters and methods.
+                
+                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(245, 198, 203, 0.3); font-size: 0.9rem;">
+                    <strong>💡 Available Scripts:</strong>
+                    <ul style="margin: 0.5rem 0 0 1.5rem;">
+                        <li>🐍 <strong>Python:</strong> 1.py, 2.py, 3.py, test.py</li>
+                        <li>🐘 <strong>PHP:</strong> 1.php, f.php, test.php</li>
+                        <li>🐚 <strong>Shell:</strong> 1.sh, haha.sh</li>
+                        <li>🍪 <strong>Special:</strong> cookie.py, file.py, test_post.py</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Available CGI Scripts -->
+            <div class="section">
+                <h2>📂 Available CGI Scripts</h2>
+                <div class="cgi-grid">
+                    <div class="cgi-card">
+                        <h3>🐍 Python Scripts</h3>
+                        <button class="test-button" onclick="testCgiScript('1.py', 'GET')">Test 1.py</button>
+                        <button class="test-button" onclick="testCgiScript('2.py', 'GET')">Test 2.py</button>
+                        <button class="test-button" onclick="testCgiScript('3.py', 'GET')">Test 3.py</button>
+                        <button class="test-button" onclick="testCgiScript('test.py', 'GET')">Test test.py</button>
+                        <p style="margin-top: 0.75rem; font-size: 0.85rem; color: #9ca3af;">
+                            Python CGI scripts with environment variables and form handling
+                        </p>
+                    </div>
+                    
+                    <div class="cgi-card">
+                        <h3>🐘 PHP Scripts</h3>
+                        <button class="test-button" onclick="testCgiScript('1.php', 'GET')">Test 1.php</button>
+                        <button class="test-button" onclick="testCgiScript('f.php', 'GET')">Test f.php</button>
+                        <button class="test-button" onclick="testCgiScript('test.php', 'GET')">Test test.php</button>
+                        <p style="margin-top: 0.75rem; font-size: 0.85rem; color: #9ca3af;">
+                            PHP scripts with server info and form processing
+                        </p>
+                    </div>
+                    
+                    <div class="cgi-card">
+                        <h3>🐚 Shell Scripts</h3>
+                        <button class="test-button" onclick="testCgiScript('1.sh', 'GET')">Test 1.sh</button>
+                        <button class="test-button" onclick="testCgiScript('haha.sh', 'GET')">Test haha.sh</button>
+                        <p style="margin-top: 0.75rem; font-size: 0.85rem; color: #9ca3af;">
+                            Shell scripts with system information and environment
+                        </p>
+                    </div>
+
+                    <div class="cgi-card">
+                        <h3>🍪 Special Scripts</h3>
+                        <button class="test-button" onclick="testCgiScript('cookie.py', 'GET')">Cookie Test</button>
+                        <button class="test-button" onclick="testCgiScript('file.py', 'GET')">File Handler</button>
+                        <button class="test-button" onclick="testCgiScript('test_post.py', 'POST')">POST Test</button>
+                        <p style="margin-top: 0.75rem; font-size: 0.85rem; color: #9ca3af;">
+                            Specialized scripts for cookies, files, and POST handling
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Method Testing -->
+            <div class="section">
+                <h2>🔧 CGI Method Testing</h2>
+                <div class="method-tabs">
+                    <button class="method-tab active" onclick="switchTab('get')">GET</button>
+                    <button class="method-tab" onclick="switchTab('post')">POST</button>
+                </div>
+
+                <!-- GET Testing -->
+                <div id="get-tab" class="tab-content active">
+                    <h3>GET Request Testing</h3>
+                    <div class="form-group">
+                        <label class="form-label">CGI Script:</label>
+                        <select id="getScript" class="form-select">
+                            <option value="1.py">1.py (Python)</option>
+                            <option value="2.py">2.py (Python)</option>
+                            <option value="3.py">3.py (Python)</option>
+                            <option value="test.py">test.py (Python)</option>
+                            <option value="1.php">1.php (PHP)</option>
+                            <option value="f.php">f.php (PHP)</option>
+                            <option value="test.php">test.php (PHP)</option>
+                            <option value="1.sh">1.sh (Shell)</option>
+                            <option value="haha.sh">haha.sh (Shell)</option>
+                            <option value="cookie.py">cookie.py (Cookie Test)</option>
+                            <option value="file.py">file.py (File Handler)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Query String:</label>
+                        <input type="text" id="queryString" class="form-input" placeholder="name=value&key=data" value="name=WebServ&test=CGI&method=GET">
+                    </div>
+                    <button class="test-button" onclick="testGetCgi()">🚀 Test GET Request</button>
+                    <button class="test-button" onclick="testGetWithComplexQuery()">🔍 Complex Query</button>
+                    <button class="test-button" onclick="testEnvironmentVars()">🌐 Show Environment</button>
+                </div>
+
+                <!-- POST Testing -->
+                <div id="post-tab" class="tab-content">
+                    <h3>POST Request Testing</h3>
+                    <div class="form-group">
+                        <label class="form-label">CGI Script:</label>
+                        <select id="postScript" class="form-select">
+                            <option value="test_post.py">test_post.py (Python POST)</option>
+                            <option value="1.py">1.py (Python)</option>
+                            <option value="2.py">2.py (Python)</option>
+                            <option value="1.php">1.php (PHP)</option>
+                            <option value="f.php">f.php (PHP)</option>
+                            <option value="test.php">test.php (PHP)</option>
+                            <option value="file.py">file.py (File Handler)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Content Type:</label>
+                        <select id="contentType" class="form-select" onchange="updatePostData()">
+                            <option value="application/x-www-form-urlencoded">Form URL Encoded</option>
+                            <option value="application/json">JSON</option>
+                            <option value="text/plain">Plain Text</option>
+                            <option value="multipart/form-data">Multipart Form</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">POST Data:</label>
+                        <textarea id="postData" class="form-textarea" placeholder="Enter POST data">name=WebServ&message=Hello+CGI&method=POST</textarea>
+                    </div>
+                    <button class="test-button" onclick="testPostCgi()">📤 Test POST Request</button>
+                    <button class="test-button" onclick="testPostWithFile()">📎 POST with File</button>
+                    <button class="test-button" onclick="testFormSubmission()">📋 Test Form Data</button>
+                </div>
             </div>
         </div>
 
-        <!-- Advanced Testing -->
-        <div class="section">
-            <h2>Advanced CGI Testing</h2>
-            <div class="cgi-grid">
-                <div class="cgi-card">
-                    <h3>🔒 Security Tests</h3>
-                    <button class="test-button" onclick="testScriptInjection()">Script Injection</button>
-                    <button class="test-button" onclick="testPathTraversal()">Path Traversal</button>
-                    <button class="test-button" onclick="testLongInput()">Long Input</button>
+        <div class="right-panel">
+            <div class="results-section">
+                <div class="results-header">
+                    <h2>📊 Test Results</h2>
+                    <button class="clear-button" onclick="clearResults()">Clear Results</button>
                 </div>
-                
-                <div class="cgi-card">
-                    <h3>⏱️ Performance Tests</h3>
-                    <button class="test-button" onclick="testTimeout()">Timeout Test</button>
-                    <button class="test-button" onclick="testConcurrent()">Concurrent CGI</button>
-                    <button class="test-button" onclick="testLargeOutput()">Large Output</button>
-                </div>
-                
-                <div class="cgi-card">
-                    <h3>🔧 Error Handling</h3>
-                    <button class="test-button" onclick="testNonExistentScript()">Missing Script</button>
-                    <button class="test-button" onclick="testBadPermissions()">Bad Permissions</button>
-                    <button class="test-button" onclick="testMalformedScript()">Syntax Error</button>
-                </div>
-            </div>
-        </div>
+                <div id="results" class="result-area">Ready to test CGI scripts...
+🚀 Click any test button to see detailed results here.
 
-        <!-- Results -->
-        <div class="section">
-            <h2>Test Results</h2>
-            <div id="results" class="result-area">Ready to test CGI scripts...\nSelect a script and click a test button to see results here.</div>
+💡 Available Scripts:
+  🐍 Python: 1.py, 2.py, 3.py, test.py, cookie.py, file.py, test_post.py
+  🐘 PHP: 1.php, f.php, test.php  
+  🐚 Shell: 1.sh, haha.sh
+
+Select a script and method, then click a test button to begin!</div>
+            </div>
         </div>
     </div>
 
@@ -361,6 +469,11 @@
             const timestamp = new Date().toLocaleTimeString();
             results.textContent += `[${timestamp}] ${message}\n`;
             results.scrollTop = results.scrollHeight;
+        }
+
+        function clearResults() {
+            const results = document.getElementById('results');
+            results.textContent = 'Results cleared. Ready for new CGI tests...\n🚀 Select a script and method to begin testing.';
         }
 
         function switchTab(tabName) {
@@ -383,27 +496,31 @@
             
             switch(contentType) {
                 case 'application/json':
-                    postData.value = '{"name": "WebServ", "message": "Hello CGI", "method": "POST"}';
+                    postData.value = '{"name": "WebServ", "message": "Hello CGI!", "method": "POST", "timestamp": "' + new Date().toISOString() + '"}';
                     break;
                 case 'text/plain':
-                    postData.value = 'This is plain text data for CGI testing';
+                    postData.value = 'This is plain text data for CGI testing.\nLine 2: WebServ CGI Test\nLine 3: ' + new Date().toISOString();
                     break;
                 case 'multipart/form-data':
-                    postData.value = '--boundary123\\r\\nContent-Disposition: form-data; name="field1"\\r\\n\\r\\nvalue1\\r\\n--boundary123--';
+                    postData.value = '--boundary123\r\nContent-Disposition: form-data; name="field1"\r\n\r\nvalue1\r\n--boundary123\r\nContent-Disposition: form-data; name="field2"\r\n\r\nWebServ Test\r\n--boundary123--';
                     break;
                 default:
-                    postData.value = 'name=WebServ&message=Hello+CGI&method=POST';
+                    postData.value = 'name=WebServ&message=Hello+CGI&method=POST&timestamp=' + encodeURIComponent(new Date().toISOString());
             }
         }
 
         async function testCgiScript(script, method = 'GET', queryString = '', postData = '') {
             const url = `/cgi-bin/${script}${queryString ? '?' + queryString : ''}`;
-            log(`Testing ${script} with ${method} method: ${url}`);
+            log(`🚀 Testing ${script} with ${method} method`);
+            log(`📍 URL: ${url}`);
             
             try {
                 const options = {
                     method: method,
-                    headers: {}
+                    headers: {
+                        'Accept': '*/*',
+                        'Cache-Control': 'no-cache'
+                    }
                 };
                 
                 if (method === 'POST' && postData) {
@@ -413,21 +530,21 @@
                 
                 const response = await fetch(url, options);
                 
-                log(`Response Status: ${response.status} ${response.statusText}`);
-                log(`Response Headers:`);
+                log(`📊 Response Status: ${response.status} ${response.statusText}`);
+                log(`📋 Response Headers:`);
                 for (const [key, value] of response.headers.entries()) {
                     log(`  ${key}: ${value}`);
                 }
                 
                 const responseText = await response.clone().text();
-                log(`Response Body:\n${responseText}`);
+                log(`📄 Response Body Preview: ${responseText.substring(0, 200)}${responseText.length > 200 ? '...' : ''}`);
                 
-                // Show response in new tab
+                // Show full response in new tab
                 showResponseInNewTab(`CGI ${method}`, url, response, responseText);
                 
             } catch (error) {
-                log(`CGI Error: ${error.message}`);
-                showErrorInNewTab(`CGI ${method}`, url, error);
+                log(`💥 CGI Error: ${error.message}`);
+                showErrorAsHtml(`<h1>Network Error</h1><p>${error.message}</p>`);
             }
         }
 
@@ -439,7 +556,8 @@
 
         async function testGetWithComplexQuery() {
             const script = document.getElementById('getScript').value;
-            const complexQuery = 'name=Test%20User&email=test%40example.com&data=%7B%22json%22%3A%22value%22%7D&array[]=1&array[]=2&special=!@#$%^&*()';
+            const complexQuery = 'name=Test%20User&email=test%40example.com&data=%7B%22json%22%3A%22value%22%7D&array[]=1&array[]=2&special=!@#$%^&*()&unicode=🚀🐍📊';
+            log('🔍 Testing complex query with special characters and encoding');
             await testCgiScript(script, 'GET', complexQuery);
         }
 
@@ -448,36 +566,54 @@
             const contentType = document.getElementById('contentType').value;
             const postData = document.getElementById('postData').value;
             
-            log(`Testing ${script} with POST method`);
+            log(`📤 Testing ${script} with POST method`);
+            log(`📄 Content-Type: ${contentType}`);
+            log(`📦 Data Length: ${postData.length} bytes`);
             
             try {
                 const response = await fetch(`/cgi-bin/${script}`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': contentType
+                        'Content-Type': contentType,
+                        'Accept': '*/*',
+                        'Cache-Control': 'no-cache'
                     },
                     body: postData
                 });
                 
-                log(`Response Status: ${response.status} ${response.statusText}`);
-                const responseText = await response.text();
-                log(`Response Body:\n${responseText}`);
+                log(`📊 POST Response Status: ${response.status} ${response.statusText}`);
+                const responseText = await response.clone().text();
+                log(`📄 Response Preview: ${responseText.substring(0, 200)}${responseText.length > 200 ? '...' : ''}`);
+                
+                // Show full response in new tab
+                showResponseInNewTab('CGI POST', `/cgi-bin/${script}`, response, responseText);
                 
             } catch (error) {
-                log(`POST CGI Error: ${error.message}`);
+                log(`💥 POST CGI Error: ${error.message}`);
+                showErrorAsHtml(`<h1>POST Error</h1><p>${error.message}</p>`);
             }
         }
 
         async function testPostWithFile() {
             const script = document.getElementById('postScript').value;
             
-            // Create a simple file for testing
+            // Create a test file for upload
             const formData = new FormData();
-            const blob = new Blob(['This is test file content for CGI'], { type: 'text/plain' });
-            formData.append('file', blob, 'test.txt');
-            formData.append('name', 'FileUploadTest');
+            const testContent = `CGI File Upload Test
+Generated: ${new Date().toISOString()}
+Script: ${script}
+WebServ Test File Content
+Line 5: Special characters: !@#$%^&*()
+Line 6: Unicode: 🚀🐍📊💻⚙️`;
             
-            log(`Testing ${script} with file upload`);
+            const blob = new Blob([testContent], { type: 'text/plain' });
+            formData.append('file', blob, 'cgi_test_file.txt');
+            formData.append('name', 'CGI_File_Upload_Test');
+            formData.append('description', 'Test file upload via CGI');
+            formData.append('timestamp', new Date().toISOString());
+            
+            log(`📎 Testing ${script} with file upload`);
+            log(`📦 File size: ${testContent.length} bytes`);
             
             try {
                 const response = await fetch(`/cgi-bin/${script}`, {
@@ -485,152 +621,68 @@
                     body: formData
                 });
                 
-                log(`File Upload Response: ${response.status} ${response.statusText}`);
-                const responseText = await response.text();
-                log(`Response Body:\n${responseText}`);
+                log(`📁 File Upload Response: ${response.status} ${response.statusText}`);
+                const responseText = await response.clone().text();
+                log(`📄 Upload Response Preview: ${responseText.substring(0, 200)}${responseText.length > 200 ? '...' : ''}`);
+                
+                // Show full response in new tab
+                showResponseInNewTab('CGI File Upload', `/cgi-bin/${script}`, response, responseText);
                 
             } catch (error) {
-                log(`File Upload CGI Error: ${error.message}`);
+                log(`💥 File Upload CGI Error: ${error.message}`);
+                showErrorAsHtml(`<h1>File Upload Error</h1><p>${error.message}</p>`);
+            }
+        }
+
+        async function testFormSubmission() {
+            const script = document.getElementById('postScript').value;
+            const formData = 'username=testuser&password=secret123&email=test@webserv.com&role=admin&preferences=dark_theme&notifications=enabled&submit=Login';
+            
+            log(`📋 Testing ${script} with form submission data`);
+            
+            try {
+                const response = await fetch(`/cgi-bin/${script}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': '*/*'
+                    },
+                    body: formData
+                });
+                
+                log(`📋 Form Response: ${response.status} ${response.statusText}`);
+                const responseText = await response.clone().text();
+                
+                // Show full response in new tab
+                showResponseInNewTab('CGI Form Submission', `/cgi-bin/${script}`, response, responseText);
+                
+            } catch (error) {
+                log(`💥 Form Submission Error: ${error.message}`);
+                showErrorAsHtml(`<h1>Form Submission Error</h1><p>${error.message}</p>`);
             }
         }
 
         async function testEnvironmentVars() {
-            log('Testing environment variables with 1.py...');
-            await testCgiScript('1.py', 'GET', 'show_env=1');
-        }
-
-        async function testCustomHeaders() {
-            log('Testing CGI with custom headers...');
-            
-            try {
-                const response = await fetch('/cgi-bin/1.py?test=headers', {
-                    headers: {
-                        'X-Custom-Header': 'TestValue',
-                        'X-Client-Info': 'WebServ-Test',
-                        'Accept-Language': 'en-US,en;q=0.9'
-                    }
-                });
-                
-                log(`Custom Headers Response: ${response.status}`);
-                const responseText = await response.text();
-                log(`Response:\n${responseText}`);
-                
-            } catch (error) {
-                log(`Custom Headers Error: ${error.message}`);
-            }
-        }
-
-        async function testUserAgent() {
-            log('Testing User-Agent handling...');
-            
-            try {
-                const response = await fetch('/cgi-bin/1.py?test=user_agent', {
-                    headers: {
-                        'User-Agent': 'WebServ-CGI-Tester/1.0 (Testing Framework)'
-                    }
-                });
-                
-                const responseText = await response.text();
-                log(`User-Agent Test Response:\n${responseText}`);
-                
-            } catch (error) {
-                log(`User-Agent Test Error: ${error.message}`);
-            }
-        }
-
-        // Security Tests
-        async function testScriptInjection() {
-            log('Testing script injection protection...');
-            const scriptTag = '<script>alert("XSS")<\/script>';
-            const cmdInjection = 'rm -rf /; echo "injected"';
-            const maliciousQuery = 'input=' + encodeURIComponent(scriptTag) + '&cmd=' + encodeURIComponent(cmdInjection);
-            await testCgiScript('1.py', 'GET', maliciousQuery);
-        }
-
-        async function testPathTraversal() {
-            log('Testing path traversal in CGI...');
-            try {
-                const response = await fetch('/cgi-bin/../../../etc/passwd');
-                log(`Path Traversal Response: ${response.status} ${response.statusText}`);
-            } catch (error) {
-                log(`Path Traversal Error: ${error.message}`);
-            }
-        }
-
-        async function testLongInput() {
-            log('Testing long input handling...');
-            const longData = 'data=' + 'A'.repeat(10000);
-            await testCgiScript('1.py', 'POST', '', longData);
-        }
-
-        // Performance Tests
-        async function testTimeout() {
-            log('Testing CGI timeout (this may take a while)...');
-            await testCgiScript('1.py', 'GET', 'sleep=10');
-        }
-
-        async function testConcurrent() {
-            log('Testing concurrent CGI requests...');
-            
-            const promises = [];
-            for (let i = 0; i < 5; i++) {
-                promises.push(
-                    fetch(`/cgi-bin/1.py?concurrent=${i}`)
-                        .then(response => response.text())
-                        .then(text => log(`Concurrent ${i}: Success`))
-                        .catch(error => log(`Concurrent ${i}: Error - ${error.message}`))
-                );
-            }
-            
-            await Promise.all(promises);
-            log('Concurrent test completed');
-        }
-
-        async function testLargeOutput() {
-            log('Testing large CGI output...');
-            await testCgiScript('1.py', 'GET', 'large_output=1');
-        }
-
-        // Error Handling Tests
-        async function testNonExistentScript() {
-            log('Testing non-existent CGI script...');
-            try {
-                const response = await fetch('/cgi-bin/nonexistent.py');
-                log(`Non-existent Script Response: ${response.status} ${response.statusText}`);
-            } catch (error) {
-                log(`Non-existent Script Error: ${error.message}`);
-            }
-        }
-
-        async function testBadPermissions() {
-            log('Testing CGI with potential permission issues...');
-            try {
-                const response = await fetch('/cgi-bin/restricted.py');
-                log(`Bad Permissions Response: ${response.status} ${response.statusText}`);
-            } catch (error) {
-                log(`Bad Permissions Error: ${error.message}`);
-            }
-        }
-
-        async function testMalformedScript() {
-            log('Testing malformed CGI script handling...');
-            // This would test how the server handles scripts with syntax errors
-            // The actual behavior depends on your CGI implementation
-            await testCgiScript('malformed.py', 'GET');
+            log('🌐 Testing environment variables with Python script...');
+            await testCgiScript('1.py', 'GET', 'show_env=1&test=environment');
         }
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            log('CGI Testing page loaded');
-            log('Available CGI scripts: 1.py, 1.php, f.php, 1.sh, haha.sh');
-            log('Select a test to begin...');
+            log('🚀 CGI Testing page loaded successfully!');
+            log('📋 Available CGI scripts detected:');
+            log('  🐍 Python: 1.py, 2.py, 3.py, test.py, cookie.py, file.py, test_post.py');
+            log('  🐘 PHP: 1.php, f.php, test.php');
+            log('  🐚 Shell: 1.sh, haha.sh');
+            log('');
+            log('💡 Select a test method and click any button to begin testing...');
         });
 
-        // Function to show server response in new tab
+        // Function to show server response in new tab (inspired by test-delete.html and test-post.html)
         function showResponseInNewTab(method, url, response, responseText) {
             const newTab = window.open('about:blank', '_blank');
             if (!newTab) {
-                log('Popup blocked - unable to open response in new tab');
+                log('🚫 Popup blocked - unable to open response in new tab');
                 return;
             }
             
@@ -639,6 +691,21 @@
             for (const [key, value] of response.headers.entries()) {
                 headers.push(`${key}: ${value}`);
             }
+
+            // Check if response is HTML content
+            function isHtmlContent(content) {
+                if (!content || typeof content !== 'string') return false;
+                const htmlIndicators = ['<!DOCTYPE', '<html', '<head>', '<body>', '<div', '<p>', '<h1', '<h2'];
+                return htmlIndicators.some(indicator => 
+                    content.toLowerCase().includes(indicator.toLowerCase())
+                );
+            }
+
+            // If not OK response, render as error
+            if (!response.ok) {
+                showErrorAsHtml(responseText || `HTTP ${response.status} ${response.statusText}`);
+                return;
+            }
             
             const html = `
                 <!DOCTYPE html>
@@ -646,42 +713,123 @@
                 <head>
                     <title>${method} Response - ${response.status}</title>
                     <style>
-                        body { font-family: monospace; margin: 20px; background: #f8f9fa; }
-                        .header { background: #9b59b6; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-                        .status { font-size: 1.5em; margin-bottom: 10px; }
-                        .section { background: white; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 4px solid #9b59b6; }
-                        .section h3 { margin-top: 0; color: #2c3e50; }
-                        .response-body { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; white-space: pre-wrap; overflow-x: auto; max-height: 400px; overflow-y: auto; }
-                        .success { border-left-color: #27ae60; }
-                        .error { border-left-color: #e74c3c; }
-                        .warning { border-left-color: #f39c12; }
+                        body { 
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                            margin: 0; 
+                            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                            color: #f9fafb;
+                            min-height: 100vh;
+                        }
+                        .container {
+                            max-width: 1200px;
+                            margin: 0 auto;
+                            padding: 2rem;
+                        }
+                        .header { 
+                            background: rgba(31, 41, 55, 0.8);
+                            backdrop-filter: blur(10px);
+                            border: 1px solid rgba(55, 65, 81, 0.5);
+                            border-radius: 12px;
+                            padding: 2rem; 
+                            margin-bottom: 2rem; 
+                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                        }
+                        .status { 
+                            font-size: 1.5em; 
+                            margin-bottom: 1rem; 
+                            color: #9b59b6;
+                            font-weight: 600;
+                        }
+                        .section { 
+                            background: rgba(31, 41, 55, 0.8);
+                            backdrop-filter: blur(10px);
+                            border: 1px solid rgba(55, 65, 81, 0.5);
+                            border-radius: 12px;
+                            padding: 1.5rem; 
+                            margin-bottom: 1.5rem; 
+                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                            border-left: 4px solid #9b59b6;
+                        }
+                        .section h3 { 
+                            margin-top: 0; 
+                            color: #f9fafb; 
+                            font-size: 1.2rem;
+                            margin-bottom: 1rem;
+                        }
+                        .response-body { 
+                            background: rgba(17, 24, 39, 0.8);
+                            border: 1px solid rgba(75, 85, 99, 0.3);
+                            border-radius: 8px;
+                            padding: 1rem; 
+                            white-space: pre-wrap; 
+                            overflow-x: auto; 
+                            font-family: 'Courier New', monospace;
+                            color: #f9fafb;
+                            backdrop-filter: blur(5px);
+                            max-height: 500px;
+                            overflow-y: auto;
+                        }
+                        .info-grid {
+                            display: grid;
+                            grid-template-columns: auto 1fr;
+                            gap: 0.5rem 1rem;
+                            font-family: 'Courier New', monospace;
+                            font-size: 0.9rem;
+                        }
+                        .info-label {
+                            font-weight: 600;
+                            color: #9ca3af;
+                        }
+                        .info-value {
+                            color: #f9fafb;
+                        }
                     </style>
                 </head>
                 <body>
-                    <div class="header">
-                        <div class="status">⚙️ CGI Request Response</div>
-                        <div><strong>Status:</strong> ${response.status} ${response.statusText}</div>
-                        <div><strong>URL:</strong> ${url}</div>
-                        <div><strong>Time:</strong> ${timestamp}</div>
-                    </div>
-                    
-                    <div class="section ${response.ok ? 'success' : 'error'}">
-                        <h3>Response Headers</h3>
-                        <div>${headers.length > 0 ? headers.join('<br>') : 'No headers received'}</div>
-                    </div>
-                    
-                    <div class="section">
-                        <h3>Response Body</h3>
-                        <div class="response-body">${responseText || '(empty response)'}</div>
-                    </div>
-                    
-                    <div class="section">
-                        <h3>Request Details</h3>
-                        <div><strong>Method:</strong> ${method}</div>
-                        <div><strong>URL:</strong> ${url}</div>
-                        <div><strong>Success:</strong> ${response.ok ? 'Yes' : 'No'}</div>
-                        <div><strong>Type:</strong> ${response.type}</div>
-                        <div><strong>Redirected:</strong> ${response.redirected ? 'Yes' : 'No'}</div>
+                    <div class="container">
+                        <div class="header">
+                            <div class="status">⚙️ CGI Request Response</div>
+                            <div class="info-grid">
+                                <span class="info-label">Status:</span>
+                                <span class="info-value">${response.status} ${response.statusText}</span>
+                                <span class="info-label">URL:</span>
+                                <span class="info-value">${url}</span>
+                                <span class="info-label">Time:</span>
+                                <span class="info-value">${timestamp}</span>
+                                <span class="info-label">Method:</span>
+                                <span class="info-value">${method}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📄 Response Body</h3>
+                            <div class="response-body">${isHtmlContent(responseText) 
+                                ? responseText 
+                                : (responseText || '(empty response)')}</div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Response Headers</h3>
+                            <div class="response-body">${headers.length > 0 ? headers.join('\n') : 'No headers received'}</div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>🔍 Request Details</h3>
+                            <div class="info-grid">
+                                <span class="info-label">Method:</span>
+                                <span class="info-value">${method}</span>
+                                <span class="info-label">URL:</span>
+                                <span class="info-value">${url}</span>
+                                <span class="info-label">Success:</span>
+                                <span class="info-value">Yes</span>
+                                <span class="info-label">Type:</span>
+                                <span class="info-value">${response.type}</span>
+                                <span class="info-label">Redirected:</span>
+                                <span class="info-value">${response.redirected ? 'Yes' : 'No'}</span>
+                                <span class="info-label">Body Size:</span>
+                                <span class="info-value">${responseText ? responseText.length : 0} bytes</span>
+                            </div>
+                        </div>
                     </div>
                 </body>
                 </html>
@@ -691,58 +839,78 @@
             newTab.document.close();
         }
 
-        // Function to show error in new tab
-        function showErrorInNewTab(method, url, error) {
+        // Function to show error as HTML content directly
+        function showErrorAsHtml(responseText) {
             const newTab = window.open('about:blank', '_blank');
             if (!newTab) {
-                log('Popup blocked - unable to open error in new tab');
+                log('🚫 Popup blocked - unable to open error response');
                 return;
             }
             
-            const timestamp = new Date().toISOString();
-            
-            const html = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>${method} Error</title>
-                    <style>
-                        body { font-family: monospace; margin: 20px; background: #f8f9fa; }
-                        .header { background: #e74c3c; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-                        .section { background: white; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 4px solid #e74c3c; }
-                        .section h3 { margin-top: 0; color: #2c3e50; }
-                        .error-message { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <div style="font-size: 1.5em;">❌ ${method} Request Error</div>
-                        <div><strong>URL:</strong> ${url}</div>
-                        <div><strong>Time:</strong> ${timestamp}</div>
-                    </div>
-                    
-                    <div class="section">
-                        <h3>Error Details</h3>
-                        <div class="error-message">${error.message}</div>
-                    </div>
-                    
-                    <div class="section">
-                        <h3>Possible Causes</h3>
-                        <ul>
-                            <li>CGI script not found or not executable</li>
-                            <li>Script execution timeout</li>
-                            <li>Script syntax or runtime error</li>
-                            <li>Server CGI configuration issue</li>
-                            <li>Insufficient permissions</li>
-                            <li>Network connectivity problems</li>
-                        </ul>
-                    </div>
-                </body>
-                </html>
-            `;
-            
-            newTab.document.write(html);
-            newTab.document.close();
+            // Check if response is HTML content
+            function isHtmlContent(content) {
+                if (!content || typeof content !== 'string') return false;
+                const htmlIndicators = ['<!DOCTYPE', '<html', '<head>', '<body>', '<div', '<p>', '<h1', '<h2'];
+                return htmlIndicators.some(indicator => 
+                    content.toLowerCase().includes(indicator.toLowerCase())
+                );
+            }
+
+            if (isHtmlContent(responseText)) {
+                // If it's HTML content, render it directly
+                newTab.document.write(responseText);
+                newTab.document.close();
+            } else {
+                // If it's plain text, wrap it in basic HTML with purple theme
+                const html = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>CGI Error Response</title>
+                        <style>
+                            body { 
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                                margin: 2rem; 
+                                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                                color: #f9fafb;
+                                min-height: 100vh;
+                            }
+                            .container {
+                                max-width: 800px;
+                                margin: 0 auto;
+                                padding: 2rem;
+                            }
+                            h1 {
+                                color: #ef4444;
+                                border-bottom: 2px solid #ef4444;
+                                padding-bottom: 1rem;
+                                margin-bottom: 2rem;
+                            }
+                            pre {
+                                background: rgba(31, 41, 55, 0.8);
+                                backdrop-filter: blur(10px);
+                                border: 1px solid rgba(55, 65, 81, 0.5);
+                                border-radius: 8px;
+                                padding: 1rem;
+                                white-space: pre-wrap;
+                                word-wrap: break-word;
+                                color: #fca5a5;
+                                font-family: 'Courier New', monospace;
+                                border-left: 4px solid #ef4444;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <h1>⚙️ CGI Error Response</h1>
+                            <pre>${responseText || '(empty response)'}</pre>
+                        </div>
+                    </body>
+                    </html>
+                `;
+                newTab.document.write(html);
+                newTab.document.close();
+            }
         }
     </script>
 </body>
