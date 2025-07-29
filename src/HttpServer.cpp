@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:00:19 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/29 19:24:22 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/29 19:35:58 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,12 +61,34 @@ void HttpServer::setup()
     {
         int fd = socket(AF_INET, SOCK_STREAM, 0);
         if (fd < 0)
+        {
+            // Clean up any previously created sockets before throwing
+            for (size_t j = 0; j < listen_fds.size(); ++j)
+                close(listen_fds[j]);
+            listen_fds.clear();
             throw std::runtime_error("Failed to create socket");
+        }
+        // Set socket options and flags
         if (fcntl(fd, F_SETFL, O_NONBLOCK | FD_CLOEXEC) < 0)
+        {
+            close(fd);
+            // Clean up any previously created sockets before throwing
+            for (size_t j = 0; j < listen_fds.size(); ++j)
+                close(listen_fds[j]);
+            listen_fds.clear();
             throw std::runtime_error("Error: fcntl failed server_fd");
+        }
         int opt = 1;
         if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+        {
+            close(fd);
+            // Clean up any previously created sockets before throwing
+            for (size_t j = 0; j < listen_fds.size(); ++j)
+                close(listen_fds[j]);
+            listen_fds.clear();
             throw std::runtime_error("Error: setsockopt failed");
+        }
+        // Setup address resolution
         struct addrinfo hints, *result;
         std::memset(&hints, 0, sizeof(hints));
         hints.ai_family = AF_INET;
@@ -77,22 +99,39 @@ void HttpServer::setup()
         int status = getaddrinfo(config.host.c_str(), port_str.c_str(), &hints, &result);
         if (status != 0)
         {
+            close(fd);
+            // Clean up any previously created sockets before throwing
+            for (size_t j = 0; j < listen_fds.size(); ++j)
+                close(listen_fds[j]);
+            listen_fds.clear();
             throw std::runtime_error("Error: getaddrinfo failed: " + std::string(gai_strerror(status)));
         }
 
+        // Bind socket to address
         if (bind(fd, result->ai_addr, result->ai_addrlen) < 0)
         {
+            close(fd);
             freeaddrinfo(result);
+            // Clean up any previously created sockets before throwing
+            for (size_t j = 0; j < listen_fds.size(); ++j)
+                close(listen_fds[j]);
+            listen_fds.clear();
             throw std::runtime_error("Error: bind failed on port " + Utils::toString(config.port[i]));
         }
 
+        // Clean up getaddrinfo result
         freeaddrinfo(result);
 
+        // Start listening for connections
         if (listen(fd, CLIENT_QUEUE) < 0)
-            throw std::runtime_error("Error: bind failed on port " + Utils::toString(config.port[i]));
-
-        if (listen(fd, CLIENT_QUEUE) < 0)
-            throw std::runtime_error("Error: listen failed");
+        {
+            close(fd);
+            // Clean up any previously created sockets before throwing
+            for (size_t j = 0; j < listen_fds.size(); ++j)
+                close(listen_fds[j]);
+            listen_fds.clear();
+            throw std::runtime_error("Error: listen failed on port " + Utils::toString(config.port[i]));
+        }
 
         listen_fds.push_back(fd);
         ServerLog(i);
