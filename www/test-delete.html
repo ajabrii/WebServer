@@ -629,22 +629,24 @@ Click any test button above to see results here.</div>
                 
                 log(`DELETE response: ${response.status} ${response.statusText}`);
                 
-                // Show response in new tab - copy from test-post.html approach
+                // Get response text for processing
                 const responseText = await response.clone().text();
-                showResponseInNewTab('DELETE', deleteUrl, response, responseText);
                 
                 if (response.ok) {
                     log(`✅ Successfully deleted: ${path}`);
+                    // Show success response in new tab
+                    showResponseInNewTab('DELETE', deleteUrl, response, responseText);
                     setTimeout(() => loadFiles(), 500); // Refresh file list with delay
                 } else {
                     log(`❌ Delete failed: ${response.status} ${response.statusText}`);
+                    // For error responses, just render the HTML content directly
+                    showErrorAsHtml(responseText);
                 }
                 
             } catch (error) {
                 log(`💥 Delete error: ${error.message}`);
-                // Still show error response in new tab
-                const cleanPath = path.replace(/^\/+uploads\/+/, '').replace(/^\/+/, '');
-                showErrorInNewTab('DELETE', `/uploads/${cleanPath}`, error);
+                // For network errors, show simple error message
+                showErrorAsHtml(`<h1>Network Error</h1><p>${error.message}</p>`);
             }
         }
 
@@ -706,16 +708,23 @@ Click any test button above to see results here.</div>
                         }
                     });
                     
-                    // Show individual response in new tab for batch operations
+                    // Get response text for processing
                     const responseText = await response.clone().text();
-                    showResponseInNewTab('DELETE (Batch)', deleteUrl, response, responseText);
+                    
+                    if (response.ok) {
+                        // Show success response in new tab for batch operations
+                        showResponseInNewTab('DELETE (Batch)', deleteUrl, response, responseText);
+                    } else {
+                        // For error responses, just render the HTML content directly
+                        showErrorAsHtml(responseText);
+                    }
                     
                     log(`${file.name}: ${response.status} ${response.statusText}`);
                     return { file: file.name, success: response.ok };
                 } catch (error) {
                     log(`${file.name}: Error - ${error.message}`);
-                    const cleanPath = file.path.replace(/^\/+uploads\/+/, '').replace(/^\/+/, '');
-                    showErrorInNewTab('DELETE (Batch)', `/uploads/${cleanPath}`, error);
+                    // For network errors, show simple error message
+                    showErrorAsHtml(`<h1>Network Error</h1><p>Failed to delete ${file.name}: ${error.message}</p>`);
                     return { file: file.name, success: false, error: error.message };
                 }
             });
@@ -766,6 +775,62 @@ Click any test button above to see results here.</div>
             await Promise.all(promises);
             log('📄 Test file creation completed');
             setTimeout(loadFiles, 1000); // Refresh after a short delay
+        }
+
+        // Function to show error response as HTML content directly
+        function showErrorAsHtml(responseText) {
+            const newTab = window.open('about:blank', '_blank');
+            if (!newTab) {
+                log('Popup blocked - unable to open error response');
+                return;
+            }
+            
+            // Check if response is HTML content
+            function isHtmlContent(content) {
+                if (!content || typeof content !== 'string') return false;
+                const htmlIndicators = ['<!DOCTYPE', '<html', '<head>', '<body>', '<div', '<p>', '<h1', '<h2'];
+                return htmlIndicators.some(indicator => 
+                    content.toLowerCase().includes(indicator.toLowerCase())
+                );
+            }
+
+            if (isHtmlContent(responseText)) {
+                // If it's HTML content, render it directly
+                newTab.document.write(responseText);
+                newTab.document.close();
+            } else {
+                // If it's plain text, wrap it in basic HTML
+                const html = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>DELETE Error Response</title>
+                        <style>
+                            body { 
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                                margin: 2rem; 
+                                background: #f8f9fa;
+                                color: #212529;
+                            }
+                            pre {
+                                background: #f8f9fa;
+                                padding: 1rem;
+                                border-radius: 8px;
+                                border: 1px solid #dee2e6;
+                                white-space: pre-wrap;
+                                word-wrap: break-word;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>DELETE Error Response</h1>
+                        <pre>${responseText || '(empty response)'}</pre>
+                    </body>
+                    </html>
+                `;
+                newTab.document.write(html);
+                newTab.document.close();
+            }
         }
 
         // Function to show server response in new tab (inspired by test-post.html)
