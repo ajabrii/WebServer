@@ -13,13 +13,12 @@ addr.sin_addr.s_addr = inet_addr(config.host.c_str()); // this function is not i
 
 server status in cgi part
 
-build website test suite
 
 
-add default config file
+(Done)*add default config file
 
 
-fix this leak problem
+(Done)*fix this leak problem
 
 ❯ cd Desktop/websrv
 ❯ valgrind --track-fds=yes ./Webserv config/config.conf
@@ -52,3 +51,5 @@ Fatal: Error: bind failed on port 8080
 ==1676626==
 ==1676626== For lists of detected and suppressed errors, rerun with: -s
 ==1676626== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+build website test suite
