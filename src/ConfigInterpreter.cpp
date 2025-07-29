@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 15:20:06 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/29 11:56:20 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,9 @@ void ConfigInterpreter::getConfigData(std::string filePath)
     blockKeywords.push_back("route");
     bool matched;
     std::string keyword;
+    if (filePath.empty()) {
+        throw std::runtime_error("Config file path is empty");
+    }
     // Check file extension (.conf or .yaml)
     if (!hasValidExtension(filePath)) {
         throw std::runtime_error("Config file must have .conf or .yaml extension");

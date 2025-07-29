@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/28 12:23:15 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/29 11:55:24 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,9 +57,14 @@ void handleErrorEvent(const Event& event)
 
 int main(int ac, char **av, char **envp)
 {
-    if (ac != 2)
-    {
-        Error::logs("Usage: " + std::string(av[0]) + " <config_file>");
+    std::string configPath;
+    if (ac == 1) {
+        configPath = "./config/default.conf";
+        std::cout << "\033[1;33m[INFO]\033[0m No config file provided. Using default path: " << configPath << std::endl;
+    } else if (ac == 2) {
+        configPath = av[1];
+    } else {
+        Error::logs("Usage: ./webserv [configuration file]");
         return 1;
     }
 
@@ -71,7 +76,7 @@ int main(int ac, char **av, char **envp)
     try
     {
         ConfigInterpreter parser;
-        parser.getConfigData(av[1]);
+        parser.getConfigData(configPath);
         parser.parse();
         parser.checkValues();
         std::string cgiEnv = parser.getPathForCGI(envp);

@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:03:57 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 18:11:23 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/29 11:56:56 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,16 +33,7 @@ class ConfigInterpreter {
         int serverFlag;
         int routeFlag;
         char **envp;
-    
-    public:
-        ConfigInterpreter();
-        void getConfigData(std::string filePath);
-        void parse();
-        const std::vector<ServerConfig>& getServerConfigs() const;
-        void checkValues();
-        std::string getPathForCGI(char **envp) const;
-    
-    private:
+
         void parseRouteBlock(RouteConfig& route, const std::string& line);
         void parseRouteOption(RouteConfig& route, const std::string& key, const std::string& value);
         void parseMethodsOption(RouteConfig& route, const std::string& value);
@@ -65,6 +56,15 @@ class ConfigInterpreter {
         bool IsComment(const std::string& line);
         void printConfig() const;
         std::string toLower(std::string str);
+    
+    public:
+        ConfigInterpreter();
+        void getConfigData(std::string filePath);
+        void parse();
+        const std::vector<ServerConfig>& getServerConfigs() const;
+        void checkValues();
+        std::string getPathForCGI(char **envp) const;
+    
 };
 
 #endif
