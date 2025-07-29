@@ -14,51 +14,75 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
+            color: #e4e6ea;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 1000px;
-            margin: 0 auto;
+            display: flex;
+            height: 100vh;
+            padding: 0;
+        }
+
+        .left-panel {
+            width: 50%;
             padding: 2rem;
+            overflow-y: auto;
+            border-right: 1px solid #2d3748;
+        }
+
+        .right-panel {
+            width: 50%;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         .header {
             text-align: center;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid #27ae60;
+            border-bottom: 2px solid #10b981;
         }
 
         .header h1 {
             font-size: 2rem;
-            color: #27ae60;
+            color: #f9fafb;
             margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #9ca3af;
+            font-size: 0.9rem;
         }
 
         .nav-back {
             display: inline-block;
             margin-bottom: 1rem;
-            color: #666;
+            color: #9ca3af;
             text-decoration: none;
             font-size: 0.9rem;
+            transition: color 0.3s ease;
         }
 
         .nav-back:hover {
-            color: #27ae60;
+            color: #10b981;
         }
 
         .section {
-            background: white;
-            border-radius: 8px;
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            border-radius: 12px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .section h2 {
-            color: #2c3e50;
+            color: #f9fafb;
             margin-bottom: 1rem;
             font-size: 1.3rem;
         }
@@ -71,76 +95,146 @@
         }
 
         .test-item {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
+            background: rgba(17, 24, 39, 0.6);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 8px;
             padding: 1rem;
             text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .test-item h4 {
+            color: #f9fafb;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
         }
 
         .test-button {
-            background: #27ae60;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
             border: none;
             padding: 0.5rem 1rem;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
             margin: 0.25rem;
             font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
         }
 
         .test-button:hover {
-            background: #219a52;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        .results-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .results-header h2 {
+            color: #f9fafb;
+            font-size: 1.3rem;
+        }
+
+        .clear-button {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .clear-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
         }
 
         .result-area {
-            background: #2c3e50;
-            color: #ecf0f1;
+            background: rgba(17, 24, 39, 0.8);
+            color: #f9fafb;
             padding: 1rem;
-            border-radius: 4px;
+            border-radius: 8px;
             font-family: 'Courier New', monospace;
             font-size: 0.9rem;
-            min-height: 100px;
             white-space: pre-wrap;
-            overflow-x: auto;
+            overflow-y: auto;
+            flex: 1;
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            backdrop-filter: blur(5px);
         }
 
         .url-input {
             width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 0.75rem;
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 8px;
             margin-bottom: 0.5rem;
+            background: rgba(17, 24, 39, 0.6);
+            color: #f9fafb;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .url-input::placeholder {
+            color: #9ca3af;
         }
 
         .file-list {
             max-height: 200px;
             overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 8px;
             padding: 0.5rem;
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(5px);
         }
 
         .file-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.25rem 0;
-            border-bottom: 1px solid #eee;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.2);
+            color: #e4e6ea;
         }
 
         .file-item:last-child {
             border-bottom: none;
         }
 
-        .status-200 { color: #27ae60; }
-        .status-404 { color: #e74c3c; }
-        .status-403 { color: #f39c12; }
+        .status-200 { color: #10b981; }
+        .status-404 { color: #ef4444; }
+        .status-403 { color: #f59e0b; }
 
         @media (max-width: 768px) {
             .container {
+                flex-direction: column;
+                height: auto;
+            }
+            .left-panel, .right-panel {
+                width: 100%;
                 padding: 1rem;
             }
             .test-grid {
@@ -151,102 +245,109 @@
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="nav-back">← Back to Home</a>
+        <div class="left-panel">
+            <a href="index.html" class="nav-back">← Back to Home</a>
 
-        <div class="header">
-            <h1>📄 GET Method Testing</h1>
-            <p>Test static file serving, directory listing, and HTTP GET functionality</p>
-        </div>
+            <div class="header">
+                <h1>📄 GET Method Testing</h1>
+                <p>Test static file serving, directory listing, and HTTP GET functionality</p>
+            </div>
 
-        <!-- Static File Testing -->
-        <div class="section">
-            <h2>Static File Serving</h2>
-            <div class="test-grid">
-                <div class="test-item">
-                    <h4>HTML Files</h4>
-                    <a href="/" class="test-button">Root Index</a>
-                    <a href="/test-get.html" class="test-button">This Page</a>
+            <!-- Static File Testing -->
+            <div class="section">
+                <h2>Static File Serving</h2>
+                <div class="test-grid">
+                    <div class="test-item">
+                        <h4>HTML Files</h4>
+                        <a href="/" class="test-button">Root Index</a>
+                        <a href="/test-get.html" class="test-button">This Page</a>
+                    </div>
+                    <div class="test-item">
+                        <h4>Image Files</h4>
+                        <a href="/uploads/favicon.ico" class="test-button">favicon Image</a>
+                        <button class="test-button" onclick="testFile('/uploads/test.jpg')">JPG Test</button>
+                    </div>
+                    <div class="test-item">
+                        <h4>Webserv subjects</h4>
+                        <a href="/uploads/en.subject.pdf" class="test-button">English Subject</a>
+                        <button class="test-button" onclick="testFile('/uploads/test.jpg')">JPG Test</button>
+                    </div>
+                    <div class="test-item">
+                        <h4>Text Files</h4>
+                        <button class="test-button" onclick="testFile('/uploads/test.txt')">Text File</button>
+                        <button class="test-button" onclick="testFile('/uploads/data.json')">JSON File</button>
+                    </div>
+                    <div class="test-item">
+                        <h4>Error Pages</h4>
+                        <button class="test-button" onclick="testFile('/nonexistent.html')">404 Test</button>
+                        <button class="test-button" onclick="testFile('/forbidden/')">403 Test</button>
+                    </div>
                 </div>
-                <div class="test-item">
-                    <h4>Image Files</h4>
-                    <a href="/uploads/favicon.ico" class="test-button">favicon Image</a>
-                    <button class="test-button" onclick="testFile('/uploads/test.jpg')">JPG Test</button>
+            </div>
+
+            <!-- Directory Listing -->
+            <div class="section">
+                <h2>Directory Listing</h2>
+                <div class="test-grid">
+                    <div class="test-item">
+                        <h4>Uploads Directory</h4>
+                        <button class="test-button" onclick="testDirectory('/uploads/')">List Uploads</button>
+                        <button class="test-button" onclick="testDirectory('/uploads')">Without Slash</button>
+                    </div>
+                    <div class="test-item">
+                        <h4>Root Directory</h4>
+                        <button class="test-button" onclick="testDirectory('/')">Root Listing</button>
+                    </div>
                 </div>
-                <div class="test-item">
-                    <h4>Webserv subjects</h4>
-                    <a href="/uploads/en.subject.pdf" class="test-button">English Subject</a>
-                    <button class="test-button" onclick="testFile('/uploads/test.jpg')">JPG Test</button>
+            </div>
+
+            <!-- Custom URL Testing -->
+            <div class="section">
+                <h2>Custom URL Testing</h2>
+                <input type="text" id="customUrl" class="url-input" placeholder="Enter URL (e.g., /uploads/myfile.txt)" value="/">
+                <button class="test-button" onclick="testCustomUrl()">Test URL</button>
+                <button class="test-button" onclick="openCustomUrl()">Open in New Tab</button>
+            </div>
+
+            <!-- MIME Type Testing -->
+            <div class="section">
+                <h2>MIME Type Detection</h2>
+                <div class="test-grid">
+                    <div class="test-item">
+                        <h4>Common Types</h4>
+                        <button class="test-button" onclick="testMimeType('.html')">HTML</button>
+                        <button class="test-button" onclick="testMimeType('.css')">CSS</button>
+                        <button class="test-button" onclick="testMimeType('.js')">JavaScript</button>
+                    </div>
+                    <div class="test-item">
+                        <h4>Media Types</h4>
+                        <button class="test-button" onclick="testMimeType('.jpg')">JPEG</button>
+                        <button class="test-button" onclick="testMimeType('.png')">PNG</button>
+                        <button class="test-button" onclick="testMimeType('.svg')">SVG</button>
+                    </div>
                 </div>
-                <div class="test-item">
-                    <h4>Text Files</h4>
-                    <button class="test-button" onclick="testFile('/uploads/test.txt')">Text File</button>
-                    <button class="test-button" onclick="testFile('/uploads/data.json')">JSON File</button>
-                </div>
-                <div class="test-item">
-                    <h4>Error Pages</h4>
-                    <button class="test-button" onclick="testFile('/nonexistent.html')">404 Test</button>
-                    <button class="test-button" onclick="testFile('/forbidden/')">403 Test</button>
+            </div>
+
+            <!-- File Browser -->
+            <div class="section">
+                <h2>Available Files</h2>
+                <div id="fileBrowser" class="file-list">
+                    <div class="file-item">
+                        <span>📁 Loading files...</span>
+                        <button class="test-button" onclick="refreshFiles()">Refresh</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Directory Listing -->
-        <div class="section">
-            <h2>Directory Listing</h2>
-            <div class="test-grid">
-                <div class="test-item">
-                    <h4>Uploads Directory</h4>
-                    <button class="test-button" onclick="testDirectory('/uploads/')">List Uploads</button>
-                    <button class="test-button" onclick="testDirectory('/uploads')">Without Slash</button>
+        <div class="right-panel">
+            <!-- Results -->
+            <div class="section results-section">
+                <div class="results-header">
+                    <h2>Test Results</h2>
+                    <button class="clear-button" onclick="clearResults()">🗑️ Clear Results</button>
                 </div>
-                <div class="test-item">
-                    <h4>Root Directory</h4>
-                    <button class="test-button" onclick="testDirectory('/')">Root Listing</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Custom URL Testing -->
-        <div class="section">
-            <h2>Custom URL Testing</h2>
-            <input type="text" id="customUrl" class="url-input" placeholder="Enter URL (e.g., /uploads/myfile.txt)" value="/">
-            <button class="test-button" onclick="testCustomUrl()">Test URL</button>
-            <button class="test-button" onclick="openCustomUrl()">Open in New Tab</button>
-        </div>
-
-        <!-- MIME Type Testing -->
-        <div class="section">
-            <h2>MIME Type Detection</h2>
-            <div class="test-grid">
-                <div class="test-item">
-                    <h4>Common Types</h4>
-                    <button class="test-button" onclick="testMimeType('.html')">HTML</button>
-                    <button class="test-button" onclick="testMimeType('.css')">CSS</button>
-                    <button class="test-button" onclick="testMimeType('.js')">JavaScript</button>
-                </div>
-                <div class="test-item">
-                    <h4>Media Types</h4>
-                    <button class="test-button" onclick="testMimeType('.jpg')">JPEG</button>
-                    <button class="test-button" onclick="testMimeType('.png')">PNG</button>
-                    <button class="test-button" onclick="testMimeType('.svg')">SVG</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Results -->
-        <div class="section">
-            <h2>Test Results</h2>
-            <div id="results" class="result-area">Ready to test GET requests...\nClick any test button above to see results here.</div>
-        </div>
-
-        <!-- File Browser -->
-        <div class="section">
-            <h2>Available Files</h2>
-            <div id="fileBrowser" class="file-list">
-                <div class="file-item">
-                    <span>📁 Loading files...</span>
-                    <button class="test-button" onclick="refreshFiles()">Refresh</button>
-                </div>
+                <div id="results" class="result-area">Ready to test GET requests...\nClick any test button above to see results here.</div>
             </div>
         </div>
     </div>
@@ -388,6 +489,13 @@
         // Auto-refresh files on page load
         window.addEventListener('load', refreshFiles);
 
+        // Function to clear results
+        function clearResults() {
+            const results = document.getElementById('results');
+            results.textContent = 'Results cleared.\nReady to test GET requests...';
+            log('--- Results cleared ---');
+        }
+
         // Function to show server response in new tab
         function showResponseInNewTab(method, url, response, responseText) {
             const newTab = window.open('about:blank', '_blank');
@@ -408,15 +516,50 @@
                 <head>
                     <title>${method} Response - ${response.status}</title>
                     <style>
-                        body { font-family: monospace; margin: 20px; background: #f8f9fa; }
-                        .header { background: #27ae60; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-                        .status { font-size: 1.5em; margin-bottom: 10px; }
-                        .section { background: white; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 4px solid #27ae60; }
-                        .section h3 { margin-top: 0; color: #2c3e50; }
-                        .response-body { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; white-space: pre-wrap; overflow-x: auto; max-height: 400px; overflow-y: auto; }
-                        .success { border-left-color: #27ae60; }
-                        .error { border-left-color: #e74c3c; }
-                        .warning { border-left-color: #f39c12; }
+                        body { 
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                            margin: 0; 
+                            padding: 20px;
+                            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                            color: #e4e6ea;
+                            min-height: 100vh;
+                        }
+                        .header { 
+                            background: rgba(31, 41, 55, 0.8);
+                            backdrop-filter: blur(10px);
+                            border: 1px solid rgba(16, 185, 129, 0.3);
+                            color: #f9fafb; 
+                            padding: 20px; 
+                            border-radius: 12px; 
+                            margin-bottom: 20px;
+                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                        }
+                        .status { font-size: 1.5em; margin-bottom: 10px; color: #10b981; }
+                        .section { 
+                            background: rgba(31, 41, 55, 0.8);
+                            backdrop-filter: blur(10px);
+                            border: 1px solid rgba(75, 85, 99, 0.3);
+                            padding: 15px; 
+                            margin-bottom: 15px; 
+                            border-radius: 8px; 
+                            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+                        }
+                        .section h3 { margin-top: 0; color: #f9fafb; }
+                        .response-body { 
+                            background: rgba(17, 24, 39, 0.8);
+                            color: #f9fafb; 
+                            padding: 15px; 
+                            border-radius: 6px; 
+                            white-space: pre-wrap; 
+                            overflow-x: auto; 
+                            max-height: 400px; 
+                            overflow-y: auto;
+                            border: 1px solid rgba(75, 85, 99, 0.3);
+                            font-family: 'Courier New', monospace;
+                        }
+                        .success { border-left: 4px solid #10b981; }
+                        .error { border-left: 4px solid #ef4444; }
+                        .warning { border-left: 4px solid #f59e0b; }
                     </style>
                 </head>
                 <body>
@@ -469,16 +612,48 @@
                 <head>
                     <title>${method} Error</title>
                     <style>
-                        body { font-family: monospace; margin: 20px; background: #f8f9fa; }
-                        .header { background: #e74c3c; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-                        .section { background: white; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 4px solid #e74c3c; }
-                        .section h3 { margin-top: 0; color: #2c3e50; }
-                        .error-message { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; }
+                        body { 
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                            margin: 0; 
+                            padding: 20px;
+                            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                            color: #e4e6ea;
+                            min-height: 100vh;
+                        }
+                        .header { 
+                            background: rgba(31, 41, 55, 0.8);
+                            backdrop-filter: blur(10px);
+                            border: 1px solid rgba(239, 68, 68, 0.3);
+                            color: #f9fafb; 
+                            padding: 20px; 
+                            border-radius: 12px; 
+                            margin-bottom: 20px;
+                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                        }
+                        .section { 
+                            background: rgba(31, 41, 55, 0.8);
+                            backdrop-filter: blur(10px);
+                            border: 1px solid rgba(75, 85, 99, 0.3);
+                            border-left: 4px solid #ef4444;
+                            padding: 15px; 
+                            margin-bottom: 15px; 
+                            border-radius: 8px;
+                            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+                        }
+                        .section h3 { margin-top: 0; color: #f9fafb; }
+                        .error-message { 
+                            background: rgba(17, 24, 39, 0.8);
+                            color: #f9fafb; 
+                            padding: 15px; 
+                            border-radius: 6px;
+                            border: 1px solid rgba(75, 85, 99, 0.3);
+                            font-family: 'Courier New', monospace;
+                        }
                     </style>
                 </head>
                 <body>
                     <div class="header">
-                        <div style="font-size: 1.5em;">❌ ${method} Request Error</div>
+                        <div style="font-size: 1.5em; color: #ef4444; margin-bottom: 10px;">❌ ${method} Request Error</div>
                         <div><strong>URL:</strong> ${url}</div>
                         <div><strong>Time:</strong> ${timestamp}</div>
                     </div>

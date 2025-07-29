@@ -53,3 +53,20 @@ Fatal: Error: bind failed on port 8080
 ==1676626== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
 
 build website test suite
+double free in cgi
+[CGI] CGI state cleaned up for PID: -1
+[+] Connection kept alive (request #57)
+[CGI] CGI state cleaned up for fd: 4
+[TIMEOUT] Connection 6 timed out
+
+[INFO] Shutting down gracefully...
+
+[CGI] Cleaning up CGI state for PID: 11841
+[CGI] CGI WAITS OR NOT: 11841
+[CGI] CGI state cleaned up for PID: -1
+
+[CGI] Cleaning up CGI state for PID: -291494249
+[CGI] CGI WAITS OR NOT: -291494249
+[CGI] CGI state cleaned up for PID: -1
+double free or corruption (fasttop)
+[1]    11667 IOT instruction (core dumped)  ./Webserv
