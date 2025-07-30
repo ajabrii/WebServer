@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/30 16:58:53 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/30 17:13:59 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,59 +76,58 @@ char **convert_env(std::map<std::string, std::string> env)
 
 char **CgiHandler::set_env(Connection &conn)
 {
-    std::map<std::string, std::string> env_map; // Use env_map for clarity
-    std::string host;
-    
-    for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it) 
+    std::map<std::string, std::string> env_map;
+    std::string host = _req.GetHeader("host");
+
+    for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin();
+         it != _req.headers.end(); ++it) 
     {
         std::string key = it->first;
         std::transform(key.begin(), key.end(), key.begin(), ::toupper);
         std::replace(key.begin(), key.end(), '-', '_');
-        
-        if (key != "CONTENT_TYPE" && key != "CONTENT_LENGTH") {
+
+        if (key != "CONTENT_TYPE" && key != "CONTENT_LENGTH")
             key = "HTTP_" + key;
-        }
-        
+
         env_map[key] = it->second;
     }
-
-    host = _req.GetHeader("host");
 
     env_map["REQUEST_METHOD"] = _req.method;
     env_map["PATH_INFO"] = _data.PathInfo;
     env_map["SCRIPT_NAME"] = _data.script_path;
-    // Set SCRIPT_FILENAME to just the script filename after chdir
-    std::string script_filename = _data.script_path;
-    size_t last_slash = script_filename.rfind('/');
-    if (last_slash != std::string::npos)
-        script_filename = script_filename.substr(last_slash + 1);
-    env_map["SCRIPT_FILENAME"] = script_filename;
+    env_map["SCRIPT_FILENAME"] = _data.script_path;
     env_map["QUERY_STRING"] = _data.query;
-    if (host.find(':') != std::string::npos)
-    {
-        env_map["SERVER_PORT"] = host.substr(host.find(":") + 1);
-        env_map["SERVER_NAME"] = host.substr(0, host.find(":"));
-    }
-        
     env_map["REMOTE_ADDR"] = conn.getClientIP();
     env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
     env_map["SERVER_PROTOCOL"] = "HTTP/1.1";
     env_map["REDIRECT_STATUS"] = "200";
-    
-    if (_req.method == GET) 
+
+    if (host.find(':') != std::string::npos)
+    {
+        env_map["SERVER_NAME"] = host.substr(0, host.find(":"));
+        env_map["SERVER_PORT"] = host.substr(host.find(":") + 1);
+    }
+    else
+    {
+        env_map["SERVER_NAME"] = host;
+        env_map["SERVER_PORT"] = "80"; // fallback
+    }
+
+    if (_req.method == "GET") 
     {
         env_map["CONTENT_LENGTH"] = "0";
     }
-    else if (_req.method == POST) 
+    else if (_req.method == "POST") 
     {
-        std::ostringstream oss_cl;
-        oss_cl << _req.body.size();
-        env_map["CONTENT_LENGTH"] = oss_cl.str();
-        env_map["CONTENT_TYPE"] = _req.GetHeader("Content-Type");;
+        std::ostringstream oss;
+        oss << _req.body.size();
+        env_map["CONTENT_LENGTH"] = oss.str();
+        env_map["CONTENT_TYPE"] = _req.GetHeader("Content-Type");
     }
 
-    return (convert_env(env_map));
+    return convert_env(env_map);
 }
+
 
 std::vector<std::string> split_string(const std::string& path, char c) // string=/path:/path:....
 {
