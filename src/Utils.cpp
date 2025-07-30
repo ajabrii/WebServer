@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 17:37:19 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/30 18:02:34 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,7 @@ HttpResponse parseCgiOutput(const std::string& raw)
     {
         if (!line.empty() && *line.rbegin() == '\r')
             line.erase(line.size() - 1);
+        std::cerr << "1------------------->\033[1;34m[CGI]\033[0m Line: " << line << std::endl;
 
         if (line.compare(0, 5, "HTTP/") == 0) 
         {
@@ -119,7 +120,8 @@ HttpResponse parseCgiOutput(const std::string& raw)
     {
         if (!line.empty() && *line.rbegin() == '\r')
             line.erase(line.size() - 1);
-
+        std::cerr << "2------------------->\033[1;34m[CGI]\033[0m Line: " << line << std::endl;
+            
         size_t colon = line.find(':');
         if (colon != std::string::npos) 
         {
@@ -136,11 +138,12 @@ HttpResponse parseCgiOutput(const std::string& raw)
                 std::getline(statusStream, response.statusText);
                 ltrim(response.statusText);
                 statusParsed = true;
-            } 
-            else 
-            {
-                response.headers[key] = value;
             }
+            if (lowerKey == "set-cookie")
+                response.CookiesHeaders.insert(std::make_pair("Set-Cookie", value));
+            else
+                response.headers[key] = value;
+
         }
     }
 
@@ -162,6 +165,13 @@ HttpResponse parseCgiOutput(const std::string& raw)
     if (response.headers.find("Content-Type") == response.headers.end()) 
     {
         response.headers["Content-Type"] = "text/html";
+    }
+
+    std::cout << "\033[1;34m[CGI]\033[0m Parsed CGI CookiesHeaders:\n";
+    // print all CookiesHeaders no const auto or auto c++98 !!!
+    for (std::map<std::string, std::string>::iterator it = response.CookiesHeaders.begin(); it != response.CookiesHeaders.end(); ++it)
+    {
+        std::cout << "\033[1;34m[CGI]\033[0m " << it->first << ": " << it->second << std::endl;
     }
 
     return response;

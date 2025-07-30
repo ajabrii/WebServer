@@ -1,17 +1,16 @@
+#!/usr/bin/env python
 import os
-import http.cookies  # For Python 3
-print("Content-Type: text/html\r\n\r\n")
-print("Cookies:", os.environ.get("HTTP_COOKIE"))
-# from Cookie import SimpleCookie  # For Python 2
+import sys
 
-cookie = http.cookies.SimpleCookie()
-cookie["session_id"] = "123ABC456DEF"
-cookie["session_id"]["path"] = "/"
-# Optional attributes:
-cookie["session_id"]["httponly"] = True
-cookie["session_id"]["max-age"] = 3600  # 1 hour
+sys.stdout.write("Content-Type: text/html\r\n")
+sys.stdout.write("Set-Cookie: user_id=12345; Path=/; HttpOnly\r\n")
+sys.stdout.write("\r\n")  # End of headers
 
-print("Content-Type: text/html")
-print(cookie.output())  # Automatically prints multiple Set-Cookie headers if needed
-print()  # Empty line separating headers from body
-print("<html><body>Cookie set!</body></html>")
+# HTML Body
+sys.stdout.write("<html>\n")
+sys.stdout.write("<body>\n")
+sys.stdout.write("<h1>CGI Cookie Test</h1>\n")
+sys.stdout.write("<p>Incoming Cookies: %s</p>\n" % os.environ.get('HTTP_COOKIE', ''))
+sys.stdout.write("<p>Sent Set-Cookie: user_id=12345</p>\n")
+sys.stdout.write("</body>\n")
+sys.stdout.write("</html>\n")
