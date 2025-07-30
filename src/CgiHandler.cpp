@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/29 17:00:51 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/30 16:58:53 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@
 #include <unistd.h> 
 #include <sys/epoll.h>
 #include <ctime>
-// # include <Errors.hpp>
 
 
 CgiHandler::CgiHandler() {}
@@ -33,16 +32,25 @@ CgiHandler::CgiHandler(const HttpServer &server, const HttpRequest& req , const 
     _route = route;
     _req = req;
     _env_paths = env_paths;
-    // _serverSocket = server.getFd();
     _clientSocket = clientSocket;
     _data = check_cgi();
-    // _data.DebugPrint();
 }
 void printEnvp(char** envp) 
 {
     for (char** p = envp; *p != NULL; ++p) {
         std::cout << *p << std::endl;
     }
+}
+
+void deleteEnvp(char** envp) 
+{
+    if (envp == NULL)
+        return;
+    for (size_t i = 0; envp[i] != NULL; ++i) 
+    {
+        delete[] envp[i];
+    }
+    delete[] envp;
 }
 
 char **convert_env(std::map<std::string, std::string> env)
@@ -105,8 +113,7 @@ char **CgiHandler::set_env(Connection &conn)
     env_map["REMOTE_ADDR"] = conn.getClientIP();
     env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
     env_map["SERVER_PROTOCOL"] = "HTTP/1.1";
-    // std::cout << "SERVER NAME: " << host.substr(0, host.find(":")) << ", PORT: " << host.substr(host.find(":") + 1) << std::endl; // REMOVE
-    env_map["REDIRECT_STATUS"] = "200"; // Common for web servers using CGI
+    env_map["REDIRECT_STATUS"] = "200";
     
     if (_req.method == GET) 
     {
@@ -119,14 +126,6 @@ char **CgiHandler::set_env(Connection &conn)
         env_map["CONTENT_LENGTH"] = oss_cl.str();
         env_map["CONTENT_TYPE"] = _req.GetHeader("Content-Type");;
     }
-    // for (std::map<std::string, std::string>::const_iterator it = _req.headers.begin(); it != _req.headers.end(); ++it)
-    // {
-    //     std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
-    // }
-    // for (std::map<std::string, std::string>::const_iterator it = env_map.begin(); it != env_map.end(); ++it)
-    // {
-    //     std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
-    // }
 
     return (convert_env(env_map));
 }
@@ -329,9 +328,7 @@ CgiState *CgiHandler::execCgi(Connection &conn)
             close(pfd_in[0]); 
             close(pfd_in[1]); 
         }
-        for (int i = 0; env[i] != NULL; ++i) 
-            delete[] env[i];
-        delete[] env;
+        deleteEnvp(env);
         delete f;
         conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
         return NULL;
@@ -393,12 +390,6 @@ CgiState *CgiHandler::execCgi(Connection &conn)
         final_argv[0] = (char *)cmd.c_str(); // Just the interpreter name
         final_argv[1] = (char *)script_filename.c_str(); // Script filename relative to CWD
         final_argv[2] = NULL;
-
-        // for (size_t i = 0; i < 3; i++)
-        // {
-        //     std::cerr << "-------->FINAL ARGV[" << i << "]" << " " <<  final_argv[i] << std::endl;
-        // }
-        
         
         execve(fp.c_str(), final_argv, env);
         perror("execve failed"); // Only reached if execve fails
@@ -426,9 +417,7 @@ CgiState *CgiHandler::execCgi(Connection &conn)
         f->script_path = _data.script_path;
         f->startTime = std::time(0);
         f->connection = &conn; // Store the connection for later use
-        for (int i = 0; env[i] != NULL; ++i) 
-            delete[] env[i];
-        delete[] env;
+        deleteEnvp(env);
         return f;
     }
 }
