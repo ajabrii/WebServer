@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Reactor.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:23:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 18:44:36 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/30 11:02:16 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,11 +20,6 @@
 #include <map>
 #include <poll.h>
 
-
- /*
- the changes are simply std::vector<pollfd> pollFDs is public here but it should be private
- we should bbuild a getter for it
- */
 struct Event {
     int fd;
     bool isReadable;
