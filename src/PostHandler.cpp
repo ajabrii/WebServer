@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 11:30:21 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/30 14:46:17 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
             std::cout << POST_LOG << " Handling POST text/plain: uri=" << req.uri << std::endl;
             std::string filepath = route.uploadDir + "/data_" + Utils::toString(std::time(0)) + ".txt";
             writeFile(filepath, req.body);
-            resp.body = "Data saved to: " + filepath;
+            resp.body = "Data saved to: " + filepath + " as text/plain .txt file";
         }
     }
     catch (const std::exception &e)
@@ -103,7 +103,6 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
     resp.headers["content-length"] = Utils::toString(resp.body.size());
     return resp;
 }
-
 
 std::string PostHandler::DataDecode(const std::string &encoded) const
 {
