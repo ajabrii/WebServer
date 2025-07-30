@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 17:06:30 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/30 17:37:19 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,7 @@ void ltrim(std::string& s) {
     while (i < s.size() && std::isspace(static_cast<unsigned char>(s[i]))) ++i;
     s.erase(0, i);
 }
+
 HttpResponse parseCgiOutput(const std::string& raw) 
 {
     HttpResponse response;

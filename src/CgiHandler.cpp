@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/30 17:13:59 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/30 17:32:36 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,6 @@ char **convert_env(std::map<std::string, std::string> env)
         ++i;
     }
     envp[i] = NULL;
-    // printEnvp(envp);
     return envp;
 }
 
@@ -166,71 +165,85 @@ std::string full_path(std::string paths, std::string cmd) // /usr/bin/python3
     return ("");
 }
 
-CgiData CgiHandler::check_cgi(void) // cgi-bin/file.extns/path/path?var=value
+CgiData CgiHandler::check_cgi(void)
 {
     CgiData data;
-    size_t exten_pose;
-    std::string founded_extns;
-    bool is_query = false;
-    bool is_pathInfo = false;
-    size_t query_pose;
+    data.hasCgi = false;
+    size_t query_pos = _req.uri.find('?');
+    bool has_query = false;
 
-    // loop for Methods and check if the method is allowed from config
-    if (std::find(_route.allowedMethods.begin(), _route.allowedMethods.end(), _req.method) == _route.allowedMethods.end())
-    {
-        std::cerr << "Method not allowed: " << _req.method << std::endl;
-        _errResponse.statusCode = 405;
-        _errResponse.statusText = "Method Not Allowed";
-        _errResponse.headers["Content-Type"] = "text/html";
-        // _errResponse.body = Error::loadErrorPage(405, _serverData);
-        std::stringstream ss;
-        ss << _errResponse.body.size();
-        _errResponse.headers["Content-Length"] = ss.str();
-        return (data);
+    if (query_pos != std::string::npos)
+        has_query = true;
+
+    if (_req.method != "GET" && _req.method != "POST")
         throw HttpRequest::HttpException(405, "Method Not Allowed");
-        // return NULL;
-    }
 
-    query_pose =  _req.uri.find('?');
-    if (query_pose != std::string::npos)
-        is_query = true;
-    for (std::map<std::string, std::string>::const_iterator it = this->_route.cgi.begin(); it != this->_route.cgi.end(); ++it) // 
+    // Loop over CGI extension map
+    for (std::map<std::string, std::string>::const_iterator it = _route.cgi.begin(); it != _route.cgi.end(); ++it)
     {
-        exten_pose = _req.uri.find(it->first);
-        if (exten_pose == std::string::npos)
+        const std::string& ext = it->first;
+        const std::string& interp = it->second;
+
+        size_t ext_pos = _req.uri.find(ext);
+        if (ext_pos == std::string::npos)
             continue;
 
-        founded_extns = _req.uri.substr(exten_pose, it->first.size() + 1);
+        size_t after_ext = ext_pos + ext.length();
+        char next_char;
 
-        if (founded_extns[it->first.size()] != '?' && founded_extns[it->first.size()] != '\0' && founded_extns[it->first.size()] != '/')
+        if (_req.uri.length() > after_ext)
+            next_char = _req.uri[after_ext];
+        else
+            next_char = '\0';
+
+        if (next_char != '\0' && next_char != '?' && next_char != '/')
             continue;
-        else if (founded_extns[it->first.size()] == '?')
+        
+        data.hasCgi = true;
+        data.CgiInterp = interp;
+        data.cgi_extn = ext;
+        data.script_path = _req.uri.substr(0, after_ext);
+
+        if (next_char == '?')
         {
-            founded_extns = founded_extns.substr(0, founded_extns.size() - 1);
-            is_query = true;
+            if (has_query)
+                data.query = _req.uri.substr(query_pos + 1);
         }
-        else if (founded_extns[it->first.size()] == '/')
+        else if (next_char == '/')
         {
-            founded_extns = founded_extns.substr(0, founded_extns.size() - 1);
-            if (query_pose == std::string::npos)
-                data.PathInfo = _req.uri.substr(exten_pose + it->first.size(), query_pose - (exten_pose + it->first.size()));
+            size_t path_info_start = after_ext;
+            size_t path_info_end;
+
+            if (has_query)
+                path_info_end = query_pos;
             else
-                data.PathInfo =  _req.uri.substr(exten_pose + founded_extns.size());
-            is_pathInfo = true;
+                path_info_end = _req.uri.length();
+
+            data.PathInfo = _req.uri.substr(path_info_start, path_info_end - path_info_start);
+
+            if (has_query)
+                data.query = _req.uri.substr(query_pos + 1);
         }
-        if (founded_extns == it->first || is_query || is_pathInfo)
+        else
         {
-            data.hasCgi = true;
-            data.CgiInterp = it->second;
-            data.cgi_extn = founded_extns.substr(0, it->first.size()); 
-            
-            if (is_query)
-                data.query = _req.uri.substr(query_pose);
-            data.script_path =_req.uri.substr(0, exten_pose + data.cgi_extn.size());
+            if (has_query)
+                data.query = _req.uri.substr(query_pos + 1);
         }
+
+        break;
     }
-    return (data);
+    // print all data members
+    std::cerr << "\033[1;34m[CGI]\033[0m CGI Data:\033[0m" << std::endl;
+    std::cerr << "\033[1;34m[CGI]\033[0m Query: " << data.query << std::endl;
+    std::cerr << "\033[1;34m[CGI]\033[0m Script Path: " << data.script_path << std::endl;
+    std::cerr << "\033[1;34m[CGI]\033[0m CGI Extension: " << data.cgi_extn << std::endl;
+    std::cerr << "\033[1;34m[CGI]\033[0m CGI Interpreter: " << data.CgiInterp << std::endl;
+    std::cerr << "\033[1;34m[CGI]\033[0m Path Info: " << data.PathInfo << std::endl;
+    
+    return data;
 }
+
+
 
 
 bool CgiHandler::IsCgi(void)
