@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/29 17:13:47 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/30 11:08:05 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ std::string clean_line(std::string line)
 bool shouldKeepAlive(const HttpRequest &request)
 {
     std::string connection = request.GetHeader("connection");
-    std::transform(connection.begin(), connection.end(), connection.begin(), ::tolower); // http is case-insensitive
+    std::transform(connection.begin(), connection.end(), connection.begin(), ::tolower);
 
     if (connection == "close")
         return false;
@@ -65,7 +65,6 @@ std::string toLower(const std::string& s) {
     return result;
 }
 
-// Helper: Trim leading spaces
 void ltrim(std::string& s) {
     size_t i = 0;
     while (i < s.size() && std::isspace(static_cast<unsigned char>(s[i]))) ++i;
@@ -251,48 +250,6 @@ void HandleCookies(Connection& conn, HttpRequest& req)
         
 }
 
-void HandleTimeOut( std::vector<Connection*>& connections, Reactor &reactor)
-{
-    for (size_t j = 0; j < connections.size(); ++j) 
-    {
-        Connection* conn = connections[j];
-        if (conn->isTimedOut()) 
-        {
-            std::cerr << "\033[1;31m[!]\033[0m Connection timed out: " << conn->getFd() << std::endl;
-            // send 408 Request Timeout response
-            HttpResponse timeoutResponse;
-            timeoutResponse.statusCode = 408;
-            timeoutResponse.statusText = "Request Timeout";
-            timeoutResponse.body = "Your request has timed out due to inactivity.";
-            timeoutResponse.headers["Content-Type"] = "text/plain";
-            timeoutResponse.headers["Content-Length"] = Utils::toString(timeoutResponse.body.size());
-            setConnectionHeaders(timeoutResponse, conn->isKeepAlive());
-            timeoutResponse.SetCookieHeaders(*conn);
-                
-            reactor.removeConnection(conn->getFd());
-            delete conn; // Clean up connection object
-            connections.erase(connections.begin() + j);
-            --j; // Adjust index after removal
-        }
-        else if (conn->getFd() != -1)
-        {
-            ;
-                // curent vs last activity print and KEEP_ALIVE_TIMEOUT - last activity and limit of timeout
-                // std::cout << "Connection fd: " << conn->getFd()
-                //           << ", Keep-alive: " << (conn->isKeepAlive() ? "Yes" : "No") <<
-                //           ", Time still to time out: " << (KEEP_ALIVE_TIMEOUT - (time(NULL) - conn->getLastActivity())) << " seconds" << std::endl;
-        }
-        else
-        {
-            delete conn; // Clean up invalid connection object
-            connections.erase(connections.begin() + j);
-            --j; // Adjust index after removal
-        }
-    }
-}
-
-// ============================================
-
 void handleNewConnection(Reactor &reactor, const Event &event)
 {
     HttpServer* server = reactor.getServerByListeningFd(event.fd);
@@ -320,7 +277,6 @@ void processReadableEvent(Reactor &reactor, const Event &event, const std::strin
     {
         cgiState->writeToScript(conn);
         cgiState->readFromScript(conn, reactor);
-        // return ;  if something is not working check this return maybe its causing problems
     }
     else
     {
@@ -339,8 +295,6 @@ void processReadableEvent(Reactor &reactor, const Event &event, const std::strin
             reactor.removeConnection(event.fd);
             return;
         }
-    
-        // Process complete requests
         if (conn.isRequestComplete())
         {
             processHttpRequest(reactor, conn, server, event, cgiEnv);
@@ -369,11 +323,10 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, 
             {
                 try
                 {
-                    
                     conn.setCgiState(cgi.execCgi(conn));
                     std::cout << "\033[1;34m[CGI]\033[0m Executing CGI script: " << std::endl;
                     reactor.watchCgi(&conn);
-                    return ; // Exit early, cgi state will handle the response
+                    return ;
                 }   
                 catch (const HttpRequest::HttpException &e)
                 {
