@@ -53,11 +53,6 @@
             margin-bottom: 0.5rem;
         }
 
-        .header p {
-            color: #9ca3af;
-            font-size: 0.9rem;
-        }
-
         .nav-back {
             display: inline-block;
             margin-bottom: 1rem;
@@ -87,11 +82,33 @@
             font-size: 1.3rem;
         }
 
+        .test-button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            width: 100%;
+            text-align: left;
+        }
+
+        .test-button:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
         .test-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
         }
 
         .test-item {
@@ -99,34 +116,38 @@
             border: 1px solid rgba(75, 85, 99, 0.3);
             border-radius: 8px;
             padding: 1rem;
-            text-align: center;
             backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
         }
 
-        .test-item h4 {
-            color: #f9fafb;
+        .test-item:hover {
+            border-color: rgba(16, 185, 129, 0.5);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+        }
+
+        .test-item h3 {
+            color: #10b981;
             margin-bottom: 0.5rem;
             font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .test-button {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin: 0.25rem;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        .test-item p {
+            color: #9ca3af;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
         }
 
-        .test-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+        .warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            margin-bottom: 1rem;
+            backdrop-filter: blur(5px);
         }
 
         .results-section {
@@ -179,66 +200,20 @@
             backdrop-filter: blur(5px);
         }
 
-        .url-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid rgba(75, 85, 99, 0.3);
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            background: rgba(17, 24, 39, 0.6);
-            color: #f9fafb;
-            font-size: 0.9rem;
-            backdrop-filter: blur(5px);
-        }
-
-        .url-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .url-input::placeholder {
-            color: #9ca3af;
-        }
-
-        .file-list {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid rgba(75, 85, 99, 0.3);
-            border-radius: 8px;
-            padding: 0.5rem;
-            background: rgba(17, 24, 39, 0.6);
-            backdrop-filter: blur(5px);
-        }
-
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(75, 85, 99, 0.2);
-            color: #e4e6ea;
-        }
-
-        .file-item:last-child {
-            border-bottom: none;
-        }
-
-        .status-200 { color: #10b981; }
-        .status-404 { color: #ef4444; }
-        .status-403 { color: #f59e0b; }
-
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
                 height: auto;
             }
+
             .left-panel, .right-panel {
                 width: 100%;
-                padding: 1rem;
+                min-height: auto;
             }
-            .test-grid {
-                grid-template-columns: 1fr;
+
+            .left-panel {
+                border-right: none;
+                border-bottom: 1px solid #2d3748;
             }
         }
     </style>
@@ -247,107 +222,136 @@
     <div class="container">
         <div class="left-panel">
             <a href="index.html" class="nav-back">← Back to Home</a>
-
+            
             <div class="header">
-                <h1>📄 GET Method Testing</h1>
-                <p>Test static file serving, directory listing, and HTTP GET functionality</p>
+                <h1>📥 GET Method Testing</h1>
+                <p>Test directory listing, redirects, static files, and error handling</p>
             </div>
 
-            <!-- Static File Testing -->
+            <div class="warning">
+                ℹ️ <strong>GET Testing Guide:</strong> This interface tests common GET request scenarios including directory browsing, file serving, and error conditions.
+            </div>
+
+            <!-- Directory Listing Tests -->
             <div class="section">
-                <h2>Static File Serving</h2>
+                <h2>📁 Directory Listing</h2>
                 <div class="test-grid">
                     <div class="test-item">
-                        <h4>HTML Files</h4>
-                        <a href="/" class="test-button">Root Index</a>
-                        <a href="/test-get.html" class="test-button">This Page</a>
+                        <h3>📂 Root Directory</h3>
+                        <p>Test directory listing for the root path</p>
+                        <button class="test-button" onclick="testGet('/')">🔍 GET /</button>
                     </div>
                     <div class="test-item">
-                        <h4>Image Files</h4>
-                        <a href="/uploads/favicon.ico" class="test-button">favicon Image</a>
-                        <button class="test-button" onclick="testFile('/uploads/test.jpg')">JPG Test</button>
+                        <h3>📂 WWW Directory</h3>
+                        <p>Test directory listing for web content</p>
+                        <button class="test-button" onclick="testGet('/www/')">🔍 GET /www/</button>
                     </div>
                     <div class="test-item">
-                        <h4>Webserv subjects</h4>
-                        <a href="/uploads/en.subject.pdf" class="test-button">English Subject</a>
-                        <button class="test-button" onclick="testFile('/uploads/test.jpg')">JPG Test</button>
+                        <h3>📂 Uploads Directory</h3>
+                        <p>Test directory listing for uploads folder</p>
+                        <button class="test-button" onclick="testGet('/uploads/')">🔍 GET /uploads/</button>
                     </div>
                     <div class="test-item">
-                        <h4>Text Files</h4>
-                        <button class="test-button" onclick="testFile('/uploads/test.txt')">Text File</button>
-                        <button class="test-button" onclick="testFile('/uploads/data.json')">JSON File</button>
-                    </div>
-                    <div class="test-item">
-                        <h4>Error Pages</h4>
-                        <button class="test-button" onclick="testFile('/nonexistent.html')">404 Test</button>
-                        <button class="test-button" onclick="testFile('/forbidden/')">403 Test</button>
+                        <h3>📂 CGI Directory</h3>
+                        <p>Test directory listing for CGI scripts</p>
+                        <button class="test-button" onclick="testGet('/cgi-bin/')">🔍 GET /cgi-bin/</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Directory Listing -->
+            <!-- Static File Tests -->
             <div class="section">
-                <h2>Directory Listing</h2>
+                <h2>📄 Static Files</h2>
                 <div class="test-grid">
                     <div class="test-item">
-                        <h4>Uploads Directory</h4>
-                        <button class="test-button" onclick="testDirectory('/uploads/')">List Uploads</button>
-                        <button class="test-button" onclick="testDirectory('/uploads')">Without Slash</button>
+                        <h3>🏠 Index Page</h3>
+                        <p>Test serving the main index page</p>
+                        <button class="test-button" onclick="testGet('/index.html')">📄 GET /index.html</button>
                     </div>
                     <div class="test-item">
-                        <h4>Root Directory</h4>
-                        <button class="test-button" onclick="testDirectory('/')">Root Listing</button>
+                        <h3>🎨 CSS File</h3>
+                        <p>Test serving CSS stylesheets</p>
+                        <button class="test-button" onclick="testGet('/style.css')">🎨 GET /style.css</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>🖼️ Image File</h3>
+                        <p>Test serving image files</p>
+                        <button class="test-button" onclick="testGet('/favicon.ico')">🖼️ GET /favicon.ico</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>📋 Text File</h3>
+                        <p>Test serving plain text files</p>
+                        <button class="test-button" onclick="testGet('/README.md')">📋 GET /README.md</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Custom URL Testing -->
+            <!-- Redirect Tests -->
             <div class="section">
-                <h2>Custom URL Testing</h2>
-                <input type="text" id="customUrl" class="url-input" placeholder="Enter URL (e.g., /uploads/myfile.txt)" value="/">
-                <button class="test-button" onclick="testCustomUrl()">Test URL</button>
-                <button class="test-button" onclick="openCustomUrl()">Open in New Tab</button>
-            </div>
-
-            <!-- MIME Type Testing -->
-            <div class="section">
-                <h2>MIME Type Detection</h2>
+                <h2>🔄 Redirects</h2>
                 <div class="test-grid">
                     <div class="test-item">
-                        <h4>Common Types</h4>
-                        <button class="test-button" onclick="testMimeType('.html')">HTML</button>
-                        <button class="test-button" onclick="testMimeType('.css')">CSS</button>
-                        <button class="test-button" onclick="testMimeType('.js')">JavaScript</button>
+                        <h3>↩️ Directory Without Slash</h3>
+                        <p>Test redirect when accessing directory without trailing slash</p>
+                        <button class="test-button" onclick="testGet('/www')">🔄 GET /www</button>
                     </div>
                     <div class="test-item">
-                        <h4>Media Types</h4>
-                        <button class="test-button" onclick="testMimeType('.jpg')">JPEG</button>
-                        <button class="test-button" onclick="testMimeType('.png')">PNG</button>
-                        <button class="test-button" onclick="testMimeType('.svg')">SVG</button>
+                        <h3>↩️ Uploads Without Slash</h3>
+                        <p>Test redirect for uploads directory</p>
+                        <button class="test-button" onclick="testGet('/uploads')">🔄 GET /uploads</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>↩️ CGI Without Slash</h3>
+                        <p>Test redirect for CGI directory</p>
+                        <button class="test-button" onclick="testGet('/cgi-bin')">🔄 GET /cgi-bin</button>
                     </div>
                 </div>
             </div>
 
-            <!-- File Browser -->
+            <!-- Error Tests -->
             <div class="section">
-                <h2>Available Files</h2>
-                <div id="fileBrowser" class="file-list">
-                    <div class="file-item">
-                        <span>📁 Loading files...</span>
-                        <button class="test-button" onclick="refreshFiles()">Refresh</button>
+                <h2>❌ Non-Existing Files</h2>
+                <div class="test-grid">
+                    <div class="test-item">
+                        <h3>🚫 404 Not Found</h3>
+                        <p>Test 404 error for non-existing file</p>
+                        <button class="test-button" onclick="testGet('/nonexistent.html')">❌ GET /nonexistent.html</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>🚫 404 Directory</h3>
+                        <p>Test 404 error for non-existing directory</p>
+                        <button class="test-button" onclick="testGet('/notfound/')">❌ GET /notfound/</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>🚫 Invalid Path</h3>
+                        <p>Test error handling for invalid paths</p>
+                        <button class="test-button" onclick="testGet('/invalid/../path')">❌ GET /invalid/../path</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>🚫 Deep Path</h3>
+                        <p>Test error for deeply nested non-existing path</p>
+                        <button class="test-button" onclick="testGet('/deep/nested/path/file.txt')">❌ GET /deep/nested/path/file.txt</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="right-panel">
-            <!-- Results -->
-            <div class="section results-section">
+            <div class="results-section">
                 <div class="results-header">
-                    <h2>Test Results</h2>
-                    <button class="clear-button" onclick="clearResults()">🗑️ Clear Results</button>
+                    <h2>📊 Test Results</h2>
+                    <button class="clear-button" onclick="clearResults()">Clear Results</button>
                 </div>
-                <div id="results" class="result-area">Ready to test GET requests...\nClick any test button above to see results here.</div>
+                <div id="results" class="result-area">Ready to test GET requests...
+🚀 Click any test button to see detailed results here.
+
+💡 Test Categories:
+  📁 Directory Listing - View folder contents
+  📄 Static Files - Serve HTML, CSS, images
+  🔄 Redirects - Automatic URL redirection
+  ❌ Error Handling - 404 and invalid paths
+
+Select a test to begin!</div>
             </div>
         </div>
     </div>
@@ -360,147 +364,59 @@
             results.scrollTop = results.scrollHeight;
         }
 
-        async function testFile(url) {
-            log(`Testing GET request to: ${url}`);
-            try {
-                const response = await fetch(url);
-                const statusClass = response.status === 200 ? 'status-200' :
-                                  response.status === 404 ? 'status-404' : 'status-403';
-
-                log(`Response: ${response.status} ${response.statusText}`);
-                log(`Content-Type: ${response.headers.get('content-type') || 'not specified'}`);
-                log(`Content-Length: ${response.headers.get('content-length') || 'not specified'}`);
-
-                // Show response in new tab
-                const responseText = await response.clone().text();
-                showResponseInNewTab('GET', url, response, responseText);
-
-                if (response.ok) {
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('text')) {
-                        const text = await response.text();
-                        log(`Content preview: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`);
-                    } else {
-                        log(`Binary content (${response.headers.get('content-length')} bytes)`);
-                    }
-                } else {
-                    const errorText = await response.text();
-                    log(`Error content: ${errorText}`);
-                }
-            } catch (error) {
-                log(`Error: ${error.message}`);
-                showErrorInNewTab('GET', url, error);
-            }
-            log('---');
-        }
-
-        async function testDirectory(url) {
-            log(`Testing directory listing: ${url}`);
-            try {
-                const response = await fetch(url);
-                log(`Response: ${response.status} ${response.statusText}`);
-
-                if (response.ok) {
-                    const html = await response.text();
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const links = doc.querySelectorAll('a');
-                    log(`Found ${links.length} items in directory`);
-
-                    links.forEach((link, index) => {
-                        if (index < 10) { // Show first 10 items
-                            log(`  - ${link.textContent}`);
-                        }
-                    });
-                    if (links.length > 10) {
-                        log(`  ... and ${links.length - 10} more items`);
-                    }
-                } else {
-                    const errorText = await response.text();
-                    log(`Error: ${errorText}`);
-                }
-            } catch (error) {
-                log(`Error: ${error.message}`);
-            }
-            log('---');
-        }
-
-        function testCustomUrl() {
-            const url = document.getElementById('customUrl').value;
-            if (!url) {
-                log('Please enter a URL');
-                return;
-            }
-            testFile(url);
-        }
-
-        function openCustomUrl() {
-            const url = document.getElementById('customUrl').value;
-            if (!url) {
-                log('Please enter a URL');
-                return;
-            }
-            window.open(url, '_blank');
-        }
-
-        async function testMimeType(extension) {
-            const testFile = `/uploads/test${extension}`;
-            log(`Testing MIME type for ${extension} files`);
-            testFile(testFile);
-        }
-
-        async function refreshFiles() {
-            log('Refreshing file list...');
-            try {
-                const response = await fetch('/uploads/');
-                if (response.ok) {
-                    const html = await response.text();
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const links = doc.querySelectorAll('a');
-
-                    const fileBrowser = document.getElementById('fileBrowser');
-                    fileBrowser.innerHTML = '';
-
-                    links.forEach(link => {
-                        const href = link.getAttribute('href');
-                        if (href && href !== '../' && href !== './') {
-                            const fileItem = document.createElement('div');
-                            fileItem.className = 'file-item';
-                            fileItem.innerHTML = `
-                                <span>${href.endsWith('/') ? '📁' : '📄'} ${href}</span>
-                                <button class="test-button" onclick="testFile('/uploads/${href}')">Test</button>
-                            `;
-                            fileBrowser.appendChild(fileItem);
-                        }
-                    });
-
-                    if (fileBrowser.children.length === 0) {
-                        fileBrowser.innerHTML = '<div class="file-item"><span>No files found</span></div>';
-                    }
-                } else {
-                    log(`Failed to refresh files: ${response.status}`);
-                }
-            } catch (error) {
-                log(`Error refreshing files: ${error.message}`);
-            }
-        }
-
-        // Auto-refresh files on page load
-        window.addEventListener('load', refreshFiles);
-
-        // Function to clear results
         function clearResults() {
             const results = document.getElementById('results');
-            results.textContent = 'Results cleared.\nReady to test GET requests...';
-            log('--- Results cleared ---');
+            results.textContent = 'Results cleared. Ready for new GET tests...\n🚀 Select a test button to begin.';
+        }
+
+        async function testGet(path) {
+            log(`🚀 Testing GET request: ${path}`);
+            
+            try {
+                const startTime = performance.now();
+                const response = await fetch(path, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': '*/*',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+                
+                log(`📊 Response: ${response.status} ${response.statusText} (${duration}ms)`);
+                log(`🔗 Final URL: ${response.url}`);
+                log(`📋 Response Headers:`);
+                for (const [key, value] of response.headers.entries()) {
+                    log(`  ${key}: ${value}`);
+                }
+                
+                const responseText = await response.clone().text();
+                const contentLength = responseText.length;
+                log(`📄 Content Length: ${contentLength} bytes`);
+                log(`📄 Content Preview: ${responseText.substring(0, 200)}${contentLength > 200 ? '...' : ''}`);
+                
+                // Show full response in new tab
+                showResponseInNewTab('GET', path, response, responseText);
+                
+            } catch (error) {
+                log(`💥 GET Error: ${error.message}`);
+                showErrorAsHtml(`<h1>Network Error</h1><p>${error.message}</p>`);
+            }
         }
 
         // Function to show server response in new tab
         function showResponseInNewTab(method, url, response, responseText) {
             const newTab = window.open('about:blank', '_blank');
             if (!newTab) {
-                log('Popup blocked - unable to open response in new tab');
+                log('🚫 Popup blocked - unable to open response in new tab');
+                return;
+            }
+            
+            // If it's an error response (status >= 400), render it directly
+            if (response.status >= 400) {
+                newTab.document.write(responseText || '(empty response)');
+                newTab.document.close();
                 return;
             }
 
@@ -510,6 +426,15 @@
                 headers.push(`${key}: ${value}`);
             }
 
+            // Check if response is HTML content
+            function isHtmlResponse(content) {
+                if (!content || typeof content !== 'string') return false;
+                const htmlIndicators = ['<!DOCTYPE', '<html', '<head>', '<body>', '<div', '<p>', '<h1', '<h2'];
+                return htmlIndicators.some(indicator => 
+                    content.toLowerCase().includes(indicator.toLowerCase())
+                );
+            }
+            
             const html = `
                 <!DOCTYPE html>
                 <html>
@@ -519,167 +444,153 @@
                         body { 
                             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
                             margin: 0; 
-                            padding: 20px;
                             background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
-                            color: #e4e6ea;
+                            color: #f9fafb;
                             min-height: 100vh;
+                        }
+                        .container {
+                            max-width: 1200px;
+                            margin: 0 auto;
+                            padding: 2rem;
                         }
                         .header { 
                             background: rgba(31, 41, 55, 0.8);
                             backdrop-filter: blur(10px);
-                            border: 1px solid rgba(16, 185, 129, 0.3);
-                            color: #f9fafb; 
-                            padding: 20px; 
-                            border-radius: 12px; 
-                            margin-bottom: 20px;
+                            border: 1px solid rgba(55, 65, 81, 0.5);
+                            border-radius: 12px;
+                            padding: 2rem; 
+                            margin-bottom: 2rem; 
                             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
                         }
-                        .status { font-size: 1.5em; margin-bottom: 10px; color: #10b981; }
+                        .status { 
+                            font-size: 1.5em; 
+                            margin-bottom: 1rem; 
+                            color: #10b981;
+                            font-weight: 600;
+                        }
                         .section { 
                             background: rgba(31, 41, 55, 0.8);
                             backdrop-filter: blur(10px);
-                            border: 1px solid rgba(75, 85, 99, 0.3);
-                            padding: 15px; 
-                            margin-bottom: 15px; 
-                            border-radius: 8px; 
-                            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+                            border: 1px solid rgba(55, 65, 81, 0.5);
+                            border-radius: 12px;
+                            padding: 1.5rem; 
+                            margin-bottom: 1.5rem; 
+                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                            border-left: 4px solid #10b981;
                         }
-                        .section h3 { margin-top: 0; color: #f9fafb; }
+                        .section h3 { 
+                            margin-top: 0; 
+                            color: #f9fafb; 
+                            font-size: 1.2rem;
+                            margin-bottom: 1rem;
+                        }
                         .response-body { 
                             background: rgba(17, 24, 39, 0.8);
-                            color: #f9fafb; 
-                            padding: 15px; 
-                            border-radius: 6px; 
+                            border: 1px solid rgba(75, 85, 99, 0.3);
+                            border-radius: 8px;
+                            padding: 1rem; 
                             white-space: pre-wrap; 
                             overflow-x: auto; 
-                            max-height: 400px; 
-                            overflow-y: auto;
-                            border: 1px solid rgba(75, 85, 99, 0.3);
                             font-family: 'Courier New', monospace;
+                            color: #f9fafb;
+                            backdrop-filter: blur(5px);
+                            max-height: 500px;
+                            overflow-y: auto;
                         }
-                        .success { border-left: 4px solid #10b981; }
-                        .error { border-left: 4px solid #ef4444; }
-                        .warning { border-left: 4px solid #f59e0b; }
+                        .info-grid {
+                            display: grid;
+                            grid-template-columns: auto 1fr;
+                            gap: 0.5rem 1rem;
+                            font-family: 'Courier New', monospace;
+                            font-size: 0.9rem;
+                        }
+                        .info-label {
+                            font-weight: 600;
+                            color: #9ca3af;
+                        }
+                        .info-value {
+                            color: #f9fafb;
+                        }
                     </style>
                 </head>
                 <body>
-                    <div class="header">
-                        <div class="status">📥 GET Request Response</div>
-                        <div><strong>Status:</strong> ${response.status} ${response.statusText}</div>
-                        <div><strong>URL:</strong> ${url}</div>
-                        <div><strong>Time:</strong> ${timestamp}</div>
-                    </div>
-
-                    <div class="section ${response.ok ? 'success' : 'error'}">
-                        <h3>Response Headers</h3>
-                        <div>${headers.length > 0 ? headers.join('<br>') : 'No headers received'}</div>
-                    </div>
-
-                    <div class="section">
-                        <h3>Response Body</h3>
-                        <div class="response-body">${responseText || '(empty response)'}</div>
-                    </div>
-
-                    <div class="section">
-                        <h3>Request Details</h3>
-                        <div><strong>Method:</strong> GET</div>
-                        <div><strong>URL:</strong> ${url}</div>
-                        <div><strong>Success:</strong> ${response.ok ? 'Yes' : 'No'}</div>
-                        <div><strong>Type:</strong> ${response.type}</div>
-                        <div><strong>Redirected:</strong> ${response.redirected ? 'Yes' : 'No'}</div>
+                    <div class="container">
+                        <div class="header">
+                            <div class="status">📥 GET Request Response</div>
+                            <div class="info-grid">
+                                <span class="info-label">Status:</span>
+                                <span class="info-value">${response.status} ${response.statusText}</span>
+                                <span class="info-label">URL:</span>
+                                <span class="info-value">${response.url}</span>
+                                <span class="info-label">Original URL:</span>
+                                <span class="info-value">${url}</span>
+                                <span class="info-label">Time:</span>
+                                <span class="info-value">${timestamp}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📄 Response Content</h3>
+                            <div class="response-body">${isHtmlResponse(responseText) 
+                                ? responseText 
+                                : (responseText || '(empty response)')}</div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📋 Response Headers</h3>
+                            <div class="response-body">${headers.length > 0 ? headers.join('\n') : 'No headers received'}</div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>🔍 Request Details</h3>
+                            <div class="info-grid">
+                                <span class="info-label">Method:</span>
+                                <span class="info-value">GET</span>
+                                <span class="info-label">Requested URL:</span>
+                                <span class="info-value">${url}</span>
+                                <span class="info-label">Final URL:</span>
+                                <span class="info-value">${response.url}</span>
+                                <span class="info-label">Success:</span>
+                                <span class="info-value">${response.ok ? 'Yes' : 'No'}</span>
+                                <span class="info-label">Redirected:</span>
+                                <span class="info-value">${response.redirected ? 'Yes' : 'No'}</span>
+                                <span class="info-label">Content Size:</span>
+                                <span class="info-value">${responseText ? responseText.length : 0} bytes</span>
+                            </div>
+                        </div>
                     </div>
                 </body>
                 </html>
             `;
-
+            
             newTab.document.write(html);
             newTab.document.close();
         }
 
-        // Function to show error in new tab
-        function showErrorInNewTab(method, url, error) {
+        // Function to show error as HTML content directly
+        function showErrorAsHtml(responseText) {
             const newTab = window.open('about:blank', '_blank');
             if (!newTab) {
-                log('Popup blocked - unable to open error in new tab');
+                log('🚫 Popup blocked - unable to open error response');
                 return;
             }
-
-            const timestamp = new Date().toISOString();
-
-            const html = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>${method} Error</title>
-                    <style>
-                        body { 
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                            margin: 0; 
-                            padding: 20px;
-                            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
-                            color: #e4e6ea;
-                            min-height: 100vh;
-                        }
-                        .header { 
-                            background: rgba(31, 41, 55, 0.8);
-                            backdrop-filter: blur(10px);
-                            border: 1px solid rgba(239, 68, 68, 0.3);
-                            color: #f9fafb; 
-                            padding: 20px; 
-                            border-radius: 12px; 
-                            margin-bottom: 20px;
-                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                        }
-                        .section { 
-                            background: rgba(31, 41, 55, 0.8);
-                            backdrop-filter: blur(10px);
-                            border: 1px solid rgba(75, 85, 99, 0.3);
-                            border-left: 4px solid #ef4444;
-                            padding: 15px; 
-                            margin-bottom: 15px; 
-                            border-radius: 8px;
-                            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-                        }
-                        .section h3 { margin-top: 0; color: #f9fafb; }
-                        .error-message { 
-                            background: rgba(17, 24, 39, 0.8);
-                            color: #f9fafb; 
-                            padding: 15px; 
-                            border-radius: 6px;
-                            border: 1px solid rgba(75, 85, 99, 0.3);
-                            font-family: 'Courier New', monospace;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <div style="font-size: 1.5em; color: #ef4444; margin-bottom: 10px;">❌ ${method} Request Error</div>
-                        <div><strong>URL:</strong> ${url}</div>
-                        <div><strong>Time:</strong> ${timestamp}</div>
-                    </div>
-
-                    <div class="section">
-                        <h3>Error Details</h3>
-                        <div class="error-message">${error.message}</div>
-                    </div>
-
-                    <div class="section">
-                        <h3>Possible Causes</h3>
-                        <ul>
-                            <li>Network connectivity issues</li>
-                            <li>Server not responding</li>
-                            <li>CORS policy restrictions</li>
-                            <li>File or path doesn't exist</li>
-                            <li>Permission denied</li>
-                        </ul>
-                    </div>
-                </body>
-                </html>
-            `;
-
-            newTab.document.write(html);
+            
+            // Just write the raw HTML response from server, nothing else
+            newTab.document.write(responseText);
             newTab.document.close();
         }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 GET Testing page loaded successfully!');
+            log('💡 Ready to test GET requests for:');
+            log('  📁 Directory Listing - /, /www/, /uploads/, /cgi-bin/');
+            log('  📄 Static Files - HTML, CSS, images, text files');
+            log('  🔄 Redirects - Directory access without trailing slash');
+            log('  ❌ Error Handling - 404 and invalid paths');
+            log('');
+            log('🎯 Click any test button to begin...');
+        });
     </script>
 </body>
 </html>
