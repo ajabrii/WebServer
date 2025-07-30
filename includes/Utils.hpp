@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 20:21:00 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/27 19:22:12 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,5 +43,15 @@ std::string toLower(const std::string& s);
 void ltrim(std::string& s);
 HttpResponse parseCgiOutput(const std::string& raw);
 std::string buildSetCookieHeader(const std::string& session_id);
+void HandleCookies(Connection& conn, HttpRequest& req);
+// void HandleTimeOut( std::vector<Connection*>& connections, Reactor &reactor);
+void handleNewConnection(Reactor &reactor, const Event &event);
+void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv);
+HttpResponse createErrorResponse(int statusCode, const std::string &statusText, const ServerConfig &ServerConfig);
+void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, const Event &event, const std::string &cgiEnv);
+void handleHttpResponse(Reactor &reactor, Connection &conn, HttpResponse &resp, const HttpRequest &req);
+void handleHttpException(Reactor &reactor, Connection &conn, HttpServer *server, const std::runtime_error &e);
+
+
 
 #endif

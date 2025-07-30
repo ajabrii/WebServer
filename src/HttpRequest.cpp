@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 18:35:18 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/28 12:40:47 by ytarhoua         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,9 @@ void HttpRequest::parseHeaderLine(const std::string& line, int& hostFlag)
     value.erase(value.find_last_not_of(" \t\r") + 1);
 
     this->headers[key] = value;
+     if (headers.size() > 100 || key.size() > 256 || value.size() > 8192) {
+        throwHttpError(431, "Request Header Fields Too Large");
+    }
 
     if (key == "host") {
         if (value.empty()) {

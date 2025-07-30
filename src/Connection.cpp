@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 20:17:59 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/28 12:59:45 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,14 +70,7 @@ void Connection::readData(HttpServer* server)
     ssize_t bytesRead = recv(client_fd, tmp, sizeof(tmp), 0);
 
     if (bytesRead < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) { // fcheck wakha machi forbidden hit khdamin b poll
-            // No data available right now. Not an error.
             return;
-        } else {
-            // A real error occurred with recv
-            // Consider logging the actual errno value for debugging
-            throw std::runtime_error("Failed to read from client socket: " + std::string(strerror(errno)));
-        }
     }
     // Append the received data to the connection's buffer
     buffer.append(tmp, bytesRead);
@@ -220,7 +213,7 @@ void Connection::setCgiState(CgiState* cgiState)
         cgiState->rawOutput.clear();
     }
 }
-std::string ipToString(uint32_t ip_net_order)
+std::string Connection::ipToString(uint32_t ip_net_order) const // int 4 --> [0, 1, 2, 3]
 {
     unsigned char bytes[4];
     bytes[0] = (ip_net_order >> 24) & 0xFF;
@@ -237,4 +230,13 @@ std::string ipToString(uint32_t ip_net_order)
 std::string Connection::getClientIP() const
 {
     return ipToString(client_addr.sin_addr.s_addr);
+}
+
+SessionInfos& Connection::getSessionInfos()
+{
+    return sessionInfos;
+}
+void Connection::setSessionInfos(const SessionInfos& sessionInfos)
+{
+    this->sessionInfos = sessionInfos;
 }

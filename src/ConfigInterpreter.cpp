@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 18:17:21 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/29 11:56:20 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,9 @@ void ConfigInterpreter::getConfigData(std::string filePath)
     blockKeywords.push_back("route");
     bool matched;
     std::string keyword;
+    if (filePath.empty()) {
+        throw std::runtime_error("Config file path is empty");
+    }
     // Check file extension (.conf or .yaml)
     if (!hasValidExtension(filePath)) {
         throw std::runtime_error("Config file must have .conf or .yaml extension");
@@ -325,7 +328,8 @@ void ConfigInterpreter::parseRouteBlock(RouteConfig& route, const std::string& l
 
     std::string key = clean_line(line.substr(0, equal));
     std::string value = clean_line(line.substr(equal + 1));
-    key = toLower(key); // bach n9bel kolchi
+    key = toLower(key); 
+    // bach n9bel kolchi
     parseRouteOption(route, key, value);
 }
 
