@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PostHandler.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/28 11:22:03 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/30 11:25:42 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,19 +21,135 @@
 #include <iostream>
 #include "../includes/Errors.hpp"
 
+
+PostHandler::PostHandler() {}
+
+PostHandler::~PostHandler() {}
+
+HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &route, const ServerConfig &serverConfig) const
+{
+    std::cout << POST_LOG << " Handling POST request: uri=" << req.uri << std::endl;
+    HttpResponse resp;
+    resp.version = req.version;
+    std::string originalCt = req.GetHeader("content-type");
+    std::string ct = originalCt;
+    std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower);
+    if (route.uploadDir.empty())
+    {
+        return makeErrorResponse(500, "Upload directory not configured.", serverConfig); //! check the code status
+    }
+    try
+    {
+        if (ct.find("multipart/form-data") != std::string::npos)
+        {
+            std::cout << POST_LOG << " Handling POST multipart/form-data: uri=" << req.uri << std::endl;
+            std::string boundary = extractBoundary(originalCt);
+            if (boundary.empty())
+                return makeErrorResponse(400, "Missing boundary in multipart data.", serverConfig);
+
+            std::vector<Part> parts = parseMultipart(req.body, boundary);
+
+            std::vector<std::string> uploadedFiles;
+            for (size_t i = 0; i < parts.size(); ++i)
+            {
+                if (!parts[i].filename.empty())
+                {
+                    std::string filepath = route.uploadDir + "/" + parts[i].filename;
+                    writeFile(filepath, parts[i].content);
+                    uploadedFiles.push_back(filepath);
+                }
+            }
+            if (uploadedFiles.empty())
+                return makeErrorResponse(400, "No file found in multipart data.", serverConfig);
+            resp.body = "<html><head><title>Uploads</title></head><body><h1>Files uploaded:</h1><ul>";
+            for (size_t i = 0; i < uploadedFiles.size(); ++i)
+            {
+                resp.body += "<li>" + uploadedFiles[i] + "</li>";
+            }
+            resp.body += "</ul></body></html>";
+        }
+        else if (ct.find("application/x-www-form-urlencoded") != std::string::npos)
+        {
+            std::cout << POST_LOG << " Handling POST application/x-www-form-urlencoded: uri=" << req.uri << std::endl;
+            std::map<std::string, std::string> fields = parseFormUrlEncoded(req.body);
+            std::string filepath = "./session/" + req.SessionId;
+            writeKeyValuesToFile(filepath, fields);
+            resp.version = "HTTP/1.1";
+            resp.body = "<html><head><title>Uploads</title></head><body><h1>File uploaded: " + filepath + "</h1></body></html>";
+        }
+        else if (ct.find("application/json") != std::string::npos)
+        {
+            std::cout << POST_LOG << " Handling POST application/json: uri=" << req.uri << std::endl;
+            std::string filepath = route.uploadDir + "/json_" + Utils::toString(std::time(0)) + ".json";
+            writeFile(filepath, req.body);
+            resp.body = "JSON saved to: " + filepath;
+        }
+        else
+        {
+            std::cout << POST_LOG << " Handling POST text/plain: uri=" << req.uri << std::endl;
+            std::string filepath = route.uploadDir + "/data_" + Utils::toString(std::time(0)) + ".txt";
+            writeFile(filepath, req.body);
+            resp.body = "Data saved to: " + filepath;
+        }
+    }
+    catch (const std::exception &e)
+    {
+
+        return makeErrorResponse(500, e.what(), serverConfig);
+    }
+    resp.statusCode = 201;
+    resp.statusText = "Created";
+    resp.headers["content-type"] = "text/html; charset=UTF-8";
+    resp.headers["content-length"] = Utils::toString(resp.body.size());
+    return resp;
+}
+
+
+std::string PostHandler::DataDecode(const std::string &encoded) const
+{
+    std::string decoded;
+
+    for (size_t i = 0; i < encoded.length(); ++i)
+    {
+        if (encoded[i] == '%' && i + 2 < encoded.length())
+        {
+            std::string hexStr = encoded.substr(i + 1, 2);
+            char *endPtr;
+            long int value = std::strtol(hexStr.c_str(), &endPtr, 16);
+            if (endPtr == hexStr.c_str() + 2 && value >= 0 && value <= 255)
+            {
+                decoded += static_cast<char>(value);
+                i += 2;
+            }
+            else
+            {
+                decoded += encoded[i];
+            }
+        }
+        else if (encoded[i] == '+')
+        {
+            decoded += ' ';
+        }
+        else
+        {
+            decoded += encoded[i];
+        }
+    }
+
+    return decoded;
+}
+
 std::string PostHandler::extractBoundary(const std::string &ct) const
 {
     size_t pos = ct.find("boundary=");
     if (pos != std::string::npos)
     {
         std::string boundary = ct.substr(pos + 9);
-        // Remove any trailing semicolon or whitespace
         size_t end = boundary.find(';');
         if (end != std::string::npos)
         {
             boundary = boundary.substr(0, end);
         }
-        // Trim whitespace from the end
         while (!boundary.empty() && (boundary[boundary.size() - 1] == ' ' ||
                                      boundary[boundary.size() - 1] == '\t' ||
                                      boundary[boundary.size() - 1] == '\r' ||
@@ -56,17 +172,6 @@ void PostHandler::writeFile(const std::string &path, const std::string &content)
 
 void PostHandler::writeKeyValuesToFile(const std::string &path, const std::map<std::string, std::string> &fields) const
 {
-  // open out with append mode
-    // std::cerr << "DEBUG: Writing key-values to file: " << path << std::endl;
-    // std::ofstream out(path.c_str(), std::ios::trunc);
-    // if (!out)
-    // {
-    //     throw std::runtime_error("Error: Failed to write file: " + path);
-    // }
-    // for (std::map<std::string, std::string>::const_iterator it = fields.begin(); it != fields.end(); ++it)
-    //     out << it->first << "=" << it->second << "\n";
-
-    // convert file content to map then merge map with fields
     std::map<std::string, std::string> existingFields;
     std::ifstream in(path.c_str());
     if (in)
@@ -81,25 +186,18 @@ void PostHandler::writeKeyValuesToFile(const std::string &path, const std::map<s
             }
         }
     }
-
-    std::cerr << "DEBUG: Existing fields in file: " << path << std::endl;
     for (std::map<std::string, std::string>::const_iterator it = existingFields.begin(); it != existingFields.end(); ++it)
     {
         std::cerr << "  " << it->first << ": " << it->second << std::endl;
     }
-
-    // Merge existing fields with new fields
     for (std::map<std::string, std::string>::const_iterator it = fields.begin(); it != fields.end(); ++it)
     {
         existingFields[it->first] = it->second;
     }
-    std::cerr << "DEBUG: Merged fields to write to file: " << path << std::endl;
     for (std::map<std::string, std::string>::const_iterator it = existingFields.begin(); it != existingFields.end(); ++it)
     {
         std::cerr << "  " << it->first << ": " << it->second << std::endl;
     }
-
-    // Write merged fields back to file
     std::ofstream out(path.c_str(), std::ios::trunc);
     if (!out)
     {
@@ -110,85 +208,50 @@ void PostHandler::writeKeyValuesToFile(const std::string &path, const std::map<s
         out << DataDecode(it->first) << "=" << DataDecode(it->second) << "\n";
     }
 }
-// improve later on
+
 std::vector<Part> PostHandler::parseMultipart(const std::string &body, const std::string &boundary) const
 {
     std::vector<Part> parts;
-    std::string sep = "--" + boundary; // boundaries are prefixed with -- according to RFC 2046
-
+    std::string sep = "--" + boundary;
     size_t pos = 0;
-
-    // Find the first boundary
+    
     pos = body.find(sep, pos);
     if (pos == std::string::npos)
     {
-        return parts; // No boundary found
+        return parts;
     }
-
     while (pos != std::string::npos)
     {
         pos += sep.size();
-
-        // Check for end boundary (boundary followed by --)
         if (pos + 2 <= body.size() && body.substr(pos, 2) == "--")
-        {
-            break; // End of multipart data
-        }
-
-        // Skip line ending after boundary
+            break;
         if (pos + 2 <= body.size() && body.substr(pos, 2) == "\r\n")
-        {
             pos += 2;
-        }
         else if (pos + 1 <= body.size() && body.substr(pos, 1) == "\n")
-        {
             pos += 1;
-        }
-
-        // Find where headers end (double line break)
         size_t headerEnd = body.find("\r\n\r\n", pos);
-        size_t headerLength = 4; // length of "\r\n\r\n"
+        size_t headerLength = 4;
 
         if (headerEnd == std::string::npos)
         {
             headerEnd = body.find("\n\n", pos);
-            headerLength = 2; // length of "\n\n"
+            headerLength = 2;
             if (headerEnd == std::string::npos)
-            {
-                break; // Invalid format
-            }
+                break;
         }
-
-        // Extract headers
         std::string header = body.substr(pos, headerEnd - pos);
-
-        // Move past the header end
         pos = headerEnd + headerLength;
-
-        // Find next boundary
         size_t nextSep = body.find(sep, pos);
         if (nextSep == std::string::npos)
         {
-            nextSep = body.size(); // Use end of body if no next boundary
+            nextSep = body.size();
         }
-
-        // STEP 2: Handle . and .. path components
-        // Extract content between current position and next boundary
         std::string content = body.substr(pos, nextSep - pos);
-
-        // Remove trailing line ending from content (usually there's a \r\n before the next boundary)
         if (content.size() >= 2 && content.substr(content.size() - 2) == "\r\n")
-        {
             content = content.substr(0, content.size() - 2);
-        }
         else if (content.size() >= 1 && content.substr(content.size() - 1) == "\n")
-        {
             content = content.substr(0, content.size() - 1);
-        }
-
         Part part;
-
-        // Parse filename from header
         size_t fnPos = header.find("filename=\"");
         if (fnPos != std::string::npos)
         {
@@ -198,8 +261,6 @@ std::vector<Part> PostHandler::parseMultipart(const std::string &body, const std
                 part.filename = header.substr(fnPos + 10, fnEnd - (fnPos + 10));
             }
         }
-
-        // Parse name from header
         size_t namePos = header.find("name=\"");
         if (namePos != std::string::npos)
         {
@@ -209,11 +270,8 @@ std::vector<Part> PostHandler::parseMultipart(const std::string &body, const std
                 part.name = header.substr(namePos + 6, nameEnd - (namePos + 6));
             }
         }
-
         part.content = content;
         parts.push_back(part);
-
-        // Move to the next boundary
         pos = nextSep;
         if (pos >= body.size())
             break;
@@ -247,123 +305,4 @@ HttpResponse PostHandler::makeErrorResponse(int code, const std::string &text, c
     resp.body = Error::loadErrorPage(code, serverConfig);
     resp.headers["content-length"] = Utils::toString(resp.body.size());
     return resp;
-}
-
-PostHandler::PostHandler() {}
-
-PostHandler::~PostHandler() {}
-
-HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &route, const ServerConfig &serverConfig) const
-{
-    HttpResponse resp;
-    resp.version = req.version;
-
-    std::string originalCt = req.GetHeader("content-type");
-    std::string ct = originalCt;
-    std::transform(ct.begin(), ct.end(), ct.begin(), ::tolower);
-    if (route.uploadDir.empty())
-    {
-        return makeErrorResponse(500, "Upload directory not configured.", serverConfig); //! check the code status
-    }
-    try
-    {
-        if (ct.find("multipart/form-data") != std::string::npos)
-        {
-            std::string boundary = extractBoundary(originalCt);
-            if (boundary.empty())
-                return makeErrorResponse(400, "Missing boundary in multipart data.", serverConfig);
-
-            std::vector<Part> parts = parseMultipart(req.body, boundary);
-
-            std::vector<std::string> uploadedFiles;
-            for (size_t i = 0; i < parts.size(); ++i)
-            {
-                if (!parts[i].filename.empty())
-                {
-                    std::string filepath = route.uploadDir + "/" + parts[i].filename;
-                    writeFile(filepath, parts[i].content);
-                    uploadedFiles.push_back(filepath);
-                }
-            }
-            if (uploadedFiles.empty())
-                return makeErrorResponse(400, "No file found in multipart data.", serverConfig);
-
-            // Build response showing all uploaded files
-            resp.body = "<html><head><title>Uploads</title></head><body><h1>Files uploaded:</h1><ul>";
-            for (size_t i = 0; i < uploadedFiles.size(); ++i)
-            {
-                resp.body += "<li>" + uploadedFiles[i] + "</li>";
-            }
-            resp.body += "</ul></body></html>";
-        }
-        else if (ct.find("application/x-www-form-urlencoded") != std::string::npos)
-        {
-            std::map<std::string, std::string> fields = parseFormUrlEncoded(req.body);
-            std::string filepath = "./session/" + req.SessionId;
-            writeKeyValuesToFile(filepath, fields);
-            resp.version = "HTTP/1.1";
-            resp.body = "<html><head><title>Uploads</title></head><body><h1>File uploaded: " + filepath + "</h1></body></html>";
-        }
-        else if (ct.find("application/json") != std::string::npos)
-        {
-            std::string filepath = route.uploadDir + "/json_" + Utils::toString(std::time(0)) + ".json";
-            writeFile(filepath, req.body);
-            resp.body = "JSON saved to: " + filepath;
-        }
-        else
-        {
-            std::string filepath = route.uploadDir + "/data_" + Utils::toString(std::time(0)) + ".txt";
-            writeFile(filepath, req.body);
-            resp.body = "Data saved to: " + filepath;
-        }
-    }
-    catch (const std::exception &e)
-    {
-
-        return makeErrorResponse(500, e.what(), serverConfig);
-    }
-    resp.statusCode = 201;
-    resp.statusText = "Created";
-    resp.headers["content-type"] = "text/html; charset=UTF-8";
-    resp.headers["content-length"] = Utils::toString(resp.body.size());
-    return resp;
-}
-
-
-std::string PostHandler::DataDecode(const std::string &encoded) const
-{
-    std::string decoded;
-
-    for (size_t i = 0; i < encoded.length(); ++i)
-    {
-        if (encoded[i] == '%' && i + 2 < encoded.length())
-        {
-            // Get the two hex digits after %
-            std::string hexStr = encoded.substr(i + 1, 2);
-            char *endPtr;
-            long int value = std::strtol(hexStr.c_str(), &endPtr, 16);
-
-            // Check if conversion was successful and value is valid
-            if (endPtr == hexStr.c_str() + 2 && value >= 0 && value <= 255)
-            {
-                decoded += static_cast<char>(value);
-                i += 2; // Skip the two hex digits
-            }
-            else
-            {
-                // Invalid hex sequence, keep the % as is
-                decoded += encoded[i];
-            }
-        }
-        else if (encoded[i] == '+')
-        {
-            decoded += ' ';
-        }
-        else
-        {
-            decoded += encoded[i];
-        }
-    }
-
-    return decoded;
 }

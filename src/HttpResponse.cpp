@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:11 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/29 17:02:00 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/30 11:26:37 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,6 @@ void HttpResponse::SetCookieHeaders(Connection &conn)
 
     // Step 1: Load session file data (if exists)
 
-    std::cerr << "DEBUG: Loading session data from: " << sessionPath << std::endl;
     std::ifstream ifs(sessionPath.c_str());
     if (ifs)
     {
