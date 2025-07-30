@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:56:52 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/22 17:44:28 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/30 16:59:57 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,15 +47,4 @@ class CgiHandler
         CgiData check_cgi(void);
         char **set_env(Connection &conn);
         bool IsCgi();
-    //     class HttpException : public std::exception {
-    //     private:
-    //     int         statusCode;
-    //     std::string message;
-
-    //     public:
-    //         HttpException(int code, const std::string& msg);
-    //         virtual ~HttpException() throw();
-    //         virtual const char* what() const throw();
-    //         int getStatusCode() const;
-    // };
 };

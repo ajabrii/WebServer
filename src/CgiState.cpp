@@ -31,15 +31,13 @@ void CgiState::writeToScript(Connection& conn)
             }
             else if (written == 0)
             {
-                // Write returned 0 bytes — unexpected on pipes
                 std::cerr << "[CGI] write() returned 0 bytes (unexpected)\n";
                 close(this->input_fd);
                 this->input_fd = -1;
                 this->bodySent = true;
             }
-            else // written == -1
+            else
             {
-                // Don't know errno (can't check EAGAIN), assume fatal
                 std::cerr << "[CGI] write() failed while sending body to CGI (fatal)\n";
                 close(this->input_fd);
                 this->input_fd = -1;
@@ -48,7 +46,6 @@ void CgiState::writeToScript(Connection& conn)
         }
         else
         {
-            // Empty body case — Content-Length: 0
             close(this->input_fd);
             this->input_fd = -1;
             this->bodySent = true;
@@ -75,11 +72,7 @@ void CgiState::readFromScript(Connection& conn , Reactor& reactor)
 
         conn.getCgiState()->connection->updateLastActivity();
         std::cerr << "CONN FD is : " << conn.getFd() << ", cgi connection fd is : " << conn.getCgiState()->connection->getFd() << std::endl;
-        reactor.removeConnection(conn.getFd()); // 8 
-        // delete cgiState;
-        // conn.setCgiState(NULL);
-        // reactor.removeConnection(conn.getCgiState()->output_fd);
-        // cleanupCgi(conn);
+        reactor.removeConnection(conn.getFd());
         std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
     } 
     else 

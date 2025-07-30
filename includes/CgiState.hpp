@@ -34,13 +34,12 @@ class CgiState
         };
         pid_t pid;
         int output_fd;
-        int input_fd; // only for POST
+        int input_fd;
         std::string rawOutput;
         time_t startTime;
         bool headersParsed;
         bool bodySent;
         size_t bytesWritten;
-            // Optional:
         std::string script_path;
         Connection* connection;
         void writeToScript(Connection& conn);
