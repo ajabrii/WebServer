@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 11:11:05 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/30 15:07:40 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -293,7 +293,7 @@ std::string GetHandler::normalizePath(const std::string &path) const
         }
         else if (component == "..")
         {
-            if (!components.empty())
+            if (!components.empty()) // to preven crash on empty components
             {
                 components.pop_back();
             }

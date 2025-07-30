@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/23 15:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 15:13:23 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/30 15:00:14 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,7 @@ HttpResponse ResponseBuilder::createErrorResponse(int statusCode, const std::str
     response.statusCode = statusCode;
     response.statusText = statusText;
     response.headers["content-type"] = "text/html; charset=utf-8";
-
-    // Load custom error page or use default
     response.body = Error::loadErrorPage(statusCode, serverConfig);
-
     finalizeResponse(response);
     return response;
 }
@@ -56,8 +53,6 @@ HttpResponse ResponseBuilder::createRedirectResponse(int statusCode, const std::
     response.statusText = statusText;
     response.headers["location"] = location;
     response.headers["content-type"] = "text/html; charset=utf-8";
-
-    // Create proper HTML redirect page
     std::ostringstream html;
     html << "<!DOCTYPE html>\n";
     html << "<html>\n";
@@ -71,7 +66,6 @@ HttpResponse ResponseBuilder::createRedirectResponse(int statusCode, const std::
     html << "  <p>You will be redirected automatically.</p>\n";
     html << "</body>\n";
     html << "</html>";
-
     response.body = html.str();
     finalizeResponse(response);
     return response;
@@ -92,26 +86,10 @@ HttpResponse ResponseBuilder::createDeleteSuccessResponse(const std::string &fil
 
 void ResponseBuilder::finalizeResponse(HttpResponse &response)
 {
-    // Ensure HTTP version is set
     if (response.version.empty())
-    {
         response.version = "HTTP/1.1";
-    }
-
-    // Always set content-length (CRITICAL for preventing hangs)
     response.headers["content-length"] = Utils::toString(response.body.size());
-
-    // Set server header for identification
-    response.headers["server"] = "NexWebserv/1.0";
-
-    // Ensure cache-control for dynamic content
-    if (response.headers.find("cache-control") == response.headers.end())
-    {
-        if (response.statusCode >= 400)
-        {
-            response.headers["cache-control"] = "no-cache, no-store, must-revalidate";
-        }
-    }
+    response.headers["server"] = "Webserv/1.0";
 }
 
 std::string ResponseBuilder::getCurrentTimestamp()
