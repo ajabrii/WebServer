@@ -426,136 +426,259 @@ Select a test to begin!</div>
                 headers.push(`${key}: ${value}`);
             }
 
-            // Check if response is HTML content
-            function isHtmlResponse(content) {
-                if (!content || typeof content !== 'string') return false;
-                const htmlIndicators = ['<!DOCTYPE', '<html', '<head>', '<body>', '<div', '<p>', '<h1', '<h2'];
-                return htmlIndicators.some(indicator => 
-                    content.toLowerCase().includes(indicator.toLowerCase())
-                );
-            }
+            // Escape HTML in response text to prevent XSS
+            const escapeHtml = (text) => {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            };
+            
+            // Check if the response is HTML content that should be rendered
+            const isHtmlResponse = (text) => {
+                const content = (text || '').trim().toLowerCase();
+                return content.includes('<!doctype html') || 
+                       content.includes('<html') || 
+                       content.includes('<head>') || 
+                       content.includes('<body>') ||
+                       (content.includes('<') && content.includes('>') && (content.includes('<h1') || content.includes('<h2') || content.includes('<p>') || content.includes('<div')));
+            };
+            
+            const processedResponseText = isHtmlResponse(responseText) ? (responseText || '(empty response)') : escapeHtml(responseText || '(empty response)');
+            const statusClass = response.ok ? 'success' : (response.status >= 400 ? 'error' : 'warning');
+            const statusIcon = response.ok ? '✅' : (response.status >= 400 ? '❌' : '⚠️');
             
             const html = `
                 <!DOCTYPE html>
-                <html>
+                <html lang="en">
                 <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>${method} Response - ${response.status}</title>
                     <style>
+                        * {
+                            margin: 0;
+                            padding: 0;
+                            box-sizing: border-box;
+                        }
                         body { 
                             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
                             margin: 0; 
-                            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
-                            color: #f9fafb;
+                            padding: 20px;
+                            background: #1a1a1a;
+                            color: #ffffff;
                             min-height: 100vh;
+                            line-height: 1.6;
                         }
                         .container {
                             max-width: 1200px;
                             margin: 0 auto;
-                            padding: 2rem;
                         }
                         .header { 
-                            background: rgba(31, 41, 55, 0.8);
-                            backdrop-filter: blur(10px);
-                            border: 1px solid rgba(55, 65, 81, 0.5);
-                            border-radius: 12px;
-                            padding: 2rem; 
-                            margin-bottom: 2rem; 
-                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                            background: #2d3748;
+                            border: 2px solid #4a5568;
+                            color: #ffffff; 
+                            padding: 25px; 
+                            border-radius: 12px; 
+                            margin-bottom: 25px;
+                            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
                         }
-                        .status { 
-                            font-size: 1.5em; 
-                            margin-bottom: 1rem; 
-                            color: #10b981;
-                            font-weight: 600;
+                        .status-line { 
+                            font-size: 1.8em; 
+                            margin-bottom: 15px; 
+                            color: #48bb78; 
+                            font-weight: 700;
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
                         }
-                        .section { 
-                            background: rgba(31, 41, 55, 0.8);
-                            backdrop-filter: blur(10px);
-                            border: 1px solid rgba(55, 65, 81, 0.5);
-                            border-radius: 12px;
-                            padding: 1.5rem; 
-                            margin-bottom: 1.5rem; 
-                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                            border-left: 4px solid #10b981;
-                        }
-                        .section h3 { 
-                            margin-top: 0; 
-                            color: #f9fafb; 
-                            font-size: 1.2rem;
-                            margin-bottom: 1rem;
-                        }
-                        .response-body { 
-                            background: rgba(17, 24, 39, 0.8);
-                            border: 1px solid rgba(75, 85, 99, 0.3);
-                            border-radius: 8px;
-                            padding: 1rem; 
-                            white-space: pre-wrap; 
-                            overflow-x: auto; 
-                            font-family: 'Courier New', monospace;
-                            color: #f9fafb;
-                            backdrop-filter: blur(5px);
-                            max-height: 500px;
-                            overflow-y: auto;
-                        }
-                        .info-grid {
+                        .header-info {
                             display: grid;
-                            grid-template-columns: auto 1fr;
-                            gap: 0.5rem 1rem;
-                            font-family: 'Courier New', monospace;
-                            font-size: 0.9rem;
+                            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                            gap: 15px;
+                            margin-top: 15px;
+                        }
+                        .info-item {
+                            background: #1a202c;
+                            padding: 12px 16px;
+                            border-radius: 8px;
+                            border: 1px solid #4a5568;
                         }
                         .info-label {
                             font-weight: 600;
-                            color: #9ca3af;
+                            color: #a0aec0;
+                            font-size: 0.9em;
+                            margin-bottom: 4px;
                         }
                         .info-value {
-                            color: #f9fafb;
+                            color: #ffffff;
+                            font-family: 'Courier New', monospace;
+                            font-size: 0.95em;
+                        }
+                        .section { 
+                            background: #2d3748;
+                            border: 2px solid #4a5568;
+                            padding: 20px; 
+                            margin-bottom: 20px; 
+                            border-radius: 12px; 
+                            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+                        }
+                        .section h3 { 
+                            margin-top: 0; 
+                            margin-bottom: 15px;
+                            color: #ffffff; 
+                            font-weight: 600;
+                            font-size: 1.2em;
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                        }
+                        .response-body { 
+                            background: #1a202c;
+                            color: #f7fafc; 
+                            padding: 20px; 
+                            border-radius: 8px; 
+                            white-space: pre-wrap; 
+                            overflow-x: auto; 
+                            max-height: 500px; 
+                            overflow-y: auto;
+                            border: 2px solid #4a5568;
+                            font-family: 'Courier New', monospace;
+                            font-size: 0.9em;
+                            word-break: break-word;
+                        }
+                        .response-body.html-content {
+                            background: #2d3748;
+                            color: #ffffff;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                            white-space: normal;
+                            word-break: normal;
+                        }
+                        .headers-list {
+                            background: #1a202c;
+                            padding: 15px;
+                            border-radius: 8px;
+                            border: 2px solid #4a5568;
+                            font-family: 'Courier New', monospace;
+                            font-size: 0.9em;
+                        }
+                        .header-item {
+                            margin-bottom: 8px;
+                            padding: 8px 0;
+                            border-bottom: 1px solid #4a5568;
+                            color: #ffffff;
+                        }
+                        .header-item:last-child {
+                            border-bottom: none;
+                            margin-bottom: 0;
+                        }
+                        .success { 
+                            border-left: 4px solid #48bb78; 
+                            background: #2d3748;
+                        }
+                        .error { 
+                            border-left: 4px solid #f56565; 
+                            background: #2d3748;
+                        }
+                        .warning { 
+                            border-left: 4px solid #ed8936; 
+                            background: #2d3748;
+                        }
+                        .status-badge {
+                            display: inline-block;
+                            padding: 6px 14px;
+                            border-radius: 20px;
+                            font-size: 0.8em;
+                            font-weight: 700;
+                            margin-left: 10px;
+                        }
+                        .status-success { 
+                            background: #48bb78; 
+                            color: #ffffff; 
+                        }
+                        .status-error { 
+                            background: #f56565; 
+                            color: #ffffff; 
+                        }
+                        .status-warning { 
+                            background: #ed8936; 
+                            color: #ffffff; 
+                        }
+                        .close-button {
+                            position: fixed;
+                            top: 20px;
+                            right: 20px;
+                            background: #f56565;
+                            color: #ffffff;
+                            border: none;
+                            padding: 12px 16px;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-weight: 600;
+                            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+                            transition: all 0.3s ease;
+                            font-size: 0.9em;
+                        }
+                        .close-button:hover {
+                            background: #e53e3e;
+                            transform: translateY(-2px);
+                            box-shadow: 0 6px 16px rgba(245, 101, 101, 0.6);
+                        }
+                        @media (max-width: 768px) {
+                            body { padding: 10px; }
+                            .header-info { grid-template-columns: 1fr; }
+                            .section { padding: 15px; }
                         }
                     </style>
                 </head>
                 <body>
                     <div class="container">
+                        <button class="close-button" onclick="window.close()">✕ Close</button>
+                        
                         <div class="header">
-                            <div class="status">📥 GET Request Response</div>
-                            <div class="info-grid">
-                                <span class="info-label">Status:</span>
-                                <span class="info-value">${response.status} ${response.statusText}</span>
-                                <span class="info-label">URL:</span>
-                                <span class="info-value">${response.url}</span>
-                                <span class="info-label">Original URL:</span>
-                                <span class="info-value">${url}</span>
-                                <span class="info-label">Time:</span>
-                                <span class="info-value">${timestamp}</span>
+                            <div class="status-line">
+                                ${statusIcon} GET Request Response
+                                <span class="status-badge status-${statusClass}">${response.status}</span>
+                            </div>
+                            <div class="header-info">
+                                <div class="info-item">
+                                    <div class="info-label">Status</div>
+                                    <div class="info-value">${response.status} ${response.statusText}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">URL</div>
+                                    <div class="info-value">${url}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Method</div>
+                                    <div class="info-value">${method}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Time</div>
+                                    <div class="info-value">${timestamp}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section ${statusClass}">
+                            <h3>📋 Response Headers</h3>
+                            <div class="headers-list">
+                                ${headers.length > 0 ? headers.map(header => `<div class="header-item">${header}</div>`).join('') : '<div class="header-item">No headers received</div>'}
                             </div>
                         </div>
                         
                         <div class="section">
-                            <h3>📄 Response Content</h3>
-                            <div class="response-body">${isHtmlResponse(responseText) 
-                                ? responseText 
-                                : (responseText || '(empty response)')}</div>
+                            <h3>📄 Response Body</h3>
+                            <div class="response-body${isHtmlResponse(responseText) ? ' html-content' : ''}">${processedResponseText}</div>
                         </div>
                         
                         <div class="section">
-                            <h3>📋 Response Headers</h3>
-                            <div class="response-body">${headers.length > 0 ? headers.join('\n') : 'No headers received'}</div>
-                        </div>
-                        
-                        <div class="section">
-                            <h3>🔍 Request Details</h3>
-                            <div class="info-grid">
-                                <span class="info-label">Method:</span>
-                                <span class="info-value">GET</span>
-                                <span class="info-label">Requested URL:</span>
-                                <span class="info-value">${url}</span>
-                                <span class="info-label">Final URL:</span>
-                                <span class="info-value">${response.url}</span>
-                                <span class="info-label">Success:</span>
-                                <span class="info-value">${response.ok ? 'Yes' : 'No'}</span>
-                                <span class="info-label">Redirected:</span>
-                                <span class="info-value">${response.redirected ? 'Yes' : 'No'}</span>
-                                <span class="info-label">Content Size:</span>
-                                <span class="info-value">${responseText ? responseText.length : 0} bytes</span>
+                            <h3>ℹ️ Request Details</h3>
+                            <div class="headers-list">
+                                <div class="header-item"><strong>Method:</strong> GET</div>
+                                <div class="header-item"><strong>URL:</strong> ${url}</div>
+                                <div class="header-item"><strong>Success:</strong> ${response.ok ? 'Yes ✅' : 'No ❌'}</div>
+                                <div class="header-item"><strong>Type:</strong> ${response.type || 'N/A'}</div>
+                                <div class="header-item"><strong>Redirected:</strong> ${response.redirected ? 'Yes' : 'No'}</div>
                             </div>
                         </div>
                     </div>
