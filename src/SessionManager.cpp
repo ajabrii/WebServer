@@ -35,3 +35,8 @@ std::map<std::string, std::string> SessionManager::load(const std::string& sessi
     }
     return data;
 }
+
+std::string SessionManager::buildSessionFilePath(const std::string& session_id) const 
+{
+    return  "./session/" + session_id;
+}

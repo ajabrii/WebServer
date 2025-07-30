@@ -28,18 +28,5 @@ class SessionInfos
             void setSessionPath(const std::string& path);
             void setSessionId(const std::string& id);
             void setUploadDirectory(const std::string& path);
-            void DbugPrint() const
-            {
-                std::cerr << "SessionInfos Debug Print:" << std::endl;
-                std::cerr << "  SessionPath: " << SessionPath << std::endl;
-                std::cerr << "  SessionId: " << SessionId << std::endl;
-                std::cerr << "  UploadDirectory: " << UploadDirectory << std::endl;
-                std::cerr << "  Cookies:" << std::endl;
-                // no auto
-                for (std::map<std::string, std::string>::const_iterator it = cookies.begin(); it != cookies.end(); ++it)
-                {
-                    std::cerr << "    " << it->first << ": " << it->second << std::endl;
-                }
-            }
 };
 
