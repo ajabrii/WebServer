@@ -6,7 +6,7 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:00:24 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 12:23:22 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/30 17:08:08 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ class ServerConfig {
         std::vector<std::string> serverName;
         std::map<int, std::string> error_pages;
         unsigned long long clientMaxBodySize;
+        bool clientMaxBodySizeSet;  // Flag to track if explicitly set
         std::vector<RouteConfig> routes;
         
         ServerConfig();

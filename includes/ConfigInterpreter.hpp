@@ -6,15 +6,13 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:03:57 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/29 11:56:56 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/30 16:43:28 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIG_INTERPRETER_HPP
 #define CONFIG_INTERPRETER_HPP
 
-// #include <vector>
-// #include <string>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -25,6 +23,11 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <algorithm> 
+#include <climits>
+#include <cstddef>
+#include <cctype>
+
 
 class ConfigInterpreter {
     private:

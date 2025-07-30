@@ -6,16 +6,12 @@
 /*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/29 11:56:20 by youness          ###   ########.fr       */
+/*   Updated: 2025/07/30 17:09:02 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 # include "../includes/ConfigInterpreter.hpp"
-#include <algorithm> 
-#include <climits>
-#include <cstddef>
-
 
 ConfigInterpreter::ConfigInterpreter() : serverFlag(false), routeFlag(false){}
 
@@ -32,7 +28,6 @@ void ConfigInterpreter::getConfigData(std::string filePath)
     if (filePath.empty()) {
         throw std::runtime_error("Config file path is empty");
     }
-    // Check file extension (.conf or .yaml)
     if (!hasValidExtension(filePath)) {
         throw std::runtime_error("Config file must have .conf or .yaml extension");
     }
@@ -102,11 +97,8 @@ std::string ConfigInterpreter::clean_line(std::string line)
     line.erase(0, line.find_first_not_of(" \t\n\r"));
     line.erase(line.find_last_not_of(" \t\n\r") + 1);
 
-    // Remove trailing semicolon if it exists
     if (!line.empty() && line[line.size() - 1] == ';')
-    {
         line.erase(line.size() - 1);
-    }
     return line;
 }
 
@@ -174,9 +166,8 @@ void ConfigInterpreter::parse()
                 serverFlag = 0;
             } 
             else
-            {
                 throw std::runtime_error("Invalid config file syntax: unexpected closing brace '}' without a matching opening block");
-            }
+
             continue;
         }
 
@@ -201,13 +192,9 @@ void ConfigInterpreter::parse()
         if (serverFlag)
         {
             if (routeFlag)
-            {
                 parseRouteBlock(current_route, line);
-            }
             else
-            {
                 parseServerBlock(current_server, line);
-            }
         }
     }
     if ((routeFlag || serverFlag))
@@ -329,7 +316,6 @@ void ConfigInterpreter::parseRouteBlock(RouteConfig& route, const std::string& l
     std::string key = clean_line(line.substr(0, equal));
     std::string value = clean_line(line.substr(equal + 1));
     key = toLower(key); 
-    // bach n9bel kolchi
     parseRouteOption(route, key, value);
 }
 
@@ -341,8 +327,6 @@ void ConfigInterpreter::checkValues()
             serverConfigs[i].host = "0.0.0.0";
         if (serverConfigs[i].port.size() == 0)
             throw std::runtime_error("Port is not set for a server block.");
-        if (serverConfigs[i].clientMaxBodySize <= 0)
-            throw std::runtime_error("Client max body size is not set correct for a server block.");
         for (size_t j = 0; j < serverConfigs[i].routes.size(); j++)
         {
             if (serverConfigs[i].routes[j].path.empty())
