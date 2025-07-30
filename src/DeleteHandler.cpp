@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:29:35 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 11:35:35 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/30 15:36:32 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,32 +35,21 @@ HttpResponse DeleteHandler::handle(const HttpRequest &req, const RouteConfig &ro
         requestPath = requestPath.substr(route.path.length());
     std::string filePath = buildFilePath(route.root, requestPath);
     if (!isPathSecure(filePath, route.root))
-    {
         return ResponseBuilder::createErrorResponse(403, "Forbidden", serverConfig);
-    }
     struct stat fileStat;
     if (stat(filePath.c_str(), &fileStat) != 0)
-    {
         return ResponseBuilder::createErrorResponse(404, "Not Found", serverConfig);
-    }
     if (!S_ISREG(fileStat.st_mode))
-    {
-        
         return ResponseBuilder::createErrorResponse(403, "Forbidden", serverConfig);
-    }
     if (access(filePath.c_str(), W_OK) != 0)
-    {
         return ResponseBuilder::createErrorResponse(403, "Forbidden", serverConfig);
-    }
     if (std::remove(filePath.c_str()) == 0)
     {
         std::cout << URI_PROCESS_LOG << "Successfully deleted file: " << filePath << std::endl;
         return ResponseBuilder::createDeleteSuccessResponse(filePath);
     }
     else
-    {
         return ResponseBuilder::createErrorResponse(500, "Internal Server Error", serverConfig);
-    }
 }
 
 std::string DeleteHandler::buildFilePath(const std::string &root, const std::string &requestPath) const

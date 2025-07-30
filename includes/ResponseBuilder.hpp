@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/23 15:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 15:16:23 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/30 15:38:01 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,5 +31,4 @@ public:
 
 private:
     static void finalizeResponse(HttpResponse &response);
-    static std::string getCurrentTimestamp();
 };

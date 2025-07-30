@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/23 15:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 15:00:14 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/30 15:37:56 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ HttpResponse ResponseBuilder::createDeleteSuccessResponse(const std::string &fil
     json << "  \"success\": true,\n";
     json << "  \"message\": \"File deleted successfully\",\n";
     json << "  \"file\": \"" << filePath << "\",\n";
-    json << "  \"timestamp\": \"" << getCurrentTimestamp() << "\"\n";
+    json << "  \"timestamp\": \"" <<"13:37:42" << "\"\n";
     json << "}";
 
     return createJsonResponse(200, "OK", json.str());
@@ -90,19 +90,4 @@ void ResponseBuilder::finalizeResponse(HttpResponse &response)
         response.version = "HTTP/1.1";
     response.headers["content-length"] = Utils::toString(response.body.size());
     response.headers["server"] = "Webserv/1.0";
-}
-
-std::string ResponseBuilder::getCurrentTimestamp()
-{
-    time_t now = time(0);
-    char *timeStr = ctime(&now);
-    std::string timestamp(timeStr);
-
-    // Remove trailing newline
-    if (!timestamp.empty() && timestamp[timestamp.length() - 1] == '\n')
-    {
-        timestamp = timestamp.substr(0, timestamp.length() - 1);
-    }
-
-    return timestamp;
 }
