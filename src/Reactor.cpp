@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Reactor.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/28 11:38:27 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/30 10:45:44 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,15 +24,16 @@ Reactor::~Reactor() {
 Event::Event() : fd(-1), isReadable(false), isWritable(false), 
               isNewConnection(false), isError(false), errorType(0) {}
 
-void Reactor::cleanup() {
-    // Clean up all connections
+void Reactor::cleanup() 
+{
     for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) 
     {
-        if (it->second->getCgiState())
-        {
-            delete it->second->getCgiState();
+        Connection* conn = it->second;
+        
+        if (conn->getCgiState()) {
+            delete conn->getCgiState();
         }
-        delete it->second;
+        delete conn;
     }
     connectionMap.clear();
     clientToServerMap.clear();
@@ -43,11 +44,7 @@ void Reactor::cleanup() {
 void Reactor::cleanupTimedOutConnections()
 {
     std::vector<int> timedOutFds;
-    
-    // Find timed out connections
 
-    // std::cerr << 
-    
     for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) 
     {
         if (it->second->isKeepAlive() && it->second->isTimedOut()) {
@@ -55,7 +52,6 @@ void Reactor::cleanupTimedOutConnections()
         }
     }
     
-    // Remove timed out connections
     for (size_t i = 0; i < timedOutFds.size(); ++i) {
         std::cout << "\033[1;33m[TIMEOUT]\033[0m Connection " << timedOutFds[i] << " timed out" << std::endl;
         removeConnection(timedOutFds[i]);

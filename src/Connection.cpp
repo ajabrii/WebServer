@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/28 12:59:45 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/30 10:40:29 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,6 +192,10 @@ void Connection::reset() {
     contentLength = 0;
     isChunked = false;
     requestState = READING_HEADERS;
+    if (cgiState) {
+        delete cgiState;
+        cgiState = NULL;
+    }
     // std::cout << "Debug: Connection " << client_fd << " reset for next request." << std::endl;
 }
 

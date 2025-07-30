@@ -11,7 +11,6 @@ SessionManager::SessionManager()
 
 void SessionManager::save(const std::string& session_id, const std::map<std::string, std::string>& data) 
 {
-    std::cerr << "->>>>>>>>>>>>>>>>>>SAVE>>>>>>>>>>>>>>>>>>>>>>>>>>   ./session/" + session_id << std::endl;
     std::ofstream file(("./session/" + session_id).c_str());
     if (!file) 
         return;
@@ -23,14 +22,10 @@ void SessionManager::save(const std::string& session_id, const std::map<std::str
 
 std::map<std::string, std::string> SessionManager::load(const std::string& session_id) 
 {
-    std::cerr << "->>>>>>>>>>>>>>>>>>LOAD>>>>>>>>>>>>>>>>>>>>>>>>>>   ./session/" + session_id << std::endl;
-
     std::map<std::string, std::string> data;
     std::ifstream file(("./session/" + session_id).c_str());
-
     if (!file)
         return data;
-        
     std::string line;
     while (std::getline(file, line)) 
     {

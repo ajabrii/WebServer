@@ -1,7 +1,7 @@
 #!/bin/bash
 
 printf "Content-Type: text/html\r\n\r\n"
-sleep 0.1
+sleep 100
 # Read POST data
 # if [ "$REQUEST_METHOD" != "POST" ]; then
 #     echo "Only POST supported"

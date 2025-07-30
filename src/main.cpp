@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/29 19:36:05 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/30 10:57:50 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@
 #include <cstdlib>
 #define REQUEST_LIMIT_PER_CONNECTION 100
 #define DEFAULT_CONFIG_PATH "./config/default.conf"
+
 
 static volatile bool g_shutdown = false;
 static std::vector<HttpServer *> *g_servers = NULL;
@@ -91,10 +92,7 @@ int main(int ac, char **av, char **envp)
         parser.parse();
         parser.checkValues();
         std::string cgiEnv = parser.getPathForCGI(envp);
-        std::cout << "[✔] Config loaded" << std::endl;
-
         std::vector<ServerConfig> configs = parser.getServerConfigs();
-
         for (size_t i = 0; i < configs.size(); ++i)
         {
             HttpServer *server = new HttpServer(configs[i]);
