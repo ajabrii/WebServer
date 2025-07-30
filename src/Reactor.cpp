@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Reactor.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 11:04:54 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/30 16:49:46 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,13 @@ void Reactor::cleanup()
     {
         Connection* conn = it->second;
         
-        if (conn->getCgiState()) {
+        if (conn->getCgiState()) 
+        {
             delete conn->getCgiState();
+            // conn->setCgiState(NULL); // this may solve
         }
         delete conn;
+        // conn = NULL; // this also , i need to now what is the exact test !
     }
     connectionMap.clear();
     clientToServerMap.clear();
