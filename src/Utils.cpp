@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 11:08:05 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/30 17:03:00 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,39 +186,25 @@ void HandleCookies(Connection& conn, HttpRequest& req)
 
         if (cookies.find("session_id") != cookies.end())
         {
-            // std::cout << "\033[1;33m[Session]\033[0m Session ID found in cookies" << std::endl;
             std::string sessionId = cookies["session_id"];
             sessionInfos.setSessionId(sessionId);
-            if (access(sessionManager.buildSessionFilePath(sessionId).c_str(), F_OK) == 0)
+            if (access(sessionManager.buildSessionFilePath(sessionId).c_str(), F_OK) != 0
+            || access(sessionManager.buildSessionFilePath(sessionId).c_str(), R_OK) != 0
+            || access(sessionManager.buildSessionFilePath(sessionId).c_str(), W_OK) != 0)
             {
-                // std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << sessionId << std::endl;
-                ;
-            }
-            else
-            {
-                // std::cout << "\033[1;33m[Session]\033[0m Session ID does not exist, creating new session" << std::endl;
-                    // Create a new session file
                 sessionManager.save(sessionId, sessionInfos.getCookies());
             }
-            
         }
         else
         {
-            // std::cout << "\033[1;33m[Session]\033[0m No session ID found in cookies" << std::endl;
-            // Generate a new session ID if not present
             std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
             sessionInfos.setSessionId(newSessionId);
             sessionInfos.getCookies()["session_id"] = newSessionId;
-                
-            if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) == 0)
+
+            if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) != 0
+            || access(sessionManager.buildSessionFilePath(newSessionId).c_str(), R_OK) != 0
+            || access(sessionManager.buildSessionFilePath(newSessionId).c_str(), W_OK) != 0)
             {
-                // std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << newSessionId << std::endl;
-                ;
-            }
-            else
-            {
-                // std::cout << "\033[1;33m[Session]\033[0m Session ID does not exist, creating new session" << std::endl;
-                    // Create a new session file
                 sessionManager.save(newSessionId, sessionInfos.getCookies());
             }
         }
@@ -226,21 +212,15 @@ void HandleCookies(Connection& conn, HttpRequest& req)
     else 
     {
         std::cout << "\033[1;33m[Session]\033[0m No cookies found in request" << std::endl;
-        // Generate a new session ID if no cookies are present
         std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
         sessionInfos.setSessionId(newSessionId);
         sessionInfos.getCookies()["session_id"] = newSessionId;
 
-        if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) == 0)
+        if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) != 0
+        || access(sessionManager.buildSessionFilePath(newSessionId).c_str(), R_OK) != 0
+        || access(sessionManager.buildSessionFilePath(newSessionId).c_str(), W_OK) != 0)
         {
-                // std::cout << "\033[1;33m[Session]\033[0m Session ID exists: " << newSessionId << std::endl;
-                ;
-        }
-        else
-        {
-                // std::cout << "\033[1;33m[Session]\033[0m Session ID does not exist, creating new session" << std::endl;
-                // Create a new session file
-                sessionManager.save(newSessionId, sessionInfos.getCookies());
+            sessionManager.save(newSessionId, sessionInfos.getCookies());
         }
     }
     sessionInfos.setSessionPath(sessionManager.buildSessionFilePath(sessionInfos.getSessionId()));
