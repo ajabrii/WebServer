@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:29:35 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 15:18:31 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/30 11:35:35 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@
 #include <sstream>
 #include <ctime>
 #include <cstdio>
+# define URI_PROCESS_LOG "\033[1;31m[DELETE Handler]\033[0m"
+
 
 DeleteHandler::DeleteHandler() {}
 
@@ -27,6 +29,7 @@ DeleteHandler::~DeleteHandler() {}
 
 HttpResponse DeleteHandler::handle(const HttpRequest &req, const RouteConfig &route, const ServerConfig &serverConfig) const
 {
+    std::cout << URI_PROCESS_LOG << "Processing request for URI: " << req.uri << std::endl;
     std::string requestPath = req.uri;
     if (requestPath.find(route.path) == 0)
         requestPath = requestPath.substr(route.path.length());
@@ -42,6 +45,7 @@ HttpResponse DeleteHandler::handle(const HttpRequest &req, const RouteConfig &ro
     }
     if (!S_ISREG(fileStat.st_mode))
     {
+        
         return ResponseBuilder::createErrorResponse(403, "Forbidden", serverConfig);
     }
     if (access(filePath.c_str(), W_OK) != 0)
@@ -50,6 +54,7 @@ HttpResponse DeleteHandler::handle(const HttpRequest &req, const RouteConfig &ro
     }
     if (std::remove(filePath.c_str()) == 0)
     {
+        std::cout << URI_PROCESS_LOG << "Successfully deleted file: " << filePath << std::endl;
         return ResponseBuilder::createDeleteSuccessResponse(filePath);
     }
     else
@@ -75,7 +80,6 @@ std::string DeleteHandler::buildFilePath(const std::string &root, const std::str
 
 bool DeleteHandler::isPathSecure(const std::string &filePath, const std::string &rootPath) const
 {
-    // Check for obvious directory traversal patterns
     if (filePath.find("../") != std::string::npos ||
         filePath.find("/..") != std::string::npos)
     {
