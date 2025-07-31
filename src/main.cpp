@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 10:57:50 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/31 17:34:48 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ int main(int ac, char **av, char **envp)
         Error::logs("Usage: ./webserv [configuration file]");
         return 1;
     }
-
+    
     std::vector<HttpServer *> servers;
     g_servers = &servers;
     signal(SIGINT, signalHandler);
@@ -107,11 +107,11 @@ int main(int ac, char **av, char **envp)
                 throw ;
             }
         }
+        
         Reactor reactor;
         g_reactor = &reactor;
         for (size_t i = 0; i < servers.size(); ++i)
             reactor.registerServer(*servers[i]);
-
         while (!g_shutdown)
         {
             try

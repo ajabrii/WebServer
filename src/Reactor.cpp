@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Reactor.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 16:49:46 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/31 17:35:53 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,10 +31,8 @@ void Reactor::cleanup()
         if (conn->getCgiState()) 
         {
             delete conn->getCgiState();
-            // conn->setCgiState(NULL); // this may solve
         }
         delete conn;
-        // conn = NULL; // this also , i need to now what is the exact test !
     }
     connectionMap.clear();
     clientToServerMap.clear();
@@ -46,12 +44,11 @@ void Reactor::cleanupTimedOutConnections()
 {
     std::vector<int> timedOutFds;
 
-    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) 
-    {
-        if (it->second->isKeepAlive() && it->second->isTimedOut()) {
+    for (std::map<int, Connection*>::iterator it = connectionMap.begin(); it != connectionMap.end(); ++it) {
+        if (it->second->isKeepAlive() && it->second->isTimedOut())
             timedOutFds.push_back(it->first);
-        }
     }
+    
     for (size_t i = 0; i < timedOutFds.size(); ++i) {
         std::cout << "\033[1;33m[TIMEOUT]\033[0m Connection " << timedOutFds[i] << " timed out" << std::endl;
         removeConnection(timedOutFds[i]);
