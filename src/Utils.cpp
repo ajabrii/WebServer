@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 18:02:34 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/31 17:06:28 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,7 @@ std::string clean_line(std::string line)
     line.erase(line.find_last_not_of(" \t\n\r") + 1);
 
     if (!line.empty() && line[line.size() - 1] == ';')
-    {
         line.erase(line.size() - 1);
-    }
     return line;
 }
 
@@ -53,19 +51,19 @@ void setConnectionHeaders(HttpResponse &response, bool keepAlive)
         response.headers["Keep-Alive"] = "timeout=60, max=100";
     }
     else
-    {
         response.headers["Connection"] = "close";
-    }
 }
 
-std::string toLower(const std::string& s) {
+std::string toLower(const std::string& s)
+{
     std::string result = s;
     for (size_t i = 0; i < result.size(); ++i)
         result[i] = std::tolower(result[i]);
     return result;
 }
 
-void ltrim(std::string& s) {
+void ltrim(std::string& s)
+{
     size_t i = 0;
     while (i < s.size() && std::isspace(static_cast<unsigned char>(s[i]))) ++i;
     s.erase(0, i);
@@ -83,21 +81,15 @@ HttpResponse parseCgiOutput(const std::string& raw)
         response.body = "CGI script did not return valid headers.";
         return response;
     }
-
     std::string headerPart = raw.substr(0, headerEnd);
     std::string bodyPart = raw.substr(headerEnd + 4);
-
     std::istringstream headerStream(headerPart);
     std::string line;
     bool statusParsed = false;
-
-    // Read first line
     if (std::getline(headerStream, line)) 
     {
         if (!line.empty() && *line.rbegin() == '\r')
             line.erase(line.size() - 1);
-        std::cerr << "1------------------->\033[1;34m[CGI]\033[0m Line: " << line << std::endl;
-
         if (line.compare(0, 5, "HTTP/") == 0) 
         {
             std::istringstream statusStream(line);
@@ -109,27 +101,20 @@ HttpResponse parseCgiOutput(const std::string& raw)
         } 
         else 
         {
-            // Reset headerStream to re-parse first line
-            headerStream.clear(); // Reset error flags
-            headerStream.str(headerPart); // Rewind to start
+            headerStream.clear();
+            headerStream.str(headerPart);
         }
     }
-
-    // Parse headers
     while (std::getline(headerStream, line)) 
     {
         if (!line.empty() && *line.rbegin() == '\r')
             line.erase(line.size() - 1);
-        std::cerr << "2------------------->\033[1;34m[CGI]\033[0m Line: " << line << std::endl;
-            
         size_t colon = line.find(':');
         if (colon != std::string::npos) 
         {
             std::string key = line.substr(0, colon);
             std::string value = line.substr(colon + 1);
             ltrim(value);
-
-            // Lowercase for lookup only
             std::string lowerKey = toLower(key);
             if (lowerKey == "status") 
             {
@@ -143,37 +128,29 @@ HttpResponse parseCgiOutput(const std::string& raw)
                 response.CookiesHeaders.insert(std::make_pair("Set-Cookie", value));
             else
                 response.headers[key] = value;
-
         }
     }
-
     if (!statusParsed) 
     {
         response.statusCode = 200;
         response.statusText = "OK";
     }
-
     response.body = bodyPart;
-
     if (response.headers.find("Content-Length") == response.headers.end()) 
     {
         std::ostringstream oss;
         oss << response.body.size();
         response.headers["Content-Length"] = oss.str();
     }
-
     if (response.headers.find("Content-Type") == response.headers.end()) 
     {
         response.headers["Content-Type"] = "text/html";
     }
-
     std::cout << "\033[1;34m[CGI]\033[0m Parsed CGI CookiesHeaders:\n";
-    // print all CookiesHeaders no const auto or auto c++98 !!!
     for (std::map<std::string, std::string>::iterator it = response.CookiesHeaders.begin(); it != response.CookiesHeaders.end(); ++it)
     {
         std::cout << "\033[1;34m[CGI]\033[0m " << it->first << ": " << it->second << std::endl;
     }
-
     return response;
 }
 
@@ -219,14 +196,13 @@ void HandleCookies(Connection& conn, HttpRequest& req)
                 sessionManager.save(newSessionId, sessionInfos.getCookies());
             }
         }
-    } // if not set-cookie
+    }
     else 
     {
         std::cout << "\033[1;33m[Session]\033[0m No cookies found in request" << std::endl;
         std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
         sessionInfos.setSessionId(newSessionId);
         sessionInfos.getCookies()["session_id"] = newSessionId;
-
         if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) != 0
         || access(sessionManager.buildSessionFilePath(newSessionId).c_str(), R_OK) != 0
         || access(sessionManager.buildSessionFilePath(newSessionId).c_str(), W_OK) != 0)
@@ -257,7 +233,6 @@ void handleNewConnection(Reactor &reactor, const Event &event)
         conn->setKeepAlive(keepAlive);
     }
 }
-
 
 void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv)
 {
