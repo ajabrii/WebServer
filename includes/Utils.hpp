@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/31 17:11:25 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/31 17:18:54 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,12 +20,10 @@
 #include "../includes/CgiHandler.hpp"
 #include "../includes/Errors.hpp"
 #include "../includes/Utils.hpp"
+#include <sstream>
+#include <string>
 
 #define REQUEST_LIMIT_PER_CONNECTION 100
-
-
-#include <string>
-#include <sstream>
 
 namespace Utils
 {

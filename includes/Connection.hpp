@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/07/28 12:58:53 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/07/31 17:27:22 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,12 +27,12 @@
 class HttpServer;
 
 
-enum RequestState {
+enum RequestState
+{
     READING_HEADERS,
     READING_BODY_CONTENT_LENGTH,
     READING_BODY_CHUNKED,
     REQUEST_COMPLETE,
-    // ERROR_STATE // Added for explicit error handling
 };
 class Connection
 {
@@ -43,7 +43,6 @@ class Connection
         time_t lastActivityTime;
         bool keepAlive;
         int requestCount;
-
         RequestState requestState;
         long contentLength;
         bool isChunked;
@@ -51,30 +50,23 @@ class Connection
         CgiState* cgiState;
         SessionInfos sessionInfos;
         
-
-        
-        public:
+    public:
         Connection();
         Connection(int fd, const sockaddr_in& addr);
         ~Connection();
-        
         int getFd() const;
         void readData(HttpServer* server);
         void writeData(const std::string& response) const;
         std::string getClientIP() const;
         void closeConnection();
-
         void updateLastActivity();
-        time_t getLastActivity() const{
-            return lastActivityTime;
-        }
+        time_t getLastActivity() const;
         bool isKeepAlive() const;
         void setKeepAlive(bool keepAlive);
         bool isTimedOut() const;
         int getRequestCount() const;
         void incrementRequestCount();
         void resetForNextRequest();
-
         HttpRequest& getCurrentRequest();
         bool isRequestComplete() const;
         bool isConnectionClosed() const;
