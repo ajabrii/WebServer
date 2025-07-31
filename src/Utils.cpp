@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/31 17:06:28 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/31 17:10:24 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@
 #include <string>
 #include <map>
 #include <algorithm>
-
 
 
 std::string clean_line(std::string line)
@@ -158,7 +157,6 @@ std::string buildSetCookieHeader(const std::string& session_id)
 {
     return "Set-Cookie: session_id=" + session_id + "; Path=/; HttpOnly\r\n";
 }
-
 
 void HandleCookies(Connection& conn, HttpRequest& req)
 {
@@ -321,7 +319,6 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, 
         handleHttpException(reactor, conn, server, e);
     }
 }
-
 
 void handleHttpResponse(Reactor &reactor, Connection &conn, HttpResponse &resp, const HttpRequest &req)
 {
