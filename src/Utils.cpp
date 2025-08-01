@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/31 17:10:24 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/01 23:41:44 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,17 +145,7 @@ HttpResponse parseCgiOutput(const std::string& raw)
     {
         response.headers["Content-Type"] = "text/html";
     }
-    std::cout << "\033[1;34m[CGI]\033[0m Parsed CGI CookiesHeaders:\n";
-    for (std::map<std::string, std::string>::iterator it = response.CookiesHeaders.begin(); it != response.CookiesHeaders.end(); ++it)
-    {
-        std::cout << "\033[1;34m[CGI]\033[0m " << it->first << ": " << it->second << std::endl;
-    }
     return response;
-}
-
-std::string buildSetCookieHeader(const std::string& session_id) 
-{
-    return "Set-Cookie: session_id=" + session_id + "; Path=/; HttpOnly\r\n";
 }
 
 void HandleCookies(Connection& conn, HttpRequest& req)
@@ -208,7 +198,7 @@ void HandleCookies(Connection& conn, HttpRequest& req)
             sessionManager.save(newSessionId, sessionInfos.getCookies());
         }
     }
-    sessionInfos.setSessionPath(sessionManager.buildSessionFilePath(sessionInfos.getSessionId()));
+    sessionInfos.setSessionPath();
     sessionInfos.setSessionId(sessionInfos.getSessionId());
     conn.getCurrentRequest().SessionId = conn.getSessionInfos().getSessionId();
     sessionInfos.setSessionData(sessionManager.load(sessionInfos.getSessionId()));
