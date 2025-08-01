@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/08/01 22:47:06 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/01 22:52:59 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,14 +233,6 @@ CgiData CgiHandler::check_cgi(void)
 
         break;
     }
-    // print all data members
-    std::cerr << "\033[1;34m[CGI]\033[0m CGI Data:\033[0m" << std::endl;
-    std::cerr << "\033[1;34m[CGI]\033[0m Query: " << data.query << std::endl;
-    std::cerr << "\033[1;34m[CGI]\033[0m Script Path: " << data.script_path << std::endl;
-    std::cerr << "\033[1;34m[CGI]\033[0m CGI Extension: " << data.cgi_extn << std::endl;
-    std::cerr << "\033[1;34m[CGI]\033[0m CGI Interpreter: " << data.CgiInterp << std::endl;
-    std::cerr << "\033[1;34m[CGI]\033[0m Path Info: " << data.PathInfo << std::endl;
-    
     return data;
 }
 
