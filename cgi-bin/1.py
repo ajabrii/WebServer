@@ -2,7 +2,9 @@
 
 
 # Output required CGI header and blank line (MUST be CRLF CRLF)
-print("Content-Type: text/html\r\n\r\n")
+print("Content-Type: text/html")
+
+print("\r\n\r\n")
 
 html = """
 <!DOCTYPE html>

@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/01 23:41:44 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/02 00:45:59 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,9 +72,12 @@ HttpResponse parseCgiOutput(const std::string& raw)
 {
     HttpResponse response;
 
+    std::cerr << "RAW in CGI OUTPUT" << raw << std::endl;
+
     size_t headerEnd = raw.find("\r\n\r\n");
     if (headerEnd == std::string::npos) 
     {
+        std::cerr << "[CGI] Invalid CGI output: no headers found." << std::endl;
         response.statusCode = 500;
         response.statusText = "Internal Server Error";
         response.body = "CGI script did not return valid headers.";

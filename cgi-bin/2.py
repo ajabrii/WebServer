@@ -1,29 +1,15 @@
 #!/usr/bin/python3
 
-# IMPORTANT:
-# 1. The first line must be the interpreter path. Adjust if yours is different.
-# 2. This script must have execute permissions: chmod +x basic_test.py
+import sys
 
-# --- CGI Headers ---
-# This tells the web server (and browser) what kind of content to expect.
-print("Content-Type: text/html\r\n\r\n")
+# Always flush header separately
+sys.stdout.write("Content-Type: text/html\r\n")
+sys.stdout.write("\r\n")
+sys.stdout.flush()  # FLUSH NOW to ensure headers go before body
 
-# --- Blank Line ---
-# THIS IS CRITICAL! It separates the HTTP headers from the body.
-# Your C++ server *must* find this `\r\n\r\n` (double newline) to correctly
-# parse the CGI's output.
-print("")
-
-# --- HTML Body ---
-# The actual content of the web page.
+# Body starts here
 print("<!DOCTYPE html>")
 print("<html lang='en'>")
-print("<head>")
-print("    <meta charset='UTF-8'>")
-print("    <title>CGI Basic Test</title>")
-print("</head>")
-print("<body>")
-print("    <h1>Hello from Basic Python CGI!</h1>")
-print("    <p>If you see this, your C++ server successfully executed the CGI script.</p>")
-print("</body>")
+print("<head><meta charset='UTF-8'><title>CGI OK</title></head>")
+print("<body><h1>Hello from Python CGI!</h1></body>")
 print("</html>")

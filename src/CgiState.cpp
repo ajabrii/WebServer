@@ -64,6 +64,9 @@ void CgiState::readFromScript(Connection& conn , Reactor& reactor)
     {
         std::cout << "\033[1;34m[CGI]\033[0m CGI output EOF detected\n";
 
+        //print raw output
+        std::cerr << "\033[1;34m[CGI]\033[0m Raw CGI output: " << conn.getCgiState()->rawOutput << std::endl;
+
         HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput);
         setConnectionHeaders(resp, conn.isKeepAlive());
         conn.writeData(resp.toString());

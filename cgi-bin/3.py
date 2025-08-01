@@ -2,7 +2,6 @@
 import os
 import sys
 
-sleep(1000)
 
 sys.stdout.write("Content-Type: text/html\r\n")
 sys.stdout.write("Set-Cookie: user_id=12345; Path=/; HttpOnly\r\n")

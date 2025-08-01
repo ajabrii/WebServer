@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/08/01 23:21:27 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/02 00:56:40 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ CgiHandler::CgiHandler(const HttpServer &server, const HttpRequest& req , const 
     _env_paths = env_paths;
     _clientSocket = clientSocket;
     _data = check_cgi();
+    _data.DebugPrint();
 }
 void printEnvp(char** envp) 
 {
@@ -345,7 +346,7 @@ CgiState *CgiHandler::execCgi(Connection &conn)
             script_dir_path = filesystem_script_path.substr(0, last_slash);
             script_filename = filesystem_script_path.substr(last_slash + 1);
         }
-
+        script_dir_path = "." + script_dir_path;
         if (chdir(script_dir_path.c_str()) == -1)
         {
             deleteEnvp(env);

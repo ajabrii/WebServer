@@ -27,7 +27,7 @@ class CgiState
             std::cerr << "\033[1;34m[CGI]\033[0m CGI WAITS OR NOT: " << pid << std::endl;
             if (pid != -1)
             {
-                waitpid(pid, NULL, 0);
+                waitpid(pid, NULL, WNOHANG);
                 pid = -1;
             }
             std::cerr << "\033[1;34m[CGI]\033[0m CGI state cleaned up for PID: " << pid << std::endl;
