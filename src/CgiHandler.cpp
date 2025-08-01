@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/08/01 22:52:59 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/01 22:58:12 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,25 +240,6 @@ bool CgiHandler::IsCgi(void)
 {
     return (_data.hasCgi);
 }
-
-std::string GetKey(std::map<std::string, std::string> map ,std::string target)
-{
-    std::string value;
-        
-    for (std::map<std::string, std::string>::const_iterator it = map.begin(); it != map.end(); ++it) 
-    {
-        std::cerr << "KEY: " << it->first << " , Value: " << it->second << std::endl;
-        std::string current_key = it->first;
-        std::transform(current_key.begin(), current_key.end(), current_key.begin(), ::tolower);
-        if (current_key == target) 
-        {
-            value = it->second;
-            break;
-        }
-    }
-    return (value);
-}
-
 
 CgiState *CgiHandler::execCgi(Connection &conn)
 {
