@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/08/01 18:51:41 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/01 22:47:06 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,7 +109,7 @@ char **CgiHandler::set_env(Connection &conn)
     else
     {
         env_map["SERVER_NAME"] = host;
-        env_map["SERVER_PORT"] = "80"; // fallback
+        env_map["SERVER_PORT"] = "80";
     }
 
     if (_req.method == "GET") 
@@ -131,17 +131,19 @@ char **CgiHandler::set_env(Connection &conn)
 std::vector<std::string> split_string(const std::string& path, char c)
 {
     std::vector<std::string> subs;
-    size_t prev_pos = 0;
-    size_t current_pos = 0;
+    size_t start_pose = 0;
+    size_t c_pose = 0;
+    size_t length_path = 0;
 
-    current_pos = path.find(c, prev_pos);
-    while (current_pos != std::string::npos)
+    c_pose = path.find(c, start_pose);
+    while (c_pose != std::string::npos)
     {
-        subs.push_back(path.substr(prev_pos, current_pos - prev_pos));
-        prev_pos = current_pos + 1;
-        current_pos = path.find(c, prev_pos);
+        length_path = c_pose - start_pose;
+        subs.push_back(path.substr(start_pose, length_path));
+        start_pose = c_pose + 1;
+        c_pose = path.find(c, start_pose);
     }
-    subs.push_back(path.substr(prev_pos));
+    subs.push_back(path.substr(start_pose));
     return subs;
 }
 
