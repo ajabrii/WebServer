@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:56:52 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/30 16:59:57 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/01 18:35:46 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,6 @@ class CgiHandler
         HttpRequest _req;
         std::string _env_paths;
         CgiData _data;
-        // int _serverSocket;
         int _clientSocket;
         HttpResponse _errResponse;
     public:

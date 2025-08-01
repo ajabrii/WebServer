@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/07/30 17:32:36 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/01 18:51:41 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,7 @@ char **CgiHandler::set_env(Connection &conn)
 }
 
 
-std::vector<std::string> split_string(const std::string& path, char c) // string=/path:/path:....
+std::vector<std::string> split_string(const std::string& path, char c)
 {
     std::vector<std::string> subs;
     size_t prev_pos = 0;
@@ -145,11 +145,11 @@ std::vector<std::string> split_string(const std::string& path, char c) // string
     return subs;
 }
 
-std::string full_path(std::string paths, std::string cmd) // /usr/bin/python3
+std::string full_path(std::string paths, std::string cmd)
 {
     if (!access(cmd.c_str(), X_OK))
             return (cmd);
-    std::vector<std::string> subs =  split_string(paths, ':'); // bash
+    std::vector<std::string> subs =  split_string(paths, ':');
     
     if (subs[0].find('=') != std::string::npos)
         subs[0] = subs[0].substr(subs[0].find('=') + 1);
@@ -178,7 +178,6 @@ CgiData CgiHandler::check_cgi(void)
     if (_req.method != "GET" && _req.method != "POST")
         throw HttpRequest::HttpException(405, "Method Not Allowed");
 
-    // Loop over CGI extension map
     for (std::map<std::string, std::string>::const_iterator it = _route.cgi.begin(); it != _route.cgi.end(); ++it)
     {
         const std::string& ext = it->first;
@@ -243,9 +242,6 @@ CgiData CgiHandler::check_cgi(void)
     return data;
 }
 
-
-
-
 bool CgiHandler::IsCgi(void)
 {
     return (_data.hasCgi);
@@ -273,162 +269,157 @@ std::string GetKey(std::map<std::string, std::string> map ,std::string target)
 CgiState *CgiHandler::execCgi(Connection &conn)
 {
     conn.updateLastActivity();
-    std::cerr << "last activity time: " << conn.getLastActivity() << std::endl;
     CgiState *f = new CgiState();
     std::string cmd;
-    std::string fp; // Full path to interpreter
-    std::string str; // Script path to pass as argv[1]
+    std::string fp;
+    std::string str;
     pid_t pid;
     char **env;
 
-    std::string check_existing;
+    if (_data.script_path.empty() || _data.script_path[0] != '/')
+    {
+        delete f;
+        conn.getCurrentRequest().throwHttpError(400, "Invalid script path.");
+        return NULL;
+    }
 
-    check_existing = _data.script_path.substr(1);
-    if (access((char *)check_existing.c_str(), F_OK) < 0)
+    std::string check_existing = _data.script_path.substr(1);
+    if (access(check_existing.c_str(), F_OK) < 0)
     {
         delete f;
         conn.getCurrentRequest().throwHttpError(404, "Script file not found, path: {" + check_existing + "}");
         return NULL;
     }
-    
-    // Determine command to pass to execve
+
     if (_data.CgiInterp.find("/") != std::string::npos)
-    cmd = _data.CgiInterp.substr(_data.CgiInterp.find_last_of("/") + 1); // e.g., "php-cgi" from "/usr/bin/php-cgi"
+        cmd = _data.CgiInterp.substr(_data.CgiInterp.find_last_of("/") + 1);
     else
-    cmd = _data.CgiInterp; // e.g., "python3"
-    
-    fp  = full_path(_env_paths, _data.CgiInterp);
+        cmd = _data.CgiInterp;
+
+    fp = full_path(_env_paths, _data.CgiInterp);
     if (fp.empty())
     {
-        std::cerr << "Error: CGI interpreter not found: " << _data.CgiInterp << std::endl;
         delete f;
         conn.getCurrentRequest().throwHttpError(500, "Internal Server Error : interpreter not found.");
         return NULL;
     }
-    
+
     str = _data.script_path.substr(1);
-    
-    int pfd[2]; // Pipe for CGI output
-    int pfd_in[2]; // Pipe for CGI input (for POST requests)
-    
-    if (pipe(pfd) == -1) // Pipe for stdout from CGI
+
+    int pfd[2];
+    int pfd_in[2];
+
+    if (pipe(pfd) == -1)
     {
-        perror("pipe stdout failed");
         delete f;
         conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
         return NULL;
     }
-    
-    if (_req.method == POST && pipe(pfd_in) == -1) // Pipe for stdin to CGI (only for POST)
+
+    if (_req.method == POST && pipe(pfd_in) == -1)
     {
-        perror("pipe stdin failed");
         close(pfd[0]);
         close(pfd[1]);
         delete f;
         conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
         return NULL;
     }
-    
-    env = set_env(conn); // Environment variables prepared
+
+    env = set_env(conn);
     pid = fork();
-    if (pid == -1) // Fork failed
+    if (pid == -1)
     {
-        perror("fork failed");
         close(pfd[0]); close(pfd[1]);
-        if (_req.method == POST) 
+        if (_req.method == POST)
         {
-            close(pfd_in[0]); 
-            close(pfd_in[1]); 
+            close(pfd_in[0]);
+            close(pfd_in[1]);
         }
         deleteEnvp(env);
         delete f;
         conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
         return NULL;
     }
-    else if (pid == 0) // Child process (CGI)
+    else if (pid == 0)
     {
-        std::cerr << "HELLO FROM CHILD PID: " << getpid() << std::endl;
-        // Redirect stdout to parent
         dup2(pfd[1], STDOUT_FILENO);
-        close(pfd[0]); // Close read end in child
-        close(pfd[1]); // Close write end after duping
+        close(pfd[0]);
+        close(pfd[1]);
 
-        // Redirect stdin from parent for POST requests
         if (_req.method == POST)
         {
             dup2(pfd_in[0], STDIN_FILENO);
-            close(pfd_in[0]); // Close read end in child
-            close(pfd_in[1]); // Close write end in child
+            close(pfd_in[0]);
+            close(pfd_in[1]);
         }
         else
         {
-            // For GET or others, connect an empty pipe to stdin
-            int null_fd[2];
-            if (pipe(null_fd) == -1)
-                exit(1); // Pipe failure
+            int null_fd = open("/dev/null", O_RDONLY);
+            if (null_fd == -1) _exit(1);
+            dup2(null_fd, STDIN_FILENO);
+            close(null_fd);
+        }
 
-            dup2(null_fd[0], STDIN_FILENO); // Child will read EOF
-            close(null_fd[0]);
-            close(null_fd[1]);
-        }       
-                
-        // **CRITICAL: Set up proper working directory and script path**
-        // Convert URI path to filesystem path
         std::string filesystem_script_path = _data.script_path;
-        std::cerr << "Full script path: " << filesystem_script_path << std::endl;
-        
-        // Get the directory containing the script
         size_t last_slash = filesystem_script_path.rfind('/');
         std::string script_dir_path = ".";
         std::string script_filename = filesystem_script_path;
-        
-        if (last_slash != std::string::npos) {
+
+        if (last_slash != std::string::npos)
+        {
             script_dir_path = filesystem_script_path.substr(0, last_slash);
             script_filename = filesystem_script_path.substr(last_slash + 1);
         }
-        
-        script_dir_path = "." + script_dir_path; // Make it relative to current working directory 
-        std::cerr << "script_dir_path: " << script_dir_path << std::endl;
-        std::cerr << "script_filename: " << script_filename << std::endl;
+        script_dir_path = "." + script_dir_path;
 
-        if (chdir(script_dir_path.c_str()) == -1) 
+        if (chdir(script_dir_path.c_str()) == -1)
         {
-            perror("chdir failed");
-            exit(1); // Exit child process on chdir failure
+            deleteEnvp(env);
+            _exit(1);
         }
-        // Execute the CGI script
-        // argv[0] should be the interpreter name, argv[1] is the script filename
-        char *final_argv[3];
-        final_argv[0] = (char *)cmd.c_str(); // Just the interpreter name
-        final_argv[1] = (char *)script_filename.c_str(); // Script filename relative to CWD
-        final_argv[2] = NULL;
-        
-        execve(fp.c_str(), final_argv, env);
-        perror("execve failed"); // Only reached if execve fails
-        if (_req.method == POST)
-            close(pfd_in[1]);
-        exit(1); // Child must exit on execve failure
-    }
-    else // Parent process
-    {
-       close(pfd[1]); // Write end, not needed
-        if (_req.method == POST)
-            close(pfd_in[0]); // Read end, not needed
 
-        fcntl(pfd[0], F_SETFL, O_NONBLOCK); // protcect
+        char *final_argv[3];
+        final_argv[0] = (char *)cmd.c_str();
+        final_argv[1] = (char *)script_filename.c_str();
+        final_argv[2] = NULL;
+
+        execve(fp.c_str(), final_argv, env);
+        deleteEnvp(env);
+        _exit(1);
+    }
+    else
+    {
+        close(pfd[1]);
         if (_req.method == POST)
-            fcntl(pfd_in[1], F_SETFL, O_NONBLOCK);
+            close(pfd_in[0]);
+
+        if (fcntl(pfd[0], F_SETFL, O_NONBLOCK) == -1)
+        {
+            delete f;
+            deleteEnvp(env);
+            conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
+            return NULL;
+        }
+
+        if (_req.method == POST && fcntl(pfd_in[1], F_SETFL, O_NONBLOCK) == -1)
+        {
+            close(pfd[0]);
+            delete f;
+            deleteEnvp(env);
+            conn.getCurrentRequest().throwHttpError(500, "Internal Server Error");
+            return NULL;
+        }
 
         f->output_fd = pfd[0];
         if (_req.method == POST)
-            f->input_fd = pfd_in[1]; // Only for POST requests
+            f->input_fd = pfd_in[1];
         else
-            f->input_fd = -1; // No input for GET requests
+            f->input_fd = -1;
         f->pid = pid;
         f->bodySent = false;
         f->script_path = _data.script_path;
         f->startTime = std::time(0);
-        f->connection = &conn; // Store the connection for later use
+        f->connection = &conn;
         deleteEnvp(env);
         return f;
     }
