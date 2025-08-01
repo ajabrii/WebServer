@@ -6,13 +6,11 @@
 
 void CgiState::writeToScript(Connection& conn)
 {
-    std::cerr << "in fd  : " << this->input_fd << " bodySent: " << this->bodySent << " bytesWritten: " << this->bytesWritten << std::endl;
     if (!this->bodySent && this->input_fd != -1)
     {
         const std::string& body = conn.getCurrentRequest().body;
         size_t totalSize = body.size();
         size_t remaining = totalSize - this->bytesWritten;
-        std::cerr << ", remaining bytes: " << remaining << std::endl;
         if (remaining > 0)
         {
             ssize_t written = write(this->input_fd, body.c_str() + this->bytesWritten,remaining);
