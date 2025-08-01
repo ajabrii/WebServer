@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/08/01 22:58:12 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/01 23:21:27 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,12 +246,12 @@ CgiState *CgiHandler::execCgi(Connection &conn)
     conn.updateLastActivity();
     CgiState *f = new CgiState();
     std::string cmd;
-    std::string fp;
+    std::string fullPath;
     std::string str;
     pid_t pid;
     char **env;
 
-    if (_data.script_path.empty() || _data.script_path[0] != '/')
+    if (_data.script_path.empty() || _data.script_path[0] != '/' || _data.script_path.find("..") != std::string::npos)
     {
         delete f;
         conn.getCurrentRequest().throwHttpError(400, "Invalid script path.");
@@ -271,8 +271,8 @@ CgiState *CgiHandler::execCgi(Connection &conn)
     else
         cmd = _data.CgiInterp;
 
-    fp = full_path(_env_paths, _data.CgiInterp);
-    if (fp.empty())
+    fullPath = full_path(_env_paths, _data.CgiInterp);
+    if (fullPath.empty())
     {
         delete f;
         conn.getCurrentRequest().throwHttpError(500, "Internal Server Error : interpreter not found.");
@@ -345,7 +345,6 @@ CgiState *CgiHandler::execCgi(Connection &conn)
             script_dir_path = filesystem_script_path.substr(0, last_slash);
             script_filename = filesystem_script_path.substr(last_slash + 1);
         }
-        script_dir_path = "." + script_dir_path;
 
         if (chdir(script_dir_path.c_str()) == -1)
         {
@@ -358,7 +357,7 @@ CgiState *CgiHandler::execCgi(Connection &conn)
         final_argv[1] = (char *)script_filename.c_str();
         final_argv[2] = NULL;
 
-        execve(fp.c_str(), final_argv, env);
+        execve(fullPath.c_str(), final_argv, env);
         deleteEnvp(env);
         _exit(1);
     }
