@@ -1,10 +1,22 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   SessionManager.hpp                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/08/02 09:56:15 by ajabri            #+#    #+#             */
+/*   Updated: 2025/08/02 09:56:16 by ajabri           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef SESSION_MANAGER_HPP
 #define SESSION_MANAGER_HPP
 
 #include <string>
 #include <map>
 
-class SessionManager 
+class SessionManager
 {
     private:
         std::string sessionDir;

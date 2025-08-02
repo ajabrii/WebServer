@@ -3,14 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/27 13:03:19 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/02 09:55:39 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-// HttpRequest.hpp
 #ifndef HTTP_REQUEST_HPP
 #define HTTP_REQUEST_HPP
 

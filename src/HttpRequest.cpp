@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ytarhoua <ytarhoua@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/28 12:40:47 by ytarhoua         ###   ########.fr       */
+/*   Updated: 2025/08/02 09:55:20 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void HttpRequest::parseRequestLine(const std::string& line)
 {
     std::istringstream requestLineStream(line);
     requestLineStream >> this->method >> this->uri >> this->version;
-    
+
     if ((this->method.empty() || this->uri.empty() || this->version.empty())){
         throwHttpError(400, "Invalid HTTP request: info missed in request line");
     }
@@ -47,12 +47,12 @@ void HttpRequest::parseRequestLine(const std::string& line)
 void HttpRequest::parseHeaderLine(const std::string& line, int& hostFlag)
 {
     std::string trimmed_line = line;
-    // Remove trailing \r from the line read by getline
+
     if (!trimmed_line.empty() && trimmed_line[trimmed_line.size() - 1] == '\r') {
         trimmed_line.erase(trimmed_line.size() - 1);
     }
 
-    if (trimmed_line.empty()) { // end of header line
+    if (trimmed_line.empty()) {
         if (hostFlag != 1) {
             throwHttpError(400, "Bad request: Host header missing or deplicated");
         }
@@ -94,26 +94,23 @@ void HttpRequest::validateAbsoluteUri()
 {
     if (this->uri.find("http://", 0) == 0)
     {
-        size_t host_start_pos = 7; // length of "http://"
+        size_t host_start_pos = 7;
         size_t path_start_pos = this->uri.find('/', host_start_pos);
         std::string host_in_uri;
-    
+
         if (path_start_pos == std::string::npos) {
-            // URI is like "http://www.example.com" with no path
             host_in_uri = this->uri.substr(host_start_pos);
-            this->uri = "/"; // The path is just the root
+            this->uri = "/";
         } else {
-            // URI is like "http://www.example.com/path"
             host_in_uri = this->uri.substr(host_start_pos, path_start_pos - host_start_pos);
-            this->uri = this->uri.substr(path_start_pos); // Update URI to just be the path
+            this->uri = this->uri.substr(path_start_pos);
         }
-    
-        // l host d request khass tkon bhal host li 
+
         std::string host_header = GetHeader("host");
         if (host_header.find(':') != std::string::npos) {
             host_header = host_header.substr(0, host_header.find(':'));
         }
-    
+
         if (host_in_uri != host_header) {
             throwHttpError(400, "Host in request URI does not match Host header");
         }
@@ -123,7 +120,7 @@ void HttpRequest::validateAbsoluteUri()
 void HttpRequest::determineBodyProtocol()
 {
     if (this->method == "POST"){
-        
+
         std::string cl_header = GetHeader("content-length");
         std::string te_header = GetHeader("transfer-encoding");
 
@@ -145,7 +142,6 @@ void HttpRequest::determineBodyProtocol()
         }
     }
     else {
-        // For methods other than POST, no body is expected
         this->isChunked = false;
         this->contentLength = 0;
     }
@@ -157,54 +153,46 @@ void HttpRequest::parseHeaders(const std::string& rawHeaders)
     std::string line;
     int hostFlag = 0;
 
-    // Parse request line
     if (!std::getline(stream, line) || line.empty()){
         throwHttpError(400, "Invalid HTTP request: empty request line");
     }
     parseRequestLine(line);
-    
-    // Parse header lines
+
     while (std::getline(stream, line)) {
-        std::string trimmed_line = line;
-        if (!trimmed_line.empty() && trimmed_line[trimmed_line.size() - 1] == '\r') {
-            trimmed_line.erase(trimmed_line.size() - 1);
+        if (!line.empty() && line[line.size() - 1] == '\r') {
+        line.erase(line.size() - 1);
         }
 
-        if (trimmed_line.empty()) { // end of header section
+        if (line.empty()) {
             if (hostFlag != 1) {
                 throwHttpError(400, "Bad request: Host header missing or deplicated");
             }
             break;
         }
-        
+
         parseHeaderLine(line, hostFlag);
     }
 
-    // Validate absolute URI if present
     validateAbsoluteUri();
 
-    // Determine body protocol based on headers
     determineBodyProtocol();
 }
 
 bool HttpRequest::parseBody(std::string& connectionBuffer, long maxBodySize) {
     if (!isChunked && contentLength == 0) {
-        // No body expected already done;
         return true;
     }
 
-    if (!isChunked) { // Content-Length body
+    if (!isChunked) {
         if (contentLength > maxBodySize)
             throwHttpError(413, "request entity Too Large");
         if (contentLength > 0 && connectionBuffer.length() >= static_cast<size_t>(contentLength)) {
             this->body.append(connectionBuffer.substr(0, contentLength));
             connectionBuffer.erase(0, contentLength);
-            return true; // Body is complete
+            return true;
         }
-        // Not enough data yet, will return false and wait for more
         return false;
-    } else { // Chunked body
-        // Call the incremental chunked decoder
+    } else {
         return decodeChunked(connectionBuffer, this->body, maxBodySize);
     }
 }
@@ -214,55 +202,42 @@ bool HttpRequest::parseChunkSize(const std::string& sizeHex, long& chunkSize)
     if (sizeHex.empty()) {
         return false;
     }
-    
-    // Find and ignore chunk extensions (everything after ';')
+
     std::string hexPart = sizeHex;
     size_t semicolon = hexPart.find(';');
     if (semicolon != std::string::npos) {
         hexPart = hexPart.substr(0, semicolon);
     }
-    
-    // Validate hex characters
     for (size_t i = 0; i < hexPart.size(); ++i) {
         char c = hexPart[i];
         if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
             return false;
         }
     }
-    
-    // Parse hex to number
     std::istringstream iss(hexPart);
     iss >> std::hex >> chunkSize;
-    
+
     if (iss.fail() || !iss.eof() || chunkSize < 0) {
         return false;
     }
-    
-    // Check for reasonable chunk size limit (e.g., 100MB)
-    // if (chunkSize > 104857600) {
-    //     return false;
-    // }
-    
+
     return true;
 }
 
 bool HttpRequest::skipTrailerHeaders(std::string& buffer, size_t startPos)
 {
     size_t pos = startPos;
-    
+
     while (true) {
         size_t lineEnd = buffer.find("\r\n", pos);
         if (lineEnd == std::string::npos) {
-            return false; // Need more data
+            return false;
         }
-        
-        // Check if this is the final empty line
+
         if (lineEnd == pos) {
-            buffer.erase(0, pos + 2); // Remove everything including final \r\n
+            buffer.erase(0, pos + 2);
             return true;
         }
-        
-        // Skip this trailer header line
         pos = lineEnd + 2;
     }
 }
@@ -270,47 +245,34 @@ bool HttpRequest::skipTrailerHeaders(std::string& buffer, size_t startPos)
 bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput, long maxBodySize) {
     while (true)
     {
-        // STEP 1: Find chunk size line
         size_t sizeEndPos = buffer.find("\r\n");
         if (sizeEndPos == std::string::npos) {
-            return false; // Need more data
+            return false;
         }
-
-        // STEP 2: Parse chunk size with proper error handling
         std::string sizeHex = buffer.substr(0, sizeEndPos);
         long chunkSize;
         if (!parseChunkSize(sizeHex, chunkSize)) {
             throwHttpError(400, "Invalid chunk size format");
         }
-        
-        // STEP 3: Check maxBodySize before adding chunk
         if (chunkSize > 0 && (decodedOutput.length() + chunkSize) > static_cast<size_t>(maxBodySize)) {
             throwHttpError(413, "Payload Too Large");
         }
-
-        // STEP 4: Handle final chunk (size 0)
         if (chunkSize == 0) {
-            // Need to handle optional trailer headers
             size_t trailerStart = sizeEndPos + 2;
             if (!skipTrailerHeaders(buffer, trailerStart)) {
-                return false; // Need more data for complete trailer
+                return false;
             }
-            return true; // Chunked body complete
+            return true;
         }
-
-        // STEP 5: Check if we have complete chunk data
         size_t dataStartPos = sizeEndPos + 2;
-        size_t chunkTotalLength = dataStartPos + chunkSize + 2; // +2 for trailing \r\n
+        size_t chunkTotalLength = dataStartPos + chunkSize + 2;
         if (buffer.length() < chunkTotalLength) {
-            return false; // Need more data
+            return false;
         }
 
-        // STEP 6: Validate chunk trailing CRLF
         if (buffer.substr(dataStartPos + chunkSize, 2) != "\r\n") {
             throwHttpError(400, "Invalid chunk format: missing trailing CRLF");
         }
-        
-        // STEP 7: Extract chunk data and remove processed chunk
         decodedOutput.append(buffer, dataStartPos, chunkSize);
         buffer.erase(0, chunkTotalLength);
     }
@@ -324,11 +286,11 @@ void HttpRequest::throwHttpError(int statusCode, const std::string& message) {
 std::string HttpRequest::GetHeader(std::string target) const
 {
     std::string value;
-        
+
     for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
         std::string current_key = it->first;
         std::transform(current_key.begin(), current_key.end(), current_key.begin(), ::tolower);
-        if (current_key == target) 
+        if (current_key == target)
         {
             value = it->second;
             break;
@@ -342,7 +304,6 @@ HttpRequest::HttpException::HttpException(int code, const std::string& msg)
 }
 
 HttpRequest::HttpException::~HttpException() throw() {
-    // Destructor can be empty, as std::string and int handle their own cleanup
 }
 
 const char* HttpRequest::HttpException::what() const throw() {

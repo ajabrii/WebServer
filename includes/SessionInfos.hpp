@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   SessionInfos.hpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/08/02 09:56:10 by ajabri            #+#    #+#             */
+/*   Updated: 2025/08/02 09:56:11 by ajabri           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 
 #include <map>
@@ -12,7 +24,7 @@ class SessionInfos
             std::string SessionPath;
             std::string SessionId;
 
-        
+
         public:
             SessionInfos();
             ~SessionInfos();

@@ -11,11 +11,6 @@
 /* ************************************************************************** */
 
 #include "../includes/ConfigInterpreter.hpp"
-#include <algorithm> 
-#include <climits>
-#include <cstddef>
-#include <cctype>
-#include <cstdlib>
 
 bool isNum(const std::string& token)
 {
@@ -48,7 +43,7 @@ void ConfigInterpreter::parsePortOption(ServerConfig& server, const std::string&
         int portNum = std::atoi(portStr.c_str());
         if (portNum <= 0 || portNum > 65535)
             throw std::runtime_error("Invalid port number: " + portStr);
-        // check duplicates
+
         if (std::find(server.port.begin(), server.port.end(), portNum) != server.port.end())
             throw std::runtime_error("Duplicate port in server block: " + portStr);
         server.port.push_back(portNum);
@@ -70,22 +65,23 @@ void ConfigInterpreter::parseServerNameOption(ServerConfig& server, const std::s
 
 void ConfigInterpreter::parseClientMaxBodySizeOption(ServerConfig& server, const std::string& value)
 {
+    if (server.clientMaxBodySizeSet) {
+        throw std::runtime_error("Duplicate 'client_max_body_size' entry in server block.");
+    }
+
     if (value.empty())
         throw std::runtime_error("client_max_body_size cannot be empty");
-        
-    unsigned long long size = 0;
+
     std::string numStr = value;
     unsigned long long multiplier = 1;
-    
-    // Check for suffix and extract number
-    if (!value.empty()) {
+
         char lastChar = std::tolower(value[value.size() - 1]);
         if (lastChar == 'k' || lastChar == 'm' || lastChar == 'g') {
             if (value.size() == 1) {
                 throw std::runtime_error("client_max_body_size: suffix without number");
             }
             numStr = value.substr(0, value.size() - 1);
-            
+
             if (lastChar == 'k') {
                 multiplier = 1024ULL;
             } else if (lastChar == 'm') {
@@ -94,34 +90,30 @@ void ConfigInterpreter::parseClientMaxBodySizeOption(ServerConfig& server, const
                 multiplier = 1024ULL * 1024ULL * 1024ULL;
             }
         }
-    }
-    
-    // kolhom numbers
+
     if (numStr.empty() || !isNum(numStr)) {
         throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
     }
-    
-    // Convert to number (using strtoul for better error handling)
+
     char* endptr;
     unsigned long baseSize = std::strtoul(numStr.c_str(), &endptr, 10);
     if (*endptr != '\0') {
         throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
     }
-    
-    // Check for overflow before multiplication
+
     if (baseSize > (ULLONG_MAX / multiplier)) {
         throw std::runtime_error("client_max_body_size too large: " + value);
     }
-    
-    size = baseSize * multiplier;
-    server.clientMaxBodySize = size;
+
+    server.clientMaxBodySize = baseSize * multiplier;
+    server.clientMaxBodySizeSet = true;
 }
 
 void ConfigInterpreter::parseErrorPageOption(ServerConfig& server, const std::string& line)
 {
     std::stringstream ss(line);
     std::string temp;
-    ss >> temp; // skip "error_page"
+    ss >> temp;
     std::vector<int> codes;
     std::string token;
     while (ss >> token)
