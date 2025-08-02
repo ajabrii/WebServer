@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:35:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 17:12:01 by youness          ###   ########.fr       */
+/*   Updated: 2025/08/02 09:45:48 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@ ServerConfig::ServerConfig() : clientMaxBodySize(1024 * 1024), clientMaxBodySize
 
 ServerConfig::ServerConfig(const ServerConfig& other) {
 
-    // if (this == other)
     this->clientMaxBodySize = other.clientMaxBodySize;
     this->clientMaxBodySizeSet = other.clientMaxBodySize;
     this->error_pages = other.error_pages;
