@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/08/02 00:56:40 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/03 17:48:56 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,11 @@ char **CgiHandler::set_env(Connection &conn)
     env_map["REQUEST_METHOD"] = _req.method;
     env_map["PATH_INFO"] = _data.PathInfo;
     env_map["SCRIPT_NAME"] = _data.script_path;
-    env_map["SCRIPT_FILENAME"] = _data.script_path;
+    std::string script_filename = _data.script_path;
+    size_t last_slash = script_filename.rfind('/');
+    if (last_slash != std::string::npos)
+        script_filename = script_filename.substr(last_slash + 1);
+    env_map["SCRIPT_FILENAME"] = script_filename;
     env_map["QUERY_STRING"] = _data.query;
     env_map["REMOTE_ADDR"] = conn.getClientIP();
     env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
@@ -167,6 +171,7 @@ std::string full_path(std::string paths, std::string cmd)
     
     return ("");
 }
+
 
 CgiData CgiHandler::check_cgi(void)
 {
