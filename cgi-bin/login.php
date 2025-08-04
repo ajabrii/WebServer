@@ -1,76 +1,89 @@
 #!/usr/bin/php
 <?php
-// Required for CGI scripts to work correctly
-header("Content-Type: text/html\r\n\r\n");
+// Enable output buffering to prevent premature header output
+ob_start();
 
-// Start the session before any output
+// Start or resume the session
 session_start();
 
-// Hardcoded credentials
-$valid_username = 'admin';
-$valid_password = '1234';
+// Set hardcoded credentials
+$valid_user = 'admin';
+$valid_pass = '1234';
 
-// Handle logout
+// Handle logout action
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
-    // Clear session data
+    // Clear session variables
     $_SESSION = array();
+    // Delete session cookie
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $params["path"]);
+    }
+    // Destroy the session
     session_destroy();
-
-    // Clear the login cookie
-    setcookie("user", "", time() - 3600, "/");
-
-    // Redirect to login page after logout
-    header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
-    exit();
+    // Clear custom login cookie
+    setcookie('login', '', time() - 3600, '/');
+    // Redirect to login form
+    header("Location: " . $_SERVER['SCRIPT_NAME']);
+    exit;
 }
 
-// Handle login submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = isset($_POST['username']) ? $_POST['username'] : '';
-    $password = isset($_POST['password']) ? $_POST['password'] : '';
+// Check if already logged in via session or cookie
+$loggedIn = false;
+if (isset($_SESSION['user']) && $_SESSION['user'] === $valid_user) {
+    $loggedIn = true;
+} elseif (isset($_COOKIE['login']) && $_COOKIE['login'] === $valid_user) {
+    // If cookie is present but no session, restore session
+    $_SESSION['user'] = $_COOKIE['login'];
+    $loggedIn = true;
+}
 
-    // Check credentials
-    if ($username === $valid_username && $password === $valid_password) {
+// Handle login form submission
+if (!$loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $user = $_POST['username'] ?? '';
+    $pass = $_POST['password'] ?? '';
+    if ($user === $valid_user && $pass === $valid_pass) {
         // Set session variable
-        $_SESSION['logged_in'] = true;
-
-        // Set a cookie valid for 1 hour
-        setcookie("user", $username, time() + 3600, "/");
-
-        // Redirect to avoid resubmission on refresh
-        header("Location: " . $_SERVER["REQUEST_URI"]);
-        exit();
+        $_SESSION['user'] = $valid_user;
+        // Set a cookie to persist login
+        setcookie('login', $valid_user, time() + 3600, '/'); // 1 hour
+        $loggedIn = true;
+        // Redirect to avoid form resubmission
+        header("Location: " . $_SERVER['SCRIPT_NAME']);
+        exit;
     } else {
-        $error = "Invalid credentials.";
+        $error = "Invalid credentials";
     }
 }
 
-// Check if user is already logged in via session
-$logged_in = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
+// Output headers
+header("Content-Type: text/html");
 
-// Begin HTML output
-echo "<!DOCTYPE html>";
-echo "<html><head><title>PHP CGI Login</title></head><body>";
-
-if ($logged_in) {
-    // If logged in, show welcome message and logout option
-    $user = isset($_COOKIE['user']) ? htmlspecialchars($_COOKIE['user']) : 'Guest';
-    echo "<h2>Welcome, $user!</h2>";
-    echo "<p><a href='?action=logout'>Logout</a></p>";
-} else {
-    // If not logged in, show login form
-    if (isset($error)) {
-        echo "<p style='color:red;'>$error</p>";
-    }
-    echo <<<HTML
-    <h2>Login</h2>
-    <form method="post">
-        <label>Username: <input type="text" name="username" /></label><br/>
-        <label>Password: <input type="password" name="password" /></label><br/>
+// Output body
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login System</title>
+</head>
+<body>
+<?php if ($loggedIn): ?>
+    <h1>Welcome, <?= htmlspecialchars($valid_user) ?>!</h1>
+    <p><a href="?action=logout">Logout</a></p>
+<?php else: ?>
+    <h1>Login</h1>
+    <?php if (isset($error)): ?>
+        <p style="color:red;"><?= htmlspecialchars($error) ?></p>
+    <?php endif; ?>
+    <form method="post" action="<?= htmlspecialchars($_SERVER['SCRIPT_NAME']) ?>">
+        <label>Username: <input type="text" name="username" /></label><br />
+        <label>Password: <input type="password" name="password" /></label><br />
         <input type="submit" value="Login" />
     </form>
-HTML;
-}
-
-echo "</body></html>";
+<?php endif; ?>
+</body>
+</html>
+<?php
+// Flush the output buffer
+ob_end_flush();
 ?>
