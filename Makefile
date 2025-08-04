@@ -1,5 +1,6 @@
 CXX       = c++
 CPPFLAGS  = -Wall -Wextra -Werror -std=c++98 #-fsanitize=address -g3
+MAKEFLAGS := -j
 
 NAME      = Webserv
 

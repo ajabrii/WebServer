@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Page</title>
+    <script>
+        // Check session with AJAX
+        window.onload = function () {
+            fetch("/cgi-bin/check_session.php", { credentials: "include" })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.logged_in) {
+                        window.location.href = "/cgi-bin/welcome.php";
+                    }
+                });
+        };
+    </script>
+</head>
+<body>
+    <h1>Login</h1>
+    <form method="GET" action="/cgi-bin/login.php">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+
+        <label for="password">Password:</label>
+        <input type="text" id="password" name="password" required><br><br>
+
+        <input type="submit" value="Login">
+    </form>
+</body>
+</html>

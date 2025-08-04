@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiData.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/02 10:00:49 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/02 10:00:50 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/04 19:56:01 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 CgiData::CgiData() : query(""), script_path(""), cgi_extn(""), PathInfo("") ,hasCgi(false)
 {
-
+    
 }
 
 void CgiData::DebugPrint(void)
