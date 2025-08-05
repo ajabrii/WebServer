@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 17:36:16 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 18:36:21 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 # include "../includes/HttpServer.hpp"
 # include "../includes/Errors.hpp"
+# include "../includes/Utils.hpp"
 # define CGI_TIMEOUT_MINUTES 10 // edit
 
 Connection::Connection()
@@ -109,9 +110,22 @@ void Connection::setKeepAlive(bool ka)
 
 bool Connection::isTimedOut() const
 {
-    
-    if (cgiState && cgiState->pid != -1) {
-        return (std::time(0) - lastActivityTime) > CGI_TIMEOUT_MINUTES;
+    HttpResponse response;
+    if (cgiState && cgiState->pid != -1)
+    {
+        bool isTimedOut = (std::time(0) - cgiState->startTime) > CGI_TIMEOUT_MINUTES;
+        if(isTimedOut)
+        {
+            kill(cgiState->pid, SIGKILL);
+            cgiState->pid = -1;
+            response.statusCode = 504;
+            response.statusText = "Gateway Timeout";
+            response.body = "<h1>504 Gateway Timeout</h1>";
+            response.headers["Content-Type"] = "text/html";
+            response.headers["Content-Length"] = Utils::toString(response.body.size());
+            this->writeData(response.toString());
+        }
+        return (isTimedOut);
     }
     return (std::time(0) - lastActivityTime) > KEEP_ALIVE_TIMEOUT;
 }

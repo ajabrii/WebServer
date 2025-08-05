@@ -92,6 +92,7 @@ void CgiState::readFromScript(Connection& conn , Reactor& reactor, const ServerC
         std::cerr << "\033[1;34m[CGI]\033[0m Raw CGI output: " << conn.getCgiState()->rawOutput << std::endl;
 
         HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput, serverConfig);
+        std::cerr << "\033[1;34m[CGI]\033[0m Parsed CGI response: " << resp.toString() << std::endl;
         setConnectionHeaders(resp, conn.isKeepAlive());
         conn.writeData(resp.toString());
 

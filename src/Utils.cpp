@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 16:27:19 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 18:23:44 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,13 +70,6 @@ void ltrim(std::string& s)
 
 HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverConfig) 
 {
-    for (size_t i = 0; i < raw.size(); ++i) {
-    if (raw[i] == '\r') std::cerr << "\\r";
-    else if (raw[i] == '\n') std::cerr << "\\n";
-    else std::cerr << raw[i];
-}
-std::cerr << std::endl;
-
     HttpResponse response;
 
 
