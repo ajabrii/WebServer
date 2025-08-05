@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 13:34:06 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 13:47:57 by youness          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -261,6 +261,7 @@ void processReadableEvent(Reactor &reactor, const Event &event, const std::strin
         {
             reactor.removeConnection(event.fd);
             std::cerr << "Error: No server found for client fd: " << event.fd << std::endl;
+            return;
         }
         try {
             conn.readData(server);
