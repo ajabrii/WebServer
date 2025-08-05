@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 19:33:46 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 19:39:26 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,6 @@ HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverCo
             statusStream >> httpVersion >> response.statusCode;
             std::getline(statusStream, response.statusText);
             ltrim(response.statusText);
-
             if (httpVersion != "HTTP/1.0" && httpVersion != "HTTP/1.1") 
             {
                 std::cerr << "[CGI] Invalid HTTP version in CGI output: " << httpVersion << std::endl;

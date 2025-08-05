@@ -1,23 +1,17 @@
 #!/usr/bin/env python3
 # Output required CGI header and blank line (MUST be CRLF CRLF)
+print("HTTP/1.0 200 OK")
 print("Content-Type: text/html")
+
 print("\r\n\r\n")
+import time
 
-// read POST DATA
-
-import sys
-import cgi
-# Read the POST data if any
-form = cgi.FieldStorage()
-# Check if there is any POST data
-if form:
-    # Process the POST data
-    post_data = {key: form.getvalue(key) for key in form.keys()}
-    # You can use post_data as needed, e.g., print it for debugging
-    print("<p>Received POST data:</p>")
-    print("<pre>")
-    for key, value in post_data.items():
-        print(f"{key}: {value}")
-    print("</pre>")
-else:
-    print("<p>No POST data received.</p>")
+# Output HTML content
+print("<html>")
+print("<head><title>CGI Test</title></head>")
+print("<body>")
+print("<h1>CGI Test Page</h1>")
+print("<p>This is a test page for CGI scripts.</p>")
+print("<p>Current time: " + time.strftime("%Y-%m-%d %H:%M:%S") + "</p>")
+print("</body>")
+print("</html>")
