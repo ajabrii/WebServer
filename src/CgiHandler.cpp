@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/08/05 16:24:35 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 17:38:00 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ CgiHandler::CgiHandler(const HttpServer &server, const HttpRequest& req , const 
     _env_paths = env_paths;
     _clientSocket = clientSocket;
     _data = check_cgi();
-    _data.DebugPrint();
+    // _data.DebugPrint();
 }
 
 CgiHandler::CgiHandler(const CgiHandler& other)
