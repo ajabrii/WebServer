@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/08/05 19:06:26 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 19:20:20 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -268,6 +268,7 @@ CgiData CgiHandler::check_cgi(void)
 
         break;
     }
+    
     return data;
 }
 
@@ -313,8 +314,6 @@ CgiState *CgiHandler::execCgi(Connection &conn)
         conn.getCurrentRequest().throwHttpError(500, "Internal Server Error : interpreter not found.");
         return NULL;
     }
-
-    str = _data.script_path.substr(1);
 
     int pfd[2];
     int pfd_in[2];
