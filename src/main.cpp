@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 13:32:15 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 18:52:53 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ static Reactor *g_reactor = NULL;
 
 void signalHandler(int signum)
 {
-    (void)signum;
+    (void) signum;
     g_shutdown = true;
 }
 
@@ -84,6 +84,7 @@ int main(int ac, char **av, char **envp)
     g_servers = &servers;
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
+    signal(SIGPIPE, SIG_IGN);
 
     try
     {
