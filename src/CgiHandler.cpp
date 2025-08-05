@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/08/04 19:57:55 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 13:43:45 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,6 +105,11 @@ char **CgiHandler::set_env(Connection &conn)
     env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
     env_map["SERVER_PROTOCOL"] = "HTTP/1.1";
     env_map["REDIRECT_STATUS"] = "200";
+    env_map["SERVER_SOFTWARE"] = "Webserv/1.0";
+    env_map["SERVER_PROTOCOL"] = _req.version;
+    env_map["REQUEST_URI"] = _req.uri;
+    env_map["REQUEST_SCHEME"] = "http";
+
 
     if (host.find(':') != std::string::npos)
     {

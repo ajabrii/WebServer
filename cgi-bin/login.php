@@ -9,10 +9,9 @@ if (isset($_SESSION['username'])) {
     exit;
 }
 
-if (!empty($_SERVER['QUERY_STRING'])) {
-    parse_str($_SERVER['QUERY_STRING'], $_GET);
-}
-
+// if (!empty($_SERVER['QUERY_STRING'])) {
+//     parse_str($_SERVER['QUERY_STRING'], $_GET);
+// }
 $username = $_GET['username'] ?? '';
 $password = $_GET['password'] ?? '';
 
