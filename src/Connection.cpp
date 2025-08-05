@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 17:11:01 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 17:36:16 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 # include "../includes/HttpServer.hpp"
 # include "../includes/Errors.hpp"
-# define CGI_TIMEOUT_MINUTES 10
+# define CGI_TIMEOUT_MINUTES 10 // edit
 
 Connection::Connection()
     : client_fd(-1),
