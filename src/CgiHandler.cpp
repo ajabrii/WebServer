@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/08/05 17:38:00 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 19:06:26 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,7 +191,6 @@ std::string full_path(std::string paths, std::string cmd)
     
     for (size_t i = 0; i < subs.size(); i++)
     {
-        std::cout << "tetsing for -> \'" << (subs[i] + "/" + cmd) <<"\'" << std::endl;
         if (!access((subs[i] + "/" + cmd).c_str(), X_OK))
             return (subs[i] + "/" + cmd);
     }
