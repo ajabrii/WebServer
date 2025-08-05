@@ -15,40 +15,615 @@
   })();
 </script>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login or Register</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    @keyframes gradientShift {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      backdrop-filter: blur(10px);
+      animation: slideUp 0.8s ease-out;
+      transform-origin: center bottom;
+    }
+
+    @keyframes slideUp {
+      0% {
+        opacity: 0;
+        transform: translateY(50px) scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .form-section {
+      margin-bottom: 30px;
+      animation: fadeInUp 0.6s ease-out;
+      animation-fill-mode: both;
+    }
+
+    .form-section:nth-child(1) {
+      animation-delay: 0.2s;
+    }
+
+    .form-section:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-section:last-child {
+      margin-bottom: 0;
+    }
+
+    h2 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 25px;
+      font-weight: 300;
+      font-size: 28px;
+      animation: fadeInDown 0.6s ease-out;
+      animation-fill-mode: both;
+    }
+
+    @keyframes fadeInDown {
+      0% {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      position: relative;
+      animation: slideInLeft 0.5s ease-out;
+      animation-fill-mode: both;
+    }
+
+    .input-group:nth-child(2) {
+      animation-delay: 0.1s;
+    }
+
+    .input-group:nth-child(3) {
+      animation-delay: 0.2s;
+    }
+
+    @keyframes slideInLeft {
+      0% {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 15px 20px;
+      border: 2px solid #e1e5e9;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      outline: none;
+      background: #f8f9fa;
+      position: relative;
+    }
+
+    input[type="text"]:focus, input[type="password"]:focus {
+      border-color: #667eea;
+      background: white;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+      animation: inputPulse 0.3s ease-out;
+    }
+
+    @keyframes inputPulse {
+      0% {
+        transform: translateY(-2px) scale(1);
+      }
+      50% {
+        transform: translateY(-2px) scale(1.02);
+      }
+      100% {
+        transform: translateY(-2px) scale(1);
+      }
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.6s ease-out;
+      animation-fill-mode: both;
+      animation-delay: 0.3s;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+      animation: buttonBounce 0.3s ease-out;
+    }
+
+    @keyframes buttonBounce {
+      0% {
+        transform: translateY(-2px) scale(1);
+      }
+      50% {
+        transform: translateY(-2px) scale(1.05);
+      }
+      100% {
+        transform: translateY(-2px) scale(1);
+      }
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .divider {
+      text-align: center;
+      margin: 30px 0;
+      position: relative;
+      animation: scaleIn 0.5s ease-out;
+      animation-fill-mode: both;
+      animation-delay: 0.5s;
+    }
+
+    @keyframes scaleIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #e1e5e9;
+      animation: expandLine 0.8s ease-out;
+      animation-fill-mode: both;
+      animation-delay: 0.6s;
+    }
+
+    @keyframes expandLine {
+      0% {
+        transform: scaleX(0);
+      }
+      100% {
+        transform: scaleX(1);
+      }
+    }
+
+    .divider span {
+      background: white;
+      padding: 0 20px;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .register-section {
+      border-top: 1px solid #e1e5e9;
+      padding-top: 30px;
+    }
+
+    .register-section h2 {
+      color: #764ba2;
+    }
+
+    .register-section button {
+      background: linear-gradient(45deg, #764ba2, #667eea);
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 30px 20px;
+        margin: 10px;
+      }
+      
+      h2 {
+        font-size: 24px;
+      }
+    }
+
+    /* Loading and Success Animations */
+    .loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      margin: -10px 0 0 -10px;
+      border: 2px solid transparent;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .success-animation {
+      animation: successPulse 0.6s ease-out;
+      background: linear-gradient(45deg, #28a745, #20c997) !important;
+    }
+
+    @keyframes successPulse {
+      0% {
+        transform: translateY(-2px) scale(1);
+        box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+      }
+      50% {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 15px 35px rgba(40, 167, 69, 0.4);
+      }
+      100% {
+        transform: translateY(-2px) scale(1);
+        box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+      }
+    }
+
+    /* Custom Popup Styles */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .popup-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .popup {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      transform: scale(0.7) translateY(20px);
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .popup-overlay.show .popup {
+      transform: scale(1) translateY(0);
+    }
+
+    .popup-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+      animation: popupIconBounce 0.6s ease-out;
+    }
+
+    .popup-icon.error {
+      background: linear-gradient(45deg, #dc3545, #e74c3c);
+    }
+
+    .popup-icon.success {
+      background: linear-gradient(45deg, #28a745, #20c997);
+    }
+
+    @keyframes popupIconBounce {
+      0% {
+        transform: scale(0);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .popup h3 {
+      margin: 0 0 15px 0;
+      color: #333;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .popup p {
+      margin: 0 0 25px 0;
+      color: #666;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .popup-button {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .popup-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    /* Form shake animation for errors */
+    .shake {
+      animation: shake 0.5s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+  </style>
   <script>
 
+    // Custom popup function
+    function showPopup(message, type = 'error') {
+      const overlay = document.getElementById('popup-overlay');
+      const icon = document.getElementById('popup-icon');
+      const title = document.getElementById('popup-title');
+      const text = document.getElementById('popup-text');
+      
+      // Set content based on type
+      if (type === 'error') {
+        icon.className = 'popup-icon error';
+        icon.innerHTML = '⚠️';
+        title.textContent = 'Error';
+      } else {
+        icon.className = 'popup-icon success';
+        icon.innerHTML = '✓';
+        title.textContent = 'Success';
+      }
+      
+      text.textContent = message;
+      overlay.classList.add('show');
+    }
+
+    function closePopup() {
+      document.getElementById('popup-overlay').classList.remove('show');
+    }
+
+    function addLoadingState(button) {
+      button.classList.add('loading');
+      button.disabled = true;
+      const originalText = button.textContent;
+      button.textContent = 'Processing...';
+      return originalText;
+    }
+
+    function removeLoadingState(button, originalText) {
+      button.classList.remove('loading');
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+
+    function addSuccessState(button) {
+      button.classList.add('success-animation');
+      setTimeout(() => {
+        button.classList.remove('success-animation');
+      }, 600);
+    }
+
+    function shakeForm(formSection) {
+      formSection.classList.add('shake');
+      setTimeout(() => {
+        formSection.classList.remove('shake');
+      }, 500);
+    }
 
     function login() {
       const user = document.getElementById("login_user").value;
       const pass = document.getElementById("login_pass").value;
+      const button = event.target;
+      const formSection = button.closest('.form-section');
+      
       if (!user || !pass) {
-        alert("Fill username and password");
+        showPopup("Please fill in both username and password fields", "error");
+        shakeForm(formSection);
         return;
       }
-      window.location.href = `cgi-bin/login.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
+
+      const originalText = addLoadingState(button);
+      
+      // Simulate processing time for better UX
+      setTimeout(() => {
+        addSuccessState(button);
+        showPopup("Logging you in...", "success");
+        
+        setTimeout(() => {
+          window.location.href = `cgi-bin/login.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
+        }, 1000);
+      }, 1500);
     }
 
     function register() {
       const user = document.getElementById("reg_user").value;
       const pass = document.getElementById("reg_pass").value;
+      const button = event.target;
+      const formSection = button.closest('.form-section');
+      
       if (!user || !pass) {
-        alert("Fill username and password");
+        showPopup("Please fill in both username and password fields", "error");
+        shakeForm(formSection);
         return;
       }
-      window.location.href = `cgi-bin/register.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
+
+      if (pass.length < 4) {
+        showPopup("Password must be at least 4 characters long", "error");
+        shakeForm(formSection);
+        return;
+      }
+
+      const originalText = addLoadingState(button);
+      
+      // Simulate processing time for better UX
+      setTimeout(() => {
+        addSuccessState(button);
+        showPopup("Creating your account...", "success");
+        
+        setTimeout(() => {
+          window.location.href = `cgi-bin/register.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
+        }, 1000);
+      }, 1500);
     }
   </script>
 </head>
 <body>
-  <h2>Login</h2>
-  <input type="text" id="login_user" placeholder="Username"><br>
-  <input type="password" id="login_pass" placeholder="Password"><br>
-  <button onclick="login()">Login</button>
+  <!-- Custom Popup -->
+  <div id="popup-overlay" class="popup-overlay">
+    <div class="popup">
+      <div id="popup-icon" class="popup-icon error">⚠️</div>
+      <h3 id="popup-title">Error</h3>
+      <p id="popup-text">Please fill in both username and password</p>
+      <button class="popup-button" onclick="closePopup()">OK</button>
+    </div>
+  </div>
 
-  <h2>Register</h2>
-  <input type="text" id="reg_user" placeholder="New Username"><br>
-  <input type="password" id="reg_pass" placeholder="New Password"><br>
-  <button onclick="register()">Register</button>
+  <div class="container">
+    <div class="form-section">
+      <h2>Welcome Back</h2>
+      <div class="input-group">
+        <input type="text" id="login_user" placeholder="Username">
+      </div>
+      <div class="input-group">
+        <input type="password" id="login_pass" placeholder="Password">
+      </div>
+      <button onclick="login()">Sign In</button>
+    </div>
+
+    <div class="divider">
+      <span>OR</span>
+    </div>
+
+    <div class="form-section register-section">
+      <h2>Create Account</h2>
+      <div class="input-group">
+        <input type="text" id="reg_user" placeholder="Choose Username">
+      </div>
+      <div class="input-group">
+        <input type="password" id="reg_pass" placeholder="Create Password">
+      </div>
+      <button onclick="register()">Sign Up</button>
+    </div>
+  </div>
 </body>
 </html>
