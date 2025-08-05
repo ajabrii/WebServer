@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 19:42:31 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 20:40:06 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,12 +68,12 @@ void ltrim(std::string& s)
     s.erase(0, i);
 }
 
-HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverConfig) 
+HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverConfig)
 {
     HttpResponse response;
 
     size_t headerEnd = raw.find("\r\n\r\n");
-    if (headerEnd == std::string::npos) 
+    if (headerEnd == std::string::npos)
     {
         std::cerr << "[CGI] Invalid CGI output: no headers found." << std::endl;
         response.statusCode = 500;
@@ -92,15 +92,15 @@ HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverCo
     {
         if (!line.empty() && *line.rbegin() == '\r')
             line.erase(line.size() - 1);
-        
-        if (line.compare(0, 5, "HTTP/") == 0) 
+
+        if (line.compare(0, 5, "HTTP/") == 0)
         {
             std::istringstream statusStream(line);
             std::string httpVersion;
             statusStream >> httpVersion >> response.statusCode;
             std::getline(statusStream, response.statusText);
             ltrim(response.statusText);
-            if (httpVersion != "HTTP/1.0" && httpVersion != "HTTP/1.1") 
+            if (httpVersion != "HTTP/1.0" && httpVersion != "HTTP/1.1")
             {
                 std::cerr << "[CGI] Invalid HTTP version in CGI output: " << httpVersion << std::endl;
                 response.statusCode = 502;
@@ -112,24 +112,24 @@ HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverCo
             }
             statusParsed = true;
         }
-        else 
+        else
         {
             headerStream.clear();
             headerStream.str(headerPart);
         }
     }
-    while (std::getline(headerStream, line)) 
+    while (std::getline(headerStream, line))
     {
         if (!line.empty() && *line.rbegin() == '\r')
             line.erase(line.size() - 1);
         size_t colon = line.find(':');
-        if (colon != std::string::npos) 
+        if (colon != std::string::npos)
         {
             std::string key = line.substr(0, colon);
             std::string value = line.substr(colon + 1);
             ltrim(value);
             std::string lowerKey = toLower(key);
-            if (lowerKey == "status") 
+            if (lowerKey == "status")
             {
                 std::istringstream statusStream(value);
                 statusStream >> response.statusCode;
@@ -143,19 +143,19 @@ HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverCo
                 response.headers[lowerKey] = value;
         }
     }
-    if (!statusParsed) 
+    if (!statusParsed)
     {
         response.statusCode = 200;
         response.statusText = "OK";
     }
     response.body = bodyPart;
-    if (response.headers.find("content-length") == response.headers.end()) 
+    if (response.headers.find("content-length") == response.headers.end())
     {
         std::ostringstream oss;
         oss << response.body.size();
         response.headers["Content-Length"] = oss.str();
     }
-    if (response.headers.find("content-type") == response.headers.end()) 
+    if (response.headers.find("content-type") == response.headers.end())
     {
         response.statusCode = 502;
         response.statusText = "Bad Gateway";
@@ -172,8 +172,8 @@ void HandleCookies(Connection& conn, HttpRequest& req)
     SessionManager sessionManager;
     std::string sessionId;
     SessionInfos& sessionInfos = conn.getSessionInfos();
-        
-    if (req.headers.find("cookie") != req.headers.end()) 
+
+    if (req.headers.find("cookie") != req.headers.end())
     {
         std::string cookieHeader = req.headers["cookie"];
         std::map<std::string, std::string> cookies = CookieParser::parse(cookieHeader);
@@ -192,7 +192,7 @@ void HandleCookies(Connection& conn, HttpRequest& req)
             sessionInfos.getCookies()["session_id"] = sessionId;
         }
     }
-    else 
+    else
     {
         std::string sessionId;
         std::cout << "\033[1;33m[Session]\033[0m No cookies found in request" << std::endl;
@@ -209,20 +209,19 @@ void HandleCookies(Connection& conn, HttpRequest& req)
     sessionInfos.setSessionPath();
     sessionInfos.setSessionId(sessionInfos.getSessionId());
     conn.getCurrentRequest().SessionId = conn.getSessionInfos().getSessionId();
-        
+
 }
 
 void handleNewConnection(Reactor &reactor, const Event &event)
 {
     HttpServer* server = reactor.getServerByListeningFd(event.fd);
-    std::cout << "\033[1;32m[+]\033[0m New connection detected on fd: " << event.fd << std::endl;
     if (server)
     {
         Connection* conn = new Connection(server->acceptConnection(event.fd));
         conn->updateLastActivity();
         reactor.addConnection(conn, server);
         std::cout << NEW_CLIENT_CON << std::endl;
-        bool keepAlive = shouldKeepAlive(conn->getCurrentRequest());      
+        bool keepAlive = shouldKeepAlive(conn->getCurrentRequest());
         if (conn->getRequestCount() >= REQUEST_LIMIT_PER_CONNECTION)
             keepAlive = false;
         conn->setKeepAlive(keepAlive);
@@ -252,11 +251,11 @@ void processReadableEvent(Reactor &reactor, const Event &event, const std::strin
         {
             reactor.removeConnection(event.fd);
             std::cerr << "Error: No server found for client fd: " << event.fd << std::endl;
-            return;
+            return ;
         }
         try {
             conn.readData(server);
-        } catch (const HttpRequest::HttpException &e) 
+        } catch (const HttpRequest::HttpException &e)
         {
             std::cerr << "Connection read error: " << e.what() << std::endl;
             HttpResponse errorResp = createErrorResponse(e.getStatusCode(), e.what(), server->getConfig());
@@ -289,7 +288,7 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, 
             }
             catch (const HttpRequest::HttpException &e)
             {
-                
+
                 std::cerr << "[CGI ERROR] read error: " << e.what() << std::endl;
                 HttpResponse errorResp = createErrorResponse(e.getStatusCode(), e.what(), server->getConfig());
                 conn.writeData(errorResp.toString());
@@ -304,7 +303,7 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, 
                     std::cout << "\033[1;34m[CGI]\033[0m Executing CGI script: " << std::endl;
                     reactor.watchCgi(&conn);
                     return ;
-                }   
+                }
                 catch (const HttpRequest::HttpException &e)
                 {
                     std::cerr << "[CGI ERROR] read error: " << e.what() << std::endl;

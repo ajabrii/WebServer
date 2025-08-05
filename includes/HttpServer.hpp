@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:14:39 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/28 13:25:33 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/05 20:39:34 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@
 # include <fcntl.h>
 
 # define CLIENT_QUEUE 128
-# define NEW_CLIENT_CON "\033[1;32m[+]\033[0m New client connected\n"
+# define NEW_CLIENT_CON "\033[1;32m[+]\033[0m New client connected"
 
 class HttpServer
 {

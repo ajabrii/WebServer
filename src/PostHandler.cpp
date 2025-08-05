@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:26:13 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 14:46:17 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/05 20:55:12 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ HttpResponse PostHandler::handle(const HttpRequest &req, const RouteConfig &rout
         {
             std::cout << POST_LOG << " Handling POST application/x-www-form-urlencoded: uri=" << req.uri << std::endl;
             std::map<std::string, std::string> fields = parseFormUrlEncoded(req.body);
-            std::string filepath = "./session/" + req.SessionId;
+            std::string filepath =  route.uploadDir + "/form_" + Utils::toString(std::time(0)) + ".txt";
             writeKeyValuesToFile(filepath, fields);
             resp.version = "HTTP/1.1";
             resp.body = "<html><head><title>Uploads</title></head><body><h1>File uploaded: " + filepath + "</h1></body></html>";
@@ -169,43 +169,17 @@ void PostHandler::writeFile(const std::string &path, const std::string &content)
     out << content;
 }
 
+
 void PostHandler::writeKeyValuesToFile(const std::string &path, const std::map<std::string, std::string> &fields) const
 {
-    std::map<std::string, std::string> existingFields;
-    std::ifstream in(path.c_str());
-    if (in)
-    {
-        std::string line;
-        while (std::getline(in, line))
-        {
-            size_t eq = line.find('=');
-            if (eq != std::string::npos)
-            {
-                existingFields[line.substr(0, eq)] = line.substr(eq + 1);
-            }
-        }
-    }
-    for (std::map<std::string, std::string>::const_iterator it = existingFields.begin(); it != existingFields.end(); ++it)
-    {
-        std::cerr << "  " << it->first << ": " << it->second << std::endl;
-    }
-    for (std::map<std::string, std::string>::const_iterator it = fields.begin(); it != fields.end(); ++it)
-    {
-        existingFields[it->first] = it->second;
-    }
-    for (std::map<std::string, std::string>::const_iterator it = existingFields.begin(); it != existingFields.end(); ++it)
-    {
-        std::cerr << "  " << it->first << ": " << it->second << std::endl;
-    }
-    std::ofstream out(path.c_str(), std::ios::trunc);
+    std::cout << "file path: `" << path << "'" << std::endl;
+    std::ofstream out(path.c_str());
     if (!out)
     {
         throw std::runtime_error("Error: Failed to write file: " + path);
     }
-    for (std::map<std::string, std::string>::const_iterator it = existingFields.begin(); it != existingFields.end(); ++it)
-    {
+    for (std::map<std::string, std::string>::const_iterator it = fields.begin(); it != fields.end(); ++it)
         out << DataDecode(it->first) << "=" << DataDecode(it->second) << "\n";
-    }
 }
 
 std::vector<Part> PostHandler::parseMultipart(const std::string &body, const std::string &boundary) const
@@ -213,7 +187,7 @@ std::vector<Part> PostHandler::parseMultipart(const std::string &body, const std
     std::vector<Part> parts;
     std::string sep = "--" + boundary;
     size_t pos = 0;
-    
+
     pos = body.find(sep, pos);
     if (pos == std::string::npos)
     {

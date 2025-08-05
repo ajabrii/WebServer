@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/02 09:55:39 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/05 21:00:50 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,10 +39,10 @@ public:
     void validateAbsoluteUri();
     void determineBodyProtocol();
 
-    bool parseBody(std::string& connectionBuffer, long maxBodySize); // Will be called incrementally
+    bool parseBody(std::string& connectionBuffer, unsigned long long maxBodySize); // Will be called incrementally
 
-    bool decodeChunked(std::string& buffer, std::string& decodedOutput, long maxBodySize);
-    bool parseChunkSize(const std::string& sizeHex, long& chunkSize);
+    bool decodeChunked(std::string& buffer, std::string& decodedOutput, unsigned long long maxBodySize);
+    bool parseChunkSize(const std::string& sizeHex, unsigned long long& chunkSize);
     bool skipTrailerHeaders(std::string& buffer, size_t startPos);
     void throwHttpError(int statusCode, const std::string& message);
     std::string GetHeader(std::string target) const;

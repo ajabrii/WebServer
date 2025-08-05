@@ -26,7 +26,6 @@ CgiState::~CgiState()
         waitpid(pid, NULL, WNOHANG);
         pid = -1;
     }
-    std::cerr << "\033[1;34m[CGI]\033[0m CGI state cleaned up for PID: " << oldPid << std::endl;
 }
 
 void CgiState::writeToScript(Connection& conn)
@@ -94,9 +93,8 @@ void CgiState::readFromScript(Connection& conn , Reactor& reactor, const ServerC
         conn.writeData(resp.toString());
 
         conn.getCgiState()->connection->updateLastActivity();
-        std::cerr << "CONN FD is : " << conn.getFd() << ", cgi connection fd is : " << conn.getCgiState()->connection->getFd() << std::endl;
         reactor.removeConnection(conn.getFd());
-        std::cout << "\033[1;31m[-]\033[0m Connection closed (CGI done)" << std::endl;
+        std::cout << "\033[1;31m[-]\033[0m Connection's cgi fds closed (CGI done)" << std::endl;
     }
     else
     {

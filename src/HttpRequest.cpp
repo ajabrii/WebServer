@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/02 09:55:20 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/05 21:05:06 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,13 +178,13 @@ void HttpRequest::parseHeaders(const std::string& rawHeaders)
     determineBodyProtocol();
 }
 
-bool HttpRequest::parseBody(std::string& connectionBuffer, long maxBodySize) {
+bool HttpRequest::parseBody(std::string& connectionBuffer, unsigned long long maxBodySize) {
     if (!isChunked && contentLength == 0) {
         return true;
     }
 
     if (!isChunked) {
-        if (contentLength > maxBodySize)
+        if (static_cast<size_t>(contentLength) > maxBodySize)
             throwHttpError(413, "request entity Too Large");
         if (contentLength > 0 && connectionBuffer.length() >= static_cast<size_t>(contentLength)) {
             this->body.append(connectionBuffer.substr(0, contentLength));
@@ -197,7 +197,7 @@ bool HttpRequest::parseBody(std::string& connectionBuffer, long maxBodySize) {
     }
 }
 
-bool HttpRequest::parseChunkSize(const std::string& sizeHex, long& chunkSize)
+bool HttpRequest::parseChunkSize(const std::string& sizeHex, unsigned long long& chunkSize)
 {
     if (sizeHex.empty()) {
         return false;
@@ -217,7 +217,7 @@ bool HttpRequest::parseChunkSize(const std::string& sizeHex, long& chunkSize)
     std::istringstream iss(hexPart);
     iss >> std::hex >> chunkSize;
 
-    if (iss.fail() || !iss.eof() || chunkSize < 0) {
+    if (iss.fail() || !iss.eof()) {
         return false;
     }
 
@@ -242,7 +242,7 @@ bool HttpRequest::skipTrailerHeaders(std::string& buffer, size_t startPos)
     }
 }
 
-bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput, long maxBodySize) {
+bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput, unsigned long long maxBodySize) {
     while (true)
     {
         size_t sizeEndPos = buffer.find("\r\n");
@@ -250,11 +250,11 @@ bool HttpRequest::decodeChunked(std::string& buffer, std::string& decodedOutput,
             return false;
         }
         std::string sizeHex = buffer.substr(0, sizeEndPos);
-        long chunkSize;
+        unsigned long long chunkSize;
         if (!parseChunkSize(sizeHex, chunkSize)) {
             throwHttpError(400, "Invalid chunk size format");
         }
-        if (chunkSize > 0 && (decodedOutput.length() + chunkSize) > static_cast<size_t>(maxBodySize)) {
+        if (chunkSize > 0 && (decodedOutput.length() + chunkSize) > maxBodySize) {
             throwHttpError(413, "Payload Too Large");
         }
         if (chunkSize == 0) {
