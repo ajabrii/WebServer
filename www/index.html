@@ -44,6 +44,34 @@
             font-weight: 300;
         }
 
+        .login-button {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+            border: none;
+            cursor: pointer;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            background: linear-gradient(45deg, #764ba2, #667eea);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
         .test-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -258,6 +286,7 @@
         <header>
             <h1>WebServ Test Suite</h1>
             <p class="subtitle">HTTP/1.1 Server Testing Interface</p>
+            <a href="login.html" class="login-button">🔐 Login / Register</a>
         </header>
 
         <div class="server-info">
