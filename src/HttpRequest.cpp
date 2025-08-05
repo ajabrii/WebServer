@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 21:05:06 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/05 21:15:20 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,9 +184,9 @@ bool HttpRequest::parseBody(std::string& connectionBuffer, unsigned long long ma
     }
 
     if (!isChunked) {
-        if (static_cast<size_t>(contentLength) > maxBodySize)
+        if (contentLength > maxBodySize)
             throwHttpError(413, "request entity Too Large");
-        if (contentLength > 0 && connectionBuffer.length() >= static_cast<size_t>(contentLength)) {
+        if (contentLength > 0 && connectionBuffer.length() >= contentLength) {
             this->body.append(connectionBuffer.substr(0, contentLength));
             connectionBuffer.erase(0, contentLength);
             return true;

@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 20:40:06 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/05 22:22:38 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -255,9 +255,17 @@ void processReadableEvent(Reactor &reactor, const Event &event, const std::strin
         }
         try {
             conn.readData(server);
-        } catch (const HttpRequest::HttpException &e)
+        }
+        catch (const std::runtime_error &e)
         {
-            std::cerr << "Connection read error: " << e.what() << std::endl;
+            if ((std::string)e.what() == "recv return 0 or -1")
+            {
+                reactor.removeConnection(event.fd);
+                return;
+            }
+        }
+        catch (const HttpRequest::HttpException &e)
+        {
             HttpResponse errorResp = createErrorResponse(e.getStatusCode(), e.what(), server->getConfig());
             conn.writeData(errorResp.toString());
             reactor.removeConnection(event.fd);

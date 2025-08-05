@@ -2,7 +2,7 @@
 
 printf "Content-Type: text/html\r\n\r\n"
 
-sleep 10000000000000000
+sleep 111111111111111111111111111111111111
 # Read POST data
 # if [ "$REQUEST_METHOD" != "POST" ]; then
 #     echo "Only POST supported"

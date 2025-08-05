@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 21:00:50 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/05 21:14:42 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ public:
     std::string version;
     std::map<std::string, std::string> headers;
     std::string body;
-    long contentLength;
+    unsigned long long contentLength;
     bool isChunked;
     long bodyReceived;
     bool headersParsed;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 18:36:21 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 22:31:26 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 # include "../includes/HttpServer.hpp"
 # include "../includes/Errors.hpp"
 # include "../includes/Utils.hpp"
-# define CGI_TIMEOUT_MINUTES 10 // edit
+# define CGI_TIMEOUT_MINUTES (3 * 60)
 
 Connection::Connection()
     : client_fd(-1),
@@ -56,40 +56,44 @@ int Connection::getFd() const
 void Connection::readData(HttpServer* server)
 {
     char tmp[4096];
-    
+
     ssize_t bytesRead = recv(client_fd, tmp, sizeof(tmp), 0);
-    if (bytesRead < 0) {
-            return;
-    }
-    buffer.append(tmp, bytesRead);
-    if (requestState == READING_HEADERS) 
+    if (bytesRead <= 0)
     {
-        size_t headerEndPos = buffer.find("\r\n\r\n");
-        if (headerEndPos != std::string::npos) 
+        throw  std::runtime_error("recv return 0 or -1");
+    }
+    else
+    {
+        buffer.append(tmp, bytesRead);
+        if (requestState == READING_HEADERS)
         {
-            std::string rawHeaders = buffer.substr(0, headerEndPos + 4);
-            
-            buffer.erase(0, headerEndPos + 4);
-            currentRequest.parseHeaders(rawHeaders);
-            this->contentLength = currentRequest.contentLength;
-            this->isChunked = currentRequest.isChunked;
-            if (currentRequest.isChunked) {
-                requestState = READING_BODY_CHUNKED;
-            } else if (currentRequest.contentLength > 0) {
-                requestState = READING_BODY_CONTENT_LENGTH;
-            } else {
-                requestState = REQUEST_COMPLETE;
+            size_t headerEndPos = buffer.find("\r\n\r\n");
+            if (headerEndPos != std::string::npos)
+            {
+                std::string rawHeaders = buffer.substr(0, headerEndPos + 4);
+
+                buffer.erase(0, headerEndPos + 4);
+                currentRequest.parseHeaders(rawHeaders);
+                this->contentLength = currentRequest.contentLength;
+                this->isChunked = currentRequest.isChunked;
+                if (currentRequest.isChunked) {
+                    requestState = READING_BODY_CHUNKED;
+                } else if (currentRequest.contentLength > 0) {
+                    requestState = READING_BODY_CONTENT_LENGTH;
+                } else {
+                    requestState = REQUEST_COMPLETE;
+                }
             }
         }
-    }
-    if (requestState != READING_HEADERS && requestState != REQUEST_COMPLETE) {
-            bool bodyComplete = currentRequest.parseBody(buffer, server->getConfig().clientMaxBodySize); // Pass buffer by reference
-            if (bodyComplete) {
-                requestState = REQUEST_COMPLETE;
-            }
-    }
-    if (requestState == REQUEST_COMPLETE) {
-        ;
+        if (requestState != READING_HEADERS && requestState != REQUEST_COMPLETE) {
+                bool bodyComplete = currentRequest.parseBody(buffer, server->getConfig().clientMaxBodySize); // Pass buffer by reference
+                if (bodyComplete) {
+                    requestState = REQUEST_COMPLETE;
+                }
+        }
+        if (requestState == REQUEST_COMPLETE) {
+            ;
+        }
     }
 }
 
@@ -157,8 +161,9 @@ void Connection::resetForNextRequest()
 void Connection::writeData(const std::string& response) const
 {
     ssize_t bytesSent = send(client_fd, response.c_str(), response.size(), 0);
-    if (bytesSent < 0)
+    if (bytesSent <= 0)
         throw std::runtime_error("Failed to write to client");
+
 }
 
 void Connection::closeConnection()
@@ -192,7 +197,7 @@ void Connection::reset()
     }
 }
 
-bool Connection::isConnectionClosed() const 
+bool Connection::isConnectionClosed() const
 {
     return client_fd == -1;
 }
