@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 19:39:26 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 19:42:31 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,6 @@ void ltrim(std::string& s)
 HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverConfig) 
 {
     HttpResponse response;
-
 
     size_t headerEnd = raw.find("\r\n\r\n");
     if (headerEnd == std::string::npos) 
