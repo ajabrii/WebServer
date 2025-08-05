@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: youness <youness@student.42.fr>            +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 13:47:57 by youness          ###   ########.fr       */
+/*   Updated: 2025/08/05 16:27:19 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -290,8 +290,21 @@ void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, 
         HttpResponse resp;
         if (route)
         {
-            CgiHandler cgi(*server, req, *route, event.fd, cgiEnv);
-
+            CgiHandler cgi;
+            try
+            {
+                CgiHandler cgi_clone(*server, req, *route, event.fd, cgiEnv);
+                cgi = cgi_clone;
+            }
+            catch (const HttpRequest::HttpException &e)
+            {
+                
+                std::cerr << "[CGI ERROR] read error: " << e.what() << std::endl;
+                HttpResponse errorResp = createErrorResponse(e.getStatusCode(), e.what(), server->getConfig());
+                conn.writeData(errorResp.toString());
+                reactor.removeConnection(event.fd);
+                return ;
+            }
             if (cgi.IsCgi())
             {
                 try

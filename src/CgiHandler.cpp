@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 19:44:18 by baouragh          #+#    #+#             */
-/*   Updated: 2025/08/05 13:43:45 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 16:24:35 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,29 @@ CgiHandler::CgiHandler(const HttpServer &server, const HttpRequest& req , const 
     _clientSocket = clientSocket;
     _data = check_cgi();
     _data.DebugPrint();
+}
+
+CgiHandler::CgiHandler(const CgiHandler& other)
+{
+    _serverData = other._serverData;
+    _route = other._route;
+    _req = other._req;
+    _env_paths = other._env_paths;
+    _clientSocket = other._clientSocket;
+    _data = other._data;
+}
+CgiHandler& CgiHandler::operator=(const CgiHandler& other)
+{
+    if (this != &other)
+    {
+        _serverData = other._serverData;
+        _route = other._route;
+        _req = other._req;
+        _env_paths = other._env_paths;
+        _clientSocket = other._clientSocket;
+        _data = other._data;
+    }
+    return *this;
 }
 void printEnvp(char** envp) 
 {
@@ -188,9 +211,6 @@ CgiData CgiHandler::check_cgi(void)
     if (query_pos != std::string::npos)
         has_query = true;
 
-    if (_req.method != "GET" && _req.method != "POST")
-        throw HttpRequest::HttpException(405, "Method Not Allowed");
-
     for (std::map<std::string, std::string>::const_iterator it = _route.cgi.begin(); it != _route.cgi.end(); ++it)
     {
         const std::string& ext = it->first;
@@ -212,6 +232,11 @@ CgiData CgiHandler::check_cgi(void)
             continue;
         
         data.hasCgi = true;
+        if (_req.method != "GET" && _req.method != "POST")
+        {
+            std::cerr << "\033[1;31m[CGI]\033[0m Method not allowed for CGI: " << _req.method << std::endl;
+            throw HttpRequest::HttpException(405, "Method Not Allowed");
+        }
         data.CgiInterp = interp;
         data.cgi_extn = ext;
         data.script_path = _req.uri.substr(0, after_ext);

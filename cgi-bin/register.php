@@ -9,7 +9,8 @@ if (!empty($_SERVER['QUERY_STRING'])) {
 $username = $_GET['username'] ?? '';
 $password = $_GET['password'] ?? '';
 
-if (!$username || !$password) {
+if (!$username || !$password) 
+{
     echo "<p>Missing username or password.</p><a href='../login.html'>Back</a>";
     exit;
 }
@@ -19,9 +20,11 @@ $file = __DIR__ . '/users.txt';
 // Check if user already exists
 $users = file_exists($file) ? file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [];
 
-foreach ($users as $line) {
+foreach ($users as $line) 
+{
     list($u,) = explode(':', $line, 2);
-    if ($u === $username) {
+    if ($u === $username) 
+    {
         echo "<p>Username already taken.</p><a href='../login.html'>Try again</a>";
         exit;
     }

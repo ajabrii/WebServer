@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:56:52 by baouragh          #+#    #+#             */
-/*   Updated: 2025/08/01 18:35:46 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 16:23:17 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,8 @@ class CgiHandler
     public:
         CgiHandler();
         CgiHandler(const HttpServer &server, const HttpRequest& req , const RouteConfig& route ,int clientSocket, std::string env_paths);
+        CgiHandler(const CgiHandler& other);
+        CgiHandler& operator=(const CgiHandler& other);
         ~CgiHandler();
         CgiState* execCgi(Connection &conn);
         CgiData check_cgi(void);

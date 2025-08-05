@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Connection.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:04 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/31 17:26:33 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/05 17:11:01 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,10 +61,13 @@ void Connection::readData(HttpServer* server)
             return;
     }
     buffer.append(tmp, bytesRead);
-    if (requestState == READING_HEADERS) {
+    if (requestState == READING_HEADERS) 
+    {
         size_t headerEndPos = buffer.find("\r\n\r\n");
-        if (headerEndPos != std::string::npos) {
+        if (headerEndPos != std::string::npos) 
+        {
             std::string rawHeaders = buffer.substr(0, headerEndPos + 4);
+            
             buffer.erase(0, headerEndPos + 4);
             currentRequest.parseHeaders(rawHeaders);
             this->contentLength = currentRequest.contentLength;
