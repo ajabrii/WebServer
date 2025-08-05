@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 18:23:44 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 19:33:46 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,7 @@ HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverCo
     {
         if (!line.empty() && *line.rbegin() == '\r')
             line.erase(line.size() - 1);
+        
         if (line.compare(0, 5, "HTTP/") == 0) 
         {
             std::istringstream statusStream(line);
@@ -100,8 +101,19 @@ HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverCo
             statusStream >> httpVersion >> response.statusCode;
             std::getline(statusStream, response.statusText);
             ltrim(response.statusText);
+
+            if (httpVersion != "HTTP/1.0" && httpVersion != "HTTP/1.1") 
+            {
+                std::cerr << "[CGI] Invalid HTTP version in CGI output: " << httpVersion << std::endl;
+                response.statusCode = 502;
+                response.statusText = "Bad Gateway";
+                response.body = Error::loadErrorPage(502, serverConfig);
+                response.headers["Content-Type"] = "text/html";
+                response.headers["Content-Length"] = Utils::toString(response.body.size());
+                return response;
+            }
             statusParsed = true;
-        } 
+        }
         else 
         {
             headerStream.clear();
@@ -160,6 +172,7 @@ HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverCo
 void HandleCookies(Connection& conn, HttpRequest& req)
 {
     SessionManager sessionManager;
+    std::string sessionId;
     SessionInfos& sessionInfos = conn.getSessionInfos();
         
     if (req.headers.find("cookie") != req.headers.end()) 
@@ -171,46 +184,33 @@ void HandleCookies(Connection& conn, HttpRequest& req)
 
         if (cookies.find("session_id") != cookies.end())
         {
-            std::string sessionId = cookies["session_id"];
+            sessionId = cookies["session_id"];
             sessionInfos.setSessionId(sessionId);
-            if (access(sessionManager.buildSessionFilePath(sessionId).c_str(), F_OK) != 0
-            || access(sessionManager.buildSessionFilePath(sessionId).c_str(), R_OK) != 0
-            || access(sessionManager.buildSessionFilePath(sessionId).c_str(), W_OK) != 0)
-            {
-                sessionManager.save(sessionId, sessionInfos.getCookies());
-            }
         }
         else
         {
-            std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
-            sessionInfos.setSessionId(newSessionId);
-            sessionInfos.getCookies()["session_id"] = newSessionId;
-
-            if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) != 0
-            || access(sessionManager.buildSessionFilePath(newSessionId).c_str(), R_OK) != 0
-            || access(sessionManager.buildSessionFilePath(newSessionId).c_str(), W_OK) != 0)
-            {
-                sessionManager.save(newSessionId, sessionInfos.getCookies());
-            }
+            sessionId = SessionID::generate(&conn, conn.getRequestCount());
+            sessionInfos.setSessionId(sessionId);
+            sessionInfos.getCookies()["session_id"] = sessionId;
         }
     }
     else 
     {
+        std::string sessionId;
         std::cout << "\033[1;33m[Session]\033[0m No cookies found in request" << std::endl;
-        std::string newSessionId = SessionID::generate(&conn, conn.getRequestCount());
-        sessionInfos.setSessionId(newSessionId);
-        sessionInfos.getCookies()["session_id"] = newSessionId;
-        if (access(sessionManager.buildSessionFilePath(newSessionId).c_str(), F_OK) != 0
-        || access(sessionManager.buildSessionFilePath(newSessionId).c_str(), R_OK) != 0
-        || access(sessionManager.buildSessionFilePath(newSessionId).c_str(), W_OK) != 0)
-        {
-            sessionManager.save(newSessionId, sessionInfos.getCookies());
-        }
+        sessionId = SessionID::generate(&conn, conn.getRequestCount());
+        sessionInfos.setSessionId(sessionId);
+        sessionInfos.getCookies()["session_id"] = sessionId;
+    }
+    if (access(sessionManager.buildSessionFilePath(sessionId).c_str(), F_OK) != 0
+        || access(sessionManager.buildSessionFilePath(sessionId).c_str(), R_OK) != 0
+        || access(sessionManager.buildSessionFilePath(sessionId).c_str(), W_OK) != 0)
+    {
+        sessionManager.save(sessionId, sessionInfos.getCookies());
     }
     sessionInfos.setSessionPath();
     sessionInfos.setSessionId(sessionInfos.getSessionId());
     conn.getCurrentRequest().SessionId = conn.getSessionInfos().getSessionId();
-    // sessionInfos.setSessionData(sessionManager.load(sessionInfos.getSessionId()));
         
 }
 
