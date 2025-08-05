@@ -77,7 +77,7 @@ void CgiState::writeToScript(Connection& conn)
     }
 }
 
-void CgiState::readFromScript(Connection& conn , Reactor& reactor)
+void CgiState::readFromScript(Connection& conn , Reactor& reactor, const ServerConfig& serverConfig)
 {
     char buffer[4096];
     ssize_t n = read(conn.getCgiState()->output_fd, buffer, sizeof(buffer));
@@ -87,11 +87,11 @@ void CgiState::readFromScript(Connection& conn , Reactor& reactor)
     }
     else if (n == 0)
     {
-        std::cout << "\033[1;34m[CGI]\033[0m CGI output EOF detected\n";
+        std::cerr << "\033[1;34m[CGI]\033[0m CGI output EOF detected\n";
 
         std::cerr << "\033[1;34m[CGI]\033[0m Raw CGI output: " << conn.getCgiState()->rawOutput << std::endl;
 
-        HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput);
+        HttpResponse resp = parseCgiOutput(conn.getCgiState()->rawOutput, serverConfig);
         setConnectionHeaders(resp, conn.isKeepAlive());
         conn.writeData(resp.toString());
 
@@ -102,7 +102,7 @@ void CgiState::readFromScript(Connection& conn , Reactor& reactor)
     }
     else
     {
-        perror("CGI read error");
+        std::cerr << "\033[1;34m[CGI]\033[0m CGI output read error\n";
         reactor.removeConnection(conn.getFd());
     }
 }

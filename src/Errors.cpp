@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Errors.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/07 11:31:49 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 07:52:09 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/05 12:24:22 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ static void initDefaultErrorResponses() {
         Error::defaultErrResponses[431] = "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>431 Request Header Fields Too Large</h1></body></html>";
         Error::defaultErrResponses[500] = "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>500 Internal Server Error</h1></body></html>";
         Error::defaultErrResponses[501] = "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>501 Not Implemented</h1></body></html>";
+        Error::defaultErrResponses[502] = "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>502 Bad Gateway</h1></body></html>";
+        Error::defaultErrResponses[504] = "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>504 Gateway Timeout</h1></body></html>";
         Error::defaultErrResponses[505] = "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>505 HTTP Version Not Supported</h1></body></html>";
         initialized = true;
     }

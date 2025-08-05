@@ -1,9 +1,7 @@
 #!/usr/bin/php-cgi
 <?php
 header("Content-Type: text/html");
-session_start();
 
-// if $get parameters are not set, set it by parse
 if (!empty($_SERVER['QUERY_STRING'])) {
     // Fill $_GET manually in some CGI environments (optional)
     parse_str($_SERVER['QUERY_STRING'], $_GET);
@@ -19,17 +17,18 @@ if (!$username || !$password) {
 }
 
 $db = new SQLite3(__DIR__ . '/users.db');
-$stmt = $db->prepare('SELECT * FROM users WHERE username = :u AND password = :p');
+$stmt = $db->prepare('INSERT INTO users (username, password) VALUES (:u, :p)');
 $stmt->bindValue(':u', $username, SQLITE3_TEXT);
 $stmt->bindValue(':p', $password, SQLITE3_TEXT);
-$user = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
 
-if ($user) {
+try {
+    $stmt->execute();
+    session_start();
     $_SESSION['username'] = $username;
     header("Location: welcome.php");
     exit;
-} else {
-    echo "<p>Invalid credentials.</p>";
+} catch (Exception $e) {
+    echo "<p>Username already taken.</p>";
     echo "<a href='login.html'>Try again</a>";
 }
 ?>

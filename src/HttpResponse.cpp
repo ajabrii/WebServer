@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:11 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/31 17:32:44 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/05 11:27:51 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,15 +60,15 @@ void HttpResponse::SetCookieHeaders(Connection &conn)
     for (std::map<std::string, std::string>::const_iterator it = cookies.begin(); it != cookies.end(); ++it)
         this->CookiesHeaders.insert(
             std::make_pair("Set-Cookie", it->first + "=" + it->second + "; Path=/; HttpOnly"));
-    std::ofstream ofs(sessionPath.c_str(), std::ios::trunc);
-    if (ofs)
-    {
-        for (std::map<std::string, std::string>::const_iterator it = cookies.begin(); it != cookies.end(); ++it)
-        {
-            ofs << it->first << "=" << it->second << "\n";
-        }
-        ofs.close();
-    }
-    else
-        std::cerr << "Error: Could not open session file for writing: " << sessionPath << std::endl;
+    // std::ofstream ofs(sessionPath.c_str(), std::ios::trunc);
+    // if (ofs)
+    // {
+    //     for (std::map<std::string, std::string>::const_iterator it = cookies.begin(); it != cookies.end(); ++it)
+    //     {
+    //         ofs << it->first << "=" << it->second << "\n";
+    //     }
+    //     ofs.close();
+    // }
+    // else
+    //     std::cerr << "Error: Could not open session file for writing: " << sessionPath << std::endl;
 }

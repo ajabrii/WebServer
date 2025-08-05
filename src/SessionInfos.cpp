@@ -32,7 +32,16 @@ void SessionInfos::setSessionData(const std::map<std::string, std::string>& data
 }
 void SessionInfos::setCookies(const std::map<std::string, std::string>& cookies)
 {
-    this->cookies = cookies;
+    // modify cookies to only have sessionId cookie
+    if (cookies.find("session_id") != cookies.end())
+    {
+        this->cookies["session_id"] = cookies.at("session_id");
+    }
+    else
+    {
+        this->cookies.clear();
+        this->cookies["session_id"] = SessionId;
+    }
 }
 void SessionInfos::setSessionPath(void)
 {

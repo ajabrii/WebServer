@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CgiState.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
+/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/02 09:56:32 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/02 10:00:09 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/05 12:38:30 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 
 typedef class Connection Connection;
 typedef class Reactor Reactor;
+typedef class ServerConfig ServerConfig;
 class CgiState
 {
     public:
@@ -35,5 +36,5 @@ class CgiState
         std::string script_path;
         Connection* connection;
         void writeToScript(Connection& conn);
-        void readFromScript(Connection& conn , Reactor& reactor);
+        void readFromScript(Connection& conn , Reactor& reactor, const ServerConfig& serverConfig);
 };

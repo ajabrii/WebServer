@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/03 17:54:35 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 12:51:13 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ void ltrim(std::string& s)
     s.erase(0, i);
 }
 
-HttpResponse parseCgiOutput(const std::string& raw) 
+HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverConfig) 
 {
     HttpResponse response;
 
@@ -89,7 +89,7 @@ HttpResponse parseCgiOutput(const std::string& raw)
     std::istringstream headerStream(headerPart);
     std::string line;
     bool statusParsed = false;
-    if (std::getline(headerStream, line)) 
+    if (std::getline(headerStream, line))
     {
         if (!line.empty() && *line.rbegin() == '\r')
             line.erase(line.size() - 1);
@@ -144,10 +144,17 @@ HttpResponse parseCgiOutput(const std::string& raw)
         std::ostringstream oss;
         oss << response.body.size();
         response.headers["Content-Length"] = oss.str();
+        std::cerr << "---------------[CGI]conten Body " << "'" << response.body << "'" << std::endl;
+        std::cerr << "---------------[CGI] Warning: Content-Length not found in headers, set to " << response.headers["Content-Length"] << std::endl;
     }
     if (response.headers.find("Content-Type") == response.headers.end()) 
     {
+        response.statusCode = 502;
+        response.statusText = "Bad Gateway";
+        response.body = Error::loadErrorPage(502, serverConfig);
         response.headers["Content-Type"] = "text/html";
+        response.headers["Content-Length"] = Utils::toString(response.body.size());
+        std::cerr << "[CGI] Warning: Content-Type not found in headers, set to text/html" << std::endl;
     }
     return response;
 }
@@ -205,7 +212,7 @@ void HandleCookies(Connection& conn, HttpRequest& req)
     sessionInfos.setSessionPath();
     sessionInfos.setSessionId(sessionInfos.getSessionId());
     conn.getCurrentRequest().SessionId = conn.getSessionInfos().getSessionId();
-    sessionInfos.setSessionData(sessionManager.load(sessionInfos.getSessionId()));
+    // sessionInfos.setSessionData(sessionManager.load(sessionInfos.getSessionId()));
         
 }
 
@@ -226,7 +233,12 @@ void handleNewConnection(Reactor &reactor, const Event &event)
     }
 }
 
-void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv)
+HttpResponse createErrorResponse(int statusCode, const std::string &statusText, const ServerConfig &ServerConfig)
+{
+    return ResponseBuilder::createErrorResponse(statusCode, statusText, ServerConfig);
+}
+
+void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv, const ServerConfig &serverConfig)
 {
     Connection &conn = reactor.getConnection(event.fd);
     CgiState *cgiState = conn.getCgiState();
@@ -234,7 +246,7 @@ void processReadableEvent(Reactor &reactor, const Event &event, const std::strin
     if (cgiState)
     {
         cgiState->writeToScript(conn);
-        cgiState->readFromScript(conn, reactor);
+        cgiState->readFromScript(conn, reactor, serverConfig);
     }
     else
     {
@@ -246,7 +258,8 @@ void processReadableEvent(Reactor &reactor, const Event &event, const std::strin
         }
         try {
             conn.readData(server);
-        } catch (const HttpRequest::HttpException &e) {
+        } catch (const HttpRequest::HttpException &e) 
+        {
             std::cerr << "Connection read error: " << e.what() << std::endl;
             HttpResponse errorResp = createErrorResponse(e.getStatusCode(), e.what(), server->getConfig());
             conn.writeData(errorResp.toString());
@@ -258,11 +271,6 @@ void processReadableEvent(Reactor &reactor, const Event &event, const std::strin
             processHttpRequest(reactor, conn, server, event, cgiEnv);
         }
     }
-}
-
-HttpResponse createErrorResponse(int statusCode, const std::string &statusText, const ServerConfig &ServerConfig)
-{
-    return ResponseBuilder::createErrorResponse(statusCode, statusText, ServerConfig);
 }
 
 void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, const Event &event, const std::string &cgiEnv)

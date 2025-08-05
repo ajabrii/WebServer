@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/01 23:33:19 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 12:33:11 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,11 +39,10 @@ bool shouldKeepAlive(const HttpRequest& request);
 void setConnectionHeaders(HttpResponse& response, bool keepAlive);
 std::string toLower(const std::string& s);
 void ltrim(std::string& s);
-HttpResponse parseCgiOutput(const std::string& raw);
+HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverConfig);
 void HandleCookies(Connection& conn, HttpRequest& req);
 void handleNewConnection(Reactor &reactor, const Event &event);
-void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv);
-HttpResponse createErrorResponse(int statusCode, const std::string &statusText, const ServerConfig &ServerConfig);
+void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv, const ServerConfig &serverConfig);
 void processHttpRequest(Reactor &reactor, Connection &conn, HttpServer *server, const Event &event, const std::string &cgiEnv);
 void handleHttpResponse(Reactor &reactor, Connection &conn, HttpResponse &resp, const HttpRequest &req);
 void handleHttpException(Reactor &reactor, Connection &conn, HttpServer *server, const std::runtime_error &e);
