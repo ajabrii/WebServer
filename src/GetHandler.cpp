@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/23 15:13:23 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/02 12:17:36 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -250,8 +250,8 @@ HttpResponse GetHandler::createErrorResponse(int statusCode, const std::string &
     res.statusCode = statusCode;
     res.statusText = statusText;
     res.headers["content-type"] = "text/html";
-    res.body = Error::loadErrorPage(statusCode, serverConfig);        // Load body first
-    res.headers["content-length"] = Utils::toString(res.body.size()); // Then set content-length
+    res.body = Error::loadErrorPage(statusCode, serverConfig);
+    res.headers["content-length"] = Utils::toString(res.body.size());
     return res;
 }
 
@@ -276,30 +276,15 @@ std::string GetHandler::extractPath(const std::string &uri) const
 
 std::string GetHandler::normalizePath(const std::string &path) const
 {
-    // PATH NORMALIZATION: Clean up the path for security and consistency
-    // This function resolves relative path components and removes redundancies
-    // Examples:
-    //   "/path//to/./file" -> "/path/to/file"
-    //   "/path/to/../other/file" -> "/path/other/file"
-    //   "/path/to/../../.." -> "/"
-
     std::string normalized = path;
-
-    // STEP 1: Replace multiple consecutive slashes with single slash
-    // This handles cases like "///" or "/path//to//file"
     size_t pos = 0;
     while ((pos = normalized.find("//", pos)) != std::string::npos)
     {
         normalized.replace(pos, 2, "/");
     }
-
-    // STEP 2: Handle . and .. path components
-    // Split the path into components and process each one
     std::vector<std::string> components;
     std::istringstream stream(normalized);
     std::string component;
-
-    // Split by '/' delimiter
     while (std::getline(stream, component, '/'))
     {
         if (component.empty() || component == ".")
@@ -312,30 +297,20 @@ std::string GetHandler::normalizePath(const std::string &path) const
             {
                 components.pop_back();
             }
-            // If components is empty, we're trying to go above root
-            // Ignore this (can't go above root directory)
         }
         else
         {
-            // Regular path component - add it to our list
             components.push_back(component);
         }
     }
-
-    // STEP 3: Rebuild the normalized path
-    std::string result = "/"; // Always start with root
+    std::string result = "/";
     for (size_t i = 0; i < components.size(); ++i)
     {
         if (i > 0)
-            result += "/"; // Add separator between components
+            result += "/";
         result += components[i];
     }
-
-    // STEP 4: Handle special case where original path was just "/"
     if (components.empty() && !path.empty() && path[0] == '/')
-    {
         return "/";
-    }
-
     return result;
 }

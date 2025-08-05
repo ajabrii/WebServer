@@ -1,2 +1,0 @@
-email=abdokataki@gmail.com
-username=admin

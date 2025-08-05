@@ -1,12 +1,8 @@
-#!/usr/bin/env python3
+Content-Type: text/html
 
 
-# Output required CGI header and blank line (MUST be CRLF CRLF)
-print("Content-Type: text/html")
 
-print("\r\n\r\n")
 
-html = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -79,6 +75,4 @@ html = """
     </footer>
 </body>
 </html>
-"""
 
-print(html)

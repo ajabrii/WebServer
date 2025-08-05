@@ -3,18 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:03:57 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 17:23:24 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/02 09:53:15 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIG_INTERPRETER_HPP
 #define CONFIG_INTERPRETER_HPP
 
-// #include <vector>
-// #include <string>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -24,6 +22,12 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
+#include <algorithm>
+#include <climits>
+#include <cstddef>
+#include <cctype>
+
 
 class ConfigInterpreter {
     private:
@@ -32,20 +36,20 @@ class ConfigInterpreter {
         int serverFlag;
         int routeFlag;
         char **envp;
-    
-    public:
-        ConfigInterpreter();
-        void getConfigData(std::string filePath);
-        void parse();
-        const std::vector<ServerConfig>& getServerConfigs() const;
-        void checkValues() const;
-        std::string getPathForCGI(char **envp) const;
-    
-    private:
-        // void parseServerBlock(const std::vector<std::string>& lines, size_t& i);
-        // void parseRouteBlock(ServerConfig& server, const std::vector<std::string>& lines, size_t& i);
-        void parseRouteLine(RouteConfig& route, const std::string& line);
-        void parseServerLine(ServerConfig& server, const std::string& line);
+
+        void parseRouteBlock(RouteConfig& route, const std::string& line);
+        void parseRouteOption(RouteConfig& route, const std::string& key, const std::string& value);
+        void parseMethodsOption(RouteConfig& route, const std::string& value);
+        void parseDirectoryListingOption(RouteConfig& route, const std::string& value);
+        void parseUploadPathOption(RouteConfig& route, const std::string& value);
+        void parseCgiOption(RouteConfig& route, const std::string& value);
+        void parseServerBlock(ServerConfig& server, const std::string& line);
+        void parseServerOption(ServerConfig& server, const std::string& key, const std::string& value, const std::string& line);
+        void parseHostOption(ServerConfig& server, const std::string& value);
+        void parsePortOption(ServerConfig& server, const std::string& value);
+        void parseServerNameOption(ServerConfig& server, const std::string& value);
+        void parseClientMaxBodySizeOption(ServerConfig& server, const std::string& value);
+        void parseErrorPageOption(ServerConfig& server, const std::string& line);
         std::string extractPathFromRouteLine(const std::string& line);
         std::vector<std::string> readFile(const std::string& filepath);
         bool hasValidExtension(const std::string& filePath) const;
@@ -55,6 +59,15 @@ class ConfigInterpreter {
         bool IsComment(const std::string& line);
         void printConfig() const;
         std::string toLower(std::string str);
+
+    public:
+        ConfigInterpreter();
+        void getConfigData(std::string filePath);
+        void parse();
+        const std::vector<ServerConfig>& getServerConfigs() const;
+        void checkValues();
+        std::string getPathForCGI(char **envp) const;
+
 };
 
 #endif

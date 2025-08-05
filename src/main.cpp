@@ -6,18 +6,29 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/26 11:10:41 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/02 12:33:38 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/ConfigInterpreter.hpp"
 #include "../includes/HttpServer.hpp"
+#include "../includes/Reactor.hpp"
+#include "../includes/Router.hpp"
+#include "../includes/RequestDispatcher.hpp"
+#include "../includes/CgiHandler.hpp"
+#include "../includes/Errors.hpp"
 #include "../includes/Utils.hpp"
+#include "../includes/CookieParser.hpp"
+#include "../includes/SessionManager.hpp"
+#include "../includes/SessionID.hpp"
 #include <sstream>
 #include <algorithm>
 #include <cctype>
 #include <signal.h>
 #include <cstdlib>
+#define REQUEST_LIMIT_PER_CONNECTION 100
+#define DEFAULT_CONFIG_PATH "./config/default.conf"
+
 
 static volatile bool g_shutdown = false;
 static std::vector<HttpServer *> *g_servers = NULL;
@@ -33,6 +44,10 @@ void handleErrorEvent(const Event &event)
 {
     std::string errorMsg = "Connection error on fd " + Utils::toString(event.fd) + ": ";
 
+    if (event.errorType & POLLHUP)
+    {
+        errorMsg += "Client disconnected (POLLHUP)";
+    }
     if (event.errorType & POLLERR)
     {
         errorMsg += "Socket error (POLLERR)";
@@ -41,7 +56,6 @@ void handleErrorEvent(const Event &event)
     {
         errorMsg += "Invalid file descriptor (POLLNVAL)";
     }
-
     if (g_reactor)
     {
         g_reactor->removeConnection(event.fd);
@@ -50,9 +64,19 @@ void handleErrorEvent(const Event &event)
 
 int main(int ac, char **av, char **envp)
 {
-    if (ac != 2)
+    std::string configPath;
+    if (ac == 1)
     {
-        Error::logs("Usage: " + std::string(av[0]) + " <config_file>");
+        configPath = DEFAULT_CONFIG_PATH;
+        std::cout << "\033[1;33m[INFO]\033[0m No config file provided. Using default path: " << configPath << std::endl;
+    }
+    else if (ac == 2)
+    {
+        configPath = av[1];
+    }
+    else
+    {
+        Error::logs("Usage: ./webserv [configuration file]");
         return 1;
     }
 
@@ -64,33 +88,37 @@ int main(int ac, char **av, char **envp)
     try
     {
         ConfigInterpreter parser;
-        parser.getConfigData(av[1]);
+        parser.getConfigData(configPath);
         parser.parse();
         parser.checkValues();
         std::string cgiEnv = parser.getPathForCGI(envp);
-        std::cout << "[✔] Config loaded" << std::endl;
-
         std::vector<ServerConfig> configs = parser.getServerConfigs();
-
         for (size_t i = 0; i < configs.size(); ++i)
         {
             HttpServer *server = new HttpServer(configs[i]);
-            server->setup();
-            servers.push_back(server);
+            try
+            {
+                server->setup();
+                servers.push_back(server);
+            }
+            catch (const std::exception &e)
+            {
+                delete server;
+                throw ;
+            }
         }
 
         Reactor reactor;
         g_reactor = &reactor;
         for (size_t i = 0; i < servers.size(); ++i)
-        {
             reactor.registerServer(*servers[i]);
-        }
         while (!g_shutdown)
         {
             try
             {
                 reactor.poll();
                 std::vector<Event> events = reactor.getReadyEvents();
+
                 for (size_t i = 0; i < events.size(); ++i)
                 {
                     Event event = events[i];
@@ -104,6 +132,7 @@ int main(int ac, char **av, char **envp)
                     }
                     else if (event.isError)
                     {
+                        std::cerr << "\033[1;31m[!]\033[0m Error event on fd: " << event.fd << std::endl;
                         handleErrorEvent(event);
                     }
                 }
@@ -116,7 +145,6 @@ int main(int ac, char **av, char **envp)
         }
         std::cout << "\n[INFO] Shutting down gracefully..." << std::endl;
         reactor.cleanup();
-
         for (size_t i = 0; i < servers.size(); ++i)
         {
             delete servers[i];

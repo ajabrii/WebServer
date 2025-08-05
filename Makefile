@@ -1,18 +1,12 @@
-# Compiler and flags
 CXX       = c++
 CPPFLAGS  = -Wall -Wextra -Werror -std=c++98 #-fsanitize=address -g3
-# Uncomment for debugging/sanitizers
-# CPPFLAGS += -fsanitize=address -g3
 
-# Project name
 NAME      = Webserv
 
-# Directories
 SRCDIR    = src
 INCDIR    = includes
 OBJDIR    = obj
 
-# Source files
 SRC = \
 	$(SRCDIR)/main.cpp \
 	$(SRCDIR)/CgiHandler.cpp \
@@ -32,7 +26,14 @@ SRC = \
 	$(SRCDIR)/RouteConfig.cpp \
 	$(SRCDIR)/ServerConfig.cpp \
 	$(SRCDIR)/Utils.cpp \
-	$(SRCDIR)/ResponseBuilder.cpp
+	$(SRCDIR)/CookieParser.cpp \
+	$(SRCDIR)/SessionID.cpp \
+	$(SRCDIR)/CgiState.cpp \
+	$(SRCDIR)/SessionManager.cpp \
+	$(SRCDIR)/ConfigServerParser.cpp \
+	$(SRCDIR)/ResponseBuilder.cpp \
+	$(SRCDIR)/SessionInfos.cpp
+
 
 HEADERS = \
 	$(INCDIR)/CgiHandler.hpp \
@@ -52,35 +53,33 @@ HEADERS = \
 	$(INCDIR)/RouteConfig.hpp \
 	$(INCDIR)/ServerConfig.hpp \
 	$(INCDIR)/Utils.hpp \
-	$(INCDIR)/ResponseBuilder.hpp
-# Object files
+	$(INCDIR)/ResponseBuilder.hpp \
+	$(INCDIR)/SessionID.hpp \
+	$(INCDIR)/CgiState.hpp \
+	$(INCDIR)/SessionManager.hpp\
+	$(INCDIR)/SessionInfos.hpp
+
 OBJ = $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
-# Default target
 all: $(NAME)
 
-# Link objects into binary
 $(NAME): $(OBJ) $(HEADERS)
 	@echo "\033[1;32mLinking $(NAME)...\033[0m"
 	@$(CXX) $(CPPFLAGS) $(OBJ) -o $(NAME)
 
-# Compile source files into object files
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(OBJDIR)
 	@echo "\033[1;34mCompiling $<...\033[0m"
 	@$(CXX) $(CPPFLAGS) -I$(INCDIR) -c $< -o $@
 
-# Clean object files
 clean:
 	@echo "\033[1;33mCleaning object files...\033[0m"
 	@rm -rf $(OBJDIR)
 
-# Clean all (object files + binary)
 fclean: clean
 	@echo "\033[1;31mCleaning binary...\033[0m"
 	@rm -f $(NAME)
 
-# Rebuild
 re: fclean all
 
 .PHONY: all clean fclean re

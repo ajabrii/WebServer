@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConfig.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:00:24 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 17:10:51 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/02 09:54:23 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,12 +22,12 @@ class ServerConfig {
     public:
         std::string host;
         std::vector<int> port;
-        // int port;
         std::vector<std::string> serverName;
         std::map<int, std::string> error_pages;
         unsigned long long clientMaxBodySize;
+        bool clientMaxBodySizeSet;
         std::vector<RouteConfig> routes;
-        
+
         ServerConfig();
         ServerConfig(const ServerConfig& other);
         int getMaxSize();

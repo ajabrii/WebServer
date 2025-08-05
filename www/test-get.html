@@ -14,239 +14,348 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
+            color: #f1f5f9;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1e1e1e 100%);
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 1000px;
-            margin: 0 auto;
+            display: flex;
+            height: 100vh;
+            padding: 0;
+            width: 100%;
+            max-width: none;
+        }
+
+        .left-panel {
+            width: 50%;
             padding: 2rem;
+            overflow-y: auto;
+            border-right: 1px solid #374151;
+            background: rgba(15, 15, 15, 0.95);
+        }
+
+        .right-panel {
+            width: 50%;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: rgba(20, 20, 20, 0.95);
         }
 
         .header {
             text-align: center;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid #27ae60;
+            border-bottom: 2px solid #10b981;
         }
 
         .header h1 {
             font-size: 2rem;
-            color: #27ae60;
+            color: #f9fafb;
             margin-bottom: 0.5rem;
         }
 
         .nav-back {
             display: inline-block;
             margin-bottom: 1rem;
-            color: #666;
+            color: #9ca3af;
             text-decoration: none;
             font-size: 0.9rem;
+            transition: color 0.3s ease;
         }
 
         .nav-back:hover {
-            color: #27ae60;
+            color: #10b981;
         }
 
         .section {
-            background: white;
-            border-radius: 8px;
+            background: rgba(30, 30, 30, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(64, 68, 82, 0.6);
+            border-radius: 12px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
         }
 
         .section h2 {
-            color: #2c3e50;
+            color: #f9fafb;
             margin-bottom: 1rem;
             font-size: 1.3rem;
         }
 
-        .test-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .test-item {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 1rem;
-            text-align: center;
-        }
-
         .test-button {
-            background: #27ae60;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
             cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin: 0.25rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
             font-size: 0.9rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            width: 100%;
+            text-align: left;
         }
 
         .test-button:hover {
-            background: #219a52;
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
         }
 
-        .result-area {
-            background: #2c3e50;
-            color: #ecf0f1;
+        .test-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .test-item {
+            background: rgba(25, 25, 25, 0.8);
+            border: 1px solid rgba(80, 85, 99, 0.4);
+            border-radius: 8px;
             padding: 1rem;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            min-height: 100px;
-            white-space: pre-wrap;
-            overflow-x: auto;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
         }
 
-        .url-input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        .test-item:hover {
+            border-color: rgba(16, 185, 129, 0.5);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+        }
+
+        .test-item h3 {
+            color: #10b981;
             margin-bottom: 0.5rem;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .file-list {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 0.5rem;
+        .test-item p {
+            color: #9ca3af;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
         }
 
-        .file-item {
+        .warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            margin-bottom: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .results-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .results-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.25rem 0;
-            border-bottom: 1px solid #eee;
+            margin-bottom: 1rem;
         }
 
-        .file-item:last-child {
-            border-bottom: none;
+        .results-header h2 {
+            color: #f9fafb;
+            font-size: 1.3rem;
         }
 
-        .status-200 { color: #27ae60; }
-        .status-404 { color: #e74c3c; }
-        .status-403 { color: #f39c12; }
+        .clear-button {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .clear-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+        }
+
+        .result-area {
+            background: rgba(20, 20, 20, 0.95);
+            color: #f1f5f9;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            flex: 1;
+            border: 1px solid rgba(80, 85, 99, 0.4);
+            backdrop-filter: blur(5px);
+        }
 
         @media (max-width: 768px) {
             .container {
-                padding: 1rem;
+                flex-direction: column;
+                height: auto;
             }
-            .test-grid {
-                grid-template-columns: 1fr;
+
+            .left-panel, .right-panel {
+                width: 100%;
+                min-height: auto;
+            }
+
+            .left-panel {
+                border-right: none;
+                border-bottom: 1px solid #374151;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="nav-back">← Back to Home</a>
+        <div class="left-panel">
+            <a href="index.html" class="nav-back">← Back to Home</a>
+            
+            <div class="header">
+                <h1>📥 GET Method Testing</h1>
+                <p>Test directory listing, redirects, static files, and error handling</p>
+            </div>
 
-        <div class="header">
-            <h1>📄 GET Method Testing</h1>
-            <p>Test static file serving, directory listing, and HTTP GET functionality</p>
-        </div>
+            <div class="warning">
+                ℹ️ <strong>GET Testing Guide:</strong> This interface tests common GET request scenarios including directory browsing, file serving, and error conditions.
+            </div>
 
-        <!-- Static File Testing -->
-        <div class="section">
-            <h2>Static File Serving</h2>
-            <div class="test-grid">
-                <div class="test-item">
-                    <h4>HTML Files</h4>
-                    <a href="/" class="test-button">Root Index</a>
-                    <a href="/test-get.html" class="test-button">This Page</a>
+            <!-- Directory Listing Tests -->
+            <div class="section">
+                <h2>📁 Directory Listing</h2>
+                <div class="test-grid">
+                    <div class="test-item">
+                        <h3>📂 Root Directory</h3>
+                        <p>Test directory listing for the root path</p>
+                        <button class="test-button" onclick="testGet('/')">🔍 GET /</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>📂 WWW Directory</h3>
+                        <p>Test directory listing for web content</p>
+                        <button class="test-button" onclick="testGet('/www/')">🔍 GET /www/</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>📂 Uploads Directory</h3>
+                        <p>Test directory listing for uploads folder</p>
+                        <button class="test-button" onclick="testGet('/uploads/')">🔍 GET /uploads/</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>📂 CGI Directory</h3>
+                        <p>Test directory listing for CGI scripts</p>
+                        <button class="test-button" onclick="testGet('/cgi-bin/')">🔍 GET /cgi-bin/</button>
+                    </div>
                 </div>
-                <div class="test-item">
-                    <h4>Image Files</h4>
-                    <a href="/uploads/favicon.ico" class="test-button">favicon Image</a>
-                    <button class="test-button" onclick="testFile('/uploads/test.jpg')">JPG Test</button>
+            </div>
+
+            <!-- Static File Tests -->
+            <div class="section">
+                <h2>📄 Static Files</h2>
+                <div class="test-grid">
+                    <div class="test-item">
+                        <h3>🏠 Index Page</h3>
+                        <p>Test serving the main index page</p>
+                        <button class="test-button" onclick="testGet('/index.html')">📄 GET /index.html</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>🎨 CSS File</h3>
+                        <p>Test serving CSS stylesheets</p>
+                        <button class="test-button" onclick="testGet('/style.css')">🎨 GET /style.css</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>🖼️ Image File</h3>
+                        <p>Test serving image files</p>
+                        <button class="test-button" onclick="testGet('/favicon.ico')">🖼️ GET /favicon.ico</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>📋 Text File</h3>
+                        <p>Test serving plain text files</p>
+                        <button class="test-button" onclick="testGet('/README.md')">📋 GET /README.md</button>
+                    </div>
                 </div>
-                <div class="test-item">
-                    <h4>Webserv subjects</h4>
-                    <a href="/uploads/en.subject.pdf" class="test-button">English Subject</a>
-                    <button class="test-button" onclick="testFile('/uploads/test.jpg')">JPG Test</button>
+            </div>
+
+            <!-- Redirect Tests -->
+            <div class="section">
+                <h2>🔄 Redirects</h2>
+                <div class="test-grid">
+                    <div class="test-item">
+                        <h3>↩️ Directory Without Slash</h3>
+                        <p>Test redirect when accessing directory without trailing slash</p>
+                        <button class="test-button" onclick="testGet('/www')">🔄 GET /www</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>↩️ Uploads Without Slash</h3>
+                        <p>Test redirect for uploads directory</p>
+                        <button class="test-button" onclick="testGet('/uploads')">🔄 GET /uploads</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>↩️ CGI Without Slash</h3>
+                        <p>Test redirect for CGI directory</p>
+                        <button class="test-button" onclick="testGet('/cgi-bin')">🔄 GET /cgi-bin</button>
+                    </div>
                 </div>
-                <div class="test-item">
-                    <h4>Text Files</h4>
-                    <button class="test-button" onclick="testFile('/uploads/test.txt')">Text File</button>
-                    <button class="test-button" onclick="testFile('/uploads/data.json')">JSON File</button>
-                </div>
-                <div class="test-item">
-                    <h4>Error Pages</h4>
-                    <button class="test-button" onclick="testFile('/nonexistent.html')">404 Test</button>
-                    <button class="test-button" onclick="testFile('/forbidden/')">403 Test</button>
+            </div>
+
+            <!-- Error Tests -->
+            <div class="section">
+                <h2>❌ Non-Existing Files</h2>
+                <div class="test-grid">
+                    <div class="test-item">
+                        <h3>🚫 404 Not Found</h3>
+                        <p>Test 404 error for non-existing file</p>
+                        <button class="test-button" onclick="testGet('/nonexistent.html')">❌ GET /nonexistent.html</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>🚫 404 Directory</h3>
+                        <p>Test 404 error for non-existing directory</p>
+                        <button class="test-button" onclick="testGet('/notfound/')">❌ GET /notfound/</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>🚫 Invalid Path</h3>
+                        <p>Test error handling for invalid paths</p>
+                        <button class="test-button" onclick="testGet('/invalid/../path')">❌ GET /invalid/../path</button>
+                    </div>
+                    <div class="test-item">
+                        <h3>🚫 Deep Path</h3>
+                        <p>Test error for deeply nested non-existing path</p>
+                        <button class="test-button" onclick="testGet('/deep/nested/path/file.txt')">❌ GET /deep/nested/path/file.txt</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Directory Listing -->
-        <div class="section">
-            <h2>Directory Listing</h2>
-            <div class="test-grid">
-                <div class="test-item">
-                    <h4>Uploads Directory</h4>
-                    <button class="test-button" onclick="testDirectory('/uploads/')">List Uploads</button>
-                    <button class="test-button" onclick="testDirectory('/uploads')">Without Slash</button>
+        <div class="right-panel">
+            <div class="results-section">
+                <div class="results-header">
+                    <h2>📊 Test Results</h2>
+                    <button class="clear-button" onclick="clearResults()">Clear Results</button>
                 </div>
-                <div class="test-item">
-                    <h4>Root Directory</h4>
-                    <button class="test-button" onclick="testDirectory('/')">Root Listing</button>
-                </div>
-            </div>
-        </div>
+                <div id="results" class="result-area">Ready to test GET requests...
+🚀 Click any test button to see detailed results here.
 
-        <!-- Custom URL Testing -->
-        <div class="section">
-            <h2>Custom URL Testing</h2>
-            <input type="text" id="customUrl" class="url-input" placeholder="Enter URL (e.g., /uploads/myfile.txt)" value="/">
-            <button class="test-button" onclick="testCustomUrl()">Test URL</button>
-            <button class="test-button" onclick="openCustomUrl()">Open in New Tab</button>
-        </div>
+💡 Test Categories:
+  📁 Directory Listing - View folder contents
+  📄 Static Files - Serve HTML, CSS, images
+  🔄 Redirects - Automatic URL redirection
+  ❌ Error Handling - 404 and invalid paths
 
-        <!-- MIME Type Testing -->
-        <div class="section">
-            <h2>MIME Type Detection</h2>
-            <div class="test-grid">
-                <div class="test-item">
-                    <h4>Common Types</h4>
-                    <button class="test-button" onclick="testMimeType('.html')">HTML</button>
-                    <button class="test-button" onclick="testMimeType('.css')">CSS</button>
-                    <button class="test-button" onclick="testMimeType('.js')">JavaScript</button>
-                </div>
-                <div class="test-item">
-                    <h4>Media Types</h4>
-                    <button class="test-button" onclick="testMimeType('.jpg')">JPEG</button>
-                    <button class="test-button" onclick="testMimeType('.png')">PNG</button>
-                    <button class="test-button" onclick="testMimeType('.svg')">SVG</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Results -->
-        <div class="section">
-            <h2>Test Results</h2>
-            <div id="results" class="result-area">Ready to test GET requests...\nClick any test button above to see results here.</div>
-        </div>
-
-        <!-- File Browser -->
-        <div class="section">
-            <h2>Available Files</h2>
-            <div id="fileBrowser" class="file-list">
-                <div class="file-item">
-                    <span>📁 Loading files...</span>
-                    <button class="test-button" onclick="refreshFiles()">Refresh</button>
-                </div>
+Select a test to begin!</div>
             </div>
         </div>
     </div>
@@ -259,140 +368,59 @@
             results.scrollTop = results.scrollHeight;
         }
 
-        async function testFile(url) {
-            log(`Testing GET request to: ${url}`);
+        function clearResults() {
+            const results = document.getElementById('results');
+            results.textContent = 'Results cleared. Ready for new GET tests...\n🚀 Select a test button to begin.';
+        }
+
+        async function testGet(path) {
+            log(`🚀 Testing GET request: ${path}`);
+            
             try {
-                const response = await fetch(url);
-                const statusClass = response.status === 200 ? 'status-200' :
-                                  response.status === 404 ? 'status-404' : 'status-403';
-
-                log(`Response: ${response.status} ${response.statusText}`);
-                log(`Content-Type: ${response.headers.get('content-type') || 'not specified'}`);
-                log(`Content-Length: ${response.headers.get('content-length') || 'not specified'}`);
-
-                // Show response in new tab
+                const startTime = performance.now();
+                const response = await fetch(path, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': '*/*',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+                
+                log(`📊 Response: ${response.status} ${response.statusText} (${duration}ms)`);
+                log(`🔗 Final URL: ${response.url}`);
+                log(`📋 Response Headers:`);
+                for (const [key, value] of response.headers.entries()) {
+                    log(`  ${key}: ${value}`);
+                }
+                
                 const responseText = await response.clone().text();
-                showResponseInNewTab('GET', url, response, responseText);
-
-                if (response.ok) {
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('text')) {
-                        const text = await response.text();
-                        log(`Content preview: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`);
-                    } else {
-                        log(`Binary content (${response.headers.get('content-length')} bytes)`);
-                    }
-                } else {
-                    const errorText = await response.text();
-                    log(`Error content: ${errorText}`);
-                }
+                const contentLength = responseText.length;
+                log(`📄 Content Length: ${contentLength} bytes`);
+                log(`📄 Content Preview: ${responseText.substring(0, 200)}${contentLength > 200 ? '...' : ''}`);
+                
+                // Show full response in new tab
+                showResponseInNewTab('GET', path, response, responseText);
+                
             } catch (error) {
-                log(`Error: ${error.message}`);
-                showErrorInNewTab('GET', url, error);
-            }
-            log('---');
-        }
-
-        async function testDirectory(url) {
-            log(`Testing directory listing: ${url}`);
-            try {
-                const response = await fetch(url);
-                log(`Response: ${response.status} ${response.statusText}`);
-
-                if (response.ok) {
-                    const html = await response.text();
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const links = doc.querySelectorAll('a');
-                    log(`Found ${links.length} items in directory`);
-
-                    links.forEach((link, index) => {
-                        if (index < 10) { // Show first 10 items
-                            log(`  - ${link.textContent}`);
-                        }
-                    });
-                    if (links.length > 10) {
-                        log(`  ... and ${links.length - 10} more items`);
-                    }
-                } else {
-                    const errorText = await response.text();
-                    log(`Error: ${errorText}`);
-                }
-            } catch (error) {
-                log(`Error: ${error.message}`);
-            }
-            log('---');
-        }
-
-        function testCustomUrl() {
-            const url = document.getElementById('customUrl').value;
-            if (!url) {
-                log('Please enter a URL');
-                return;
-            }
-            testFile(url);
-        }
-
-        function openCustomUrl() {
-            const url = document.getElementById('customUrl').value;
-            if (!url) {
-                log('Please enter a URL');
-                return;
-            }
-            window.open(url, '_blank');
-        }
-
-        async function testMimeType(extension) {
-            const testFile = `/uploads/test${extension}`;
-            log(`Testing MIME type for ${extension} files`);
-            testFile(testFile);
-        }
-
-        async function refreshFiles() {
-            log('Refreshing file list...');
-            try {
-                const response = await fetch('/uploads/');
-                if (response.ok) {
-                    const html = await response.text();
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const links = doc.querySelectorAll('a');
-
-                    const fileBrowser = document.getElementById('fileBrowser');
-                    fileBrowser.innerHTML = '';
-
-                    links.forEach(link => {
-                        const href = link.getAttribute('href');
-                        if (href && href !== '../' && href !== './') {
-                            const fileItem = document.createElement('div');
-                            fileItem.className = 'file-item';
-                            fileItem.innerHTML = `
-                                <span>${href.endsWith('/') ? '📁' : '📄'} ${href}</span>
-                                <button class="test-button" onclick="testFile('/uploads/${href}')">Test</button>
-                            `;
-                            fileBrowser.appendChild(fileItem);
-                        }
-                    });
-
-                    if (fileBrowser.children.length === 0) {
-                        fileBrowser.innerHTML = '<div class="file-item"><span>No files found</span></div>';
-                    }
-                } else {
-                    log(`Failed to refresh files: ${response.status}`);
-                }
-            } catch (error) {
-                log(`Error refreshing files: ${error.message}`);
+                log(`💥 GET Error: ${error.message}`);
+                showErrorAsHtml(`<h1>Network Error</h1><p>${error.message}</p>`);
             }
         }
-
-        // Auto-refresh files on page load
-        window.addEventListener('load', refreshFiles);
 
         // Function to show server response in new tab
         function showResponseInNewTab(method, url, response, responseText) {
             const newTab = window.open('about:blank', '_blank');
             if (!newTab) {
-                log('Popup blocked - unable to open response in new tab');
+                log('🚫 Popup blocked - unable to open response in new tab');
+                return;
+            }
+            
+            // If it's an error response (status >= 400), render it directly
+            if (response.status >= 400) {
+                newTab.document.write(responseText || '(empty response)');
+                newTab.document.close();
                 return;
             }
 
@@ -402,109 +430,295 @@
                 headers.push(`${key}: ${value}`);
             }
 
+            // Escape HTML in response text to prevent XSS
+            const escapeHtml = (text) => {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            };
+            
+            // Check if the response is HTML content that should be rendered
+            const isHtmlResponse = (text) => {
+                const content = (text || '').trim().toLowerCase();
+                return content.includes('<!doctype html') || 
+                       content.includes('<html') || 
+                       content.includes('<head>') || 
+                       content.includes('<body>') ||
+                       (content.includes('<') && content.includes('>') && (content.includes('<h1') || content.includes('<h2') || content.includes('<p>') || content.includes('<div')));
+            };
+            
+            const processedResponseText = isHtmlResponse(responseText) ? (responseText || '(empty response)') : escapeHtml(responseText || '(empty response)');
+            const statusClass = response.ok ? 'success' : (response.status >= 400 ? 'error' : 'warning');
+            const statusIcon = response.ok ? '✅' : (response.status >= 400 ? '❌' : '⚠️');
+            
             const html = `
                 <!DOCTYPE html>
-                <html>
+                <html lang="en">
                 <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>${method} Response - ${response.status}</title>
                     <style>
-                        body { font-family: monospace; margin: 20px; background: #f8f9fa; }
-                        .header { background: #27ae60; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-                        .status { font-size: 1.5em; margin-bottom: 10px; }
-                        .section { background: white; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 4px solid #27ae60; }
-                        .section h3 { margin-top: 0; color: #2c3e50; }
-                        .response-body { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; white-space: pre-wrap; overflow-x: auto; max-height: 400px; overflow-y: auto; }
-                        .success { border-left-color: #27ae60; }
-                        .error { border-left-color: #e74c3c; }
-                        .warning { border-left-color: #f39c12; }
+                        * {
+                            margin: 0;
+                            padding: 0;
+                            box-sizing: border-box;
+                        }
+                        body { 
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                            margin: 0; 
+                            padding: 20px;
+                            background: #1a1a1a;
+                            color: #ffffff;
+                            min-height: 100vh;
+                            line-height: 1.6;
+                        }
+                        .container {
+                            max-width: none;
+                            margin: 0 auto;
+                            width: 100%;
+                        }
+                        .header { 
+                            background: #2d3748;
+                            border: 2px solid #4a5568;
+                            color: #ffffff; 
+                            padding: 25px; 
+                            border-radius: 12px; 
+                            margin-bottom: 25px;
+                            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+                        }
+                        .status-line { 
+                            font-size: 1.8em; 
+                            margin-bottom: 15px; 
+                            color: #48bb78; 
+                            font-weight: 700;
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                        }
+                        .header-info {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                            gap: 15px;
+                            margin-top: 15px;
+                        }
+                        .info-item {
+                            background: #1a202c;
+                            padding: 12px 16px;
+                            border-radius: 8px;
+                            border: 1px solid #4a5568;
+                        }
+                        .info-label {
+                            font-weight: 600;
+                            color: #a0aec0;
+                            font-size: 0.9em;
+                            margin-bottom: 4px;
+                        }
+                        .info-value {
+                            color: #ffffff;
+                            font-family: 'Courier New', monospace;
+                            font-size: 0.95em;
+                        }
+                        .section { 
+                            background: #2d3748;
+                            border: 2px solid #4a5568;
+                            padding: 20px; 
+                            margin-bottom: 20px; 
+                            border-radius: 12px; 
+                            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+                        }
+                        .section h3 { 
+                            margin-top: 0; 
+                            margin-bottom: 15px;
+                            color: #ffffff; 
+                            font-weight: 600;
+                            font-size: 1.2em;
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                        }
+                        .response-body { 
+                            background: #1a202c;
+                            color: #f7fafc; 
+                            padding: 20px; 
+                            border-radius: 8px; 
+                            white-space: pre-wrap; 
+                            overflow-x: auto; 
+                            max-height: 500px; 
+                            overflow-y: auto;
+                            border: 2px solid #4a5568;
+                            font-family: 'Courier New', monospace;
+                            font-size: 0.9em;
+                            word-break: break-word;
+                        }
+                        .response-body.html-content {
+                            background: #2d3748;
+                            color: #ffffff;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                            white-space: normal;
+                            word-break: normal;
+                        }
+                        .headers-list {
+                            background: #1a202c;
+                            padding: 15px;
+                            border-radius: 8px;
+                            border: 2px solid #4a5568;
+                            font-family: 'Courier New', monospace;
+                            font-size: 0.9em;
+                        }
+                        .header-item {
+                            margin-bottom: 8px;
+                            padding: 8px 0;
+                            border-bottom: 1px solid #4a5568;
+                            color: #ffffff;
+                        }
+                        .header-item:last-child {
+                            border-bottom: none;
+                            margin-bottom: 0;
+                        }
+                        .success { 
+                            border-left: 4px solid #48bb78; 
+                            background: #2d3748;
+                        }
+                        .error { 
+                            border-left: 4px solid #f56565; 
+                            background: #2d3748;
+                        }
+                        .warning { 
+                            border-left: 4px solid #ed8936; 
+                            background: #2d3748;
+                        }
+                        .status-badge {
+                            display: inline-block;
+                            padding: 6px 14px;
+                            border-radius: 20px;
+                            font-size: 0.8em;
+                            font-weight: 700;
+                            margin-left: 10px;
+                        }
+                        .status-success { 
+                            background: #48bb78; 
+                            color: #ffffff; 
+                        }
+                        .status-error { 
+                            background: #f56565; 
+                            color: #ffffff; 
+                        }
+                        .status-warning { 
+                            background: #ed8936; 
+                            color: #ffffff; 
+                        }
+                        .close-button {
+                            position: fixed;
+                            top: 20px;
+                            right: 20px;
+                            background: #f56565;
+                            color: #ffffff;
+                            border: none;
+                            padding: 12px 16px;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-weight: 600;
+                            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+                            transition: all 0.3s ease;
+                            font-size: 0.9em;
+                        }
+                        .close-button:hover {
+                            background: #e53e3e;
+                            transform: translateY(-2px);
+                            box-shadow: 0 6px 16px rgba(245, 101, 101, 0.6);
+                        }
+                        @media (max-width: 768px) {
+                            body { padding: 10px; }
+                            .header-info { grid-template-columns: 1fr; }
+                            .section { padding: 15px; }
+                        }
                     </style>
                 </head>
                 <body>
-                    <div class="header">
-                        <div class="status">📥 GET Request Response</div>
-                        <div><strong>Status:</strong> ${response.status} ${response.statusText}</div>
-                        <div><strong>URL:</strong> ${url}</div>
-                        <div><strong>Time:</strong> ${timestamp}</div>
-                    </div>
-
-                    <div class="section ${response.ok ? 'success' : 'error'}">
-                        <h3>Response Headers</h3>
-                        <div>${headers.length > 0 ? headers.join('<br>') : 'No headers received'}</div>
-                    </div>
-
-                    <div class="section">
-                        <h3>Response Body</h3>
-                        <div class="response-body">${responseText || '(empty response)'}</div>
-                    </div>
-
-                    <div class="section">
-                        <h3>Request Details</h3>
-                        <div><strong>Method:</strong> GET</div>
-                        <div><strong>URL:</strong> ${url}</div>
-                        <div><strong>Success:</strong> ${response.ok ? 'Yes' : 'No'}</div>
-                        <div><strong>Type:</strong> ${response.type}</div>
-                        <div><strong>Redirected:</strong> ${response.redirected ? 'Yes' : 'No'}</div>
+                    <div class="container">
+                        <button class="close-button" onclick="window.close()">✕ Close</button>
+                        
+                        <div class="header">
+                            <div class="status-line">
+                                ${statusIcon} GET Request Response
+                                <span class="status-badge status-${statusClass}">${response.status}</span>
+                            </div>
+                            <div class="header-info">
+                                <div class="info-item">
+                                    <div class="info-label">Status</div>
+                                    <div class="info-value">${response.status} ${response.statusText}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">URL</div>
+                                    <div class="info-value">${url}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Method</div>
+                                    <div class="info-value">${method}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Time</div>
+                                    <div class="info-value">${timestamp}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section ${statusClass}">
+                            <h3>📋 Response Headers</h3>
+                            <div class="headers-list">
+                                ${headers.length > 0 ? headers.map(header => `<div class="header-item">${header}</div>`).join('') : '<div class="header-item">No headers received</div>'}
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>📄 Response Body</h3>
+                            <div class="response-body${isHtmlResponse(responseText) ? ' html-content' : ''}">${processedResponseText}</div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>ℹ️ Request Details</h3>
+                            <div class="headers-list">
+                                <div class="header-item"><strong>Method:</strong> GET</div>
+                                <div class="header-item"><strong>URL:</strong> ${url}</div>
+                                <div class="header-item"><strong>Success:</strong> ${response.ok ? 'Yes ✅' : 'No ❌'}</div>
+                                <div class="header-item"><strong>Type:</strong> ${response.type || 'N/A'}</div>
+                                <div class="header-item"><strong>Redirected:</strong> ${response.redirected ? 'Yes' : 'No'}</div>
+                            </div>
+                        </div>
                     </div>
                 </body>
                 </html>
             `;
-
+            
             newTab.document.write(html);
             newTab.document.close();
         }
 
-        // Function to show error in new tab
-        function showErrorInNewTab(method, url, error) {
+        // Function to show error as HTML content directly
+        function showErrorAsHtml(responseText) {
             const newTab = window.open('about:blank', '_blank');
             if (!newTab) {
-                log('Popup blocked - unable to open error in new tab');
+                log('🚫 Popup blocked - unable to open error response');
                 return;
             }
-
-            const timestamp = new Date().toISOString();
-
-            const html = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>${method} Error</title>
-                    <style>
-                        body { font-family: monospace; margin: 20px; background: #f8f9fa; }
-                        .header { background: #e74c3c; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-                        .section { background: white; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 4px solid #e74c3c; }
-                        .section h3 { margin-top: 0; color: #2c3e50; }
-                        .error-message { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <div style="font-size: 1.5em;">❌ ${method} Request Error</div>
-                        <div><strong>URL:</strong> ${url}</div>
-                        <div><strong>Time:</strong> ${timestamp}</div>
-                    </div>
-
-                    <div class="section">
-                        <h3>Error Details</h3>
-                        <div class="error-message">${error.message}</div>
-                    </div>
-
-                    <div class="section">
-                        <h3>Possible Causes</h3>
-                        <ul>
-                            <li>Network connectivity issues</li>
-                            <li>Server not responding</li>
-                            <li>CORS policy restrictions</li>
-                            <li>File or path doesn't exist</li>
-                            <li>Permission denied</li>
-                        </ul>
-                    </div>
-                </body>
-                </html>
-            `;
-
-            newTab.document.write(html);
+            
+            // Just write the raw HTML response from server, nothing else
+            newTab.document.write(responseText);
             newTab.document.close();
         }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 GET Testing page loaded successfully!');
+            log('💡 Ready to test GET requests for:');
+            log('  📁 Directory Listing - /, /www/, /uploads/, /cgi-bin/');
+            log('  📄 Static Files - HTML, CSS, images, text files');
+            log('  🔄 Redirects - Directory access without trailing slash');
+            log('  ❌ Error Handling - 404 and invalid paths');
+            log('');
+            log('🎯 Click any test button to begin...');
+        });
     </script>
 </body>
 </html>

@@ -3,14 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   HttpRequest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 17:10:40 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/02 12:16:49 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-// HttpRequest.hpp
 #ifndef HTTP_REQUEST_HPP
 #define HTTP_REQUEST_HPP
 
@@ -29,14 +28,22 @@ public:
     bool isChunked;
     long bodyReceived;
     bool headersParsed;
+    std::string UploadDirectory;
+    std::string SessionId;
 
     HttpRequest();
 
     void parseHeaders(const std::string& rawHeaders);
+    void parseRequestLine(const std::string& line);
+    void parseHeaderLine(const std::string& line, int& hostFlag);
+    void validateAbsoluteUri();
+    void determineBodyProtocol();
 
-    bool parseBody(std::string& connectionBuffer, long maxBodySize); // Will be called incrementally
+    bool parseBody(std::string& connectionBuffer, unsigned long long maxBodySize);
 
-    bool decodeChunked(std::string& buffer, std::string& decodedOutput);
+    bool decodeChunked(std::string& buffer, std::string& decodedOutput, unsigned long long maxBodySize);
+    bool parseChunkSize(const std::string& sizeHex, unsigned long long& chunkSize);
+    bool skipTrailerHeaders(std::string& buffer, size_t startPos);
     void throwHttpError(int statusCode, const std::string& message);
     std::string GetHeader(std::string target) const;
 

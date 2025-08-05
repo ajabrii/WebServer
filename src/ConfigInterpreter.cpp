@@ -3,19 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigInterpreter.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/20 17:22:44 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/02 11:28:23 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 # include "../includes/ConfigInterpreter.hpp"
-#include <algorithm> 
-#include <climits>
-#include <cstddef>
-
 
 ConfigInterpreter::ConfigInterpreter() : serverFlag(false), routeFlag(false){}
 
@@ -28,10 +24,13 @@ void ConfigInterpreter::getConfigData(std::string filePath)
     blockKeywords.push_back("location");
     blockKeywords.push_back("route");
     bool matched;
+    bool serverexist = false;
     std::string keyword;
-    // Check file extension (.config or .yaml)
+    if (filePath.empty()) {
+        throw std::runtime_error("Config file path is empty");
+    }
     if (!hasValidExtension(filePath)) {
-        throw std::runtime_error("Config file must have .config or .yaml extension");
+        throw std::runtime_error("Config file must have .conf or .yaml extension");
     }
     std::ifstream infile(filePath.c_str());
     if (!infile.is_open())
@@ -41,7 +40,7 @@ void ConfigInterpreter::getConfigData(std::string filePath)
 
     while (std::getline(infile, line))
     {
-        commentPos = line.find('#'); //?  here i handle the position of the comment like "server { #comment"
+        commentPos = line.find('#');
         if (commentPos != std::string::npos)
             line = line.substr(0, commentPos);
 
@@ -54,10 +53,10 @@ void ConfigInterpreter::getConfigData(std::string filePath)
 
             if (line == keyword) {
                 ConfigData.push_back(keyword);
+                serverexist = true;
                 matched = true;
                 break;
             }
-            //? handell this problem :: "keyword {" or "keyword  \n {"
             if (line.find(keyword) != std::string::npos && line.find("{") != std::string::npos) {
                 size_t keyPos = line.find(keyword);
                 size_t bracePos = line.find("{");
@@ -65,6 +64,7 @@ void ConfigInterpreter::getConfigData(std::string filePath)
                 if (keyPos < bracePos) {
                     ConfigData.push_back(trim(line.substr(0, bracePos)));
                     ConfigData.push_back("{");
+                    serverexist = true;
                     matched = true;
                     break;
                 }
@@ -75,16 +75,20 @@ void ConfigInterpreter::getConfigData(std::string filePath)
             ConfigData.push_back(clean_line(line));
         }
     }
+    if (!serverexist)
+    {
+        throw std::runtime_error("No server block found in config file");
+    }
     infile.close();
-}
 
+}
 bool ConfigInterpreter::hasValidExtension(const std::string& filePath) const
 {
     size_t dotPos = filePath.rfind('.');
     if (dotPos == std::string::npos)
         return false;
     std::string ext = filePath.substr(dotPos);
-    return (ext == ".config" || ext == ".yaml");
+    return (ext == ".conf" || ext == ".yaml");
 }
 
 std::string ConfigInterpreter::trim(const std::string& line) {
@@ -97,15 +101,11 @@ std::string ConfigInterpreter::trim(const std::string& line) {
 
 std::string ConfigInterpreter::clean_line(std::string line)
 {
-    // Trim leading and trailing whitespace
     line.erase(0, line.find_first_not_of(" \t\n\r"));
     line.erase(line.find_last_not_of(" \t\n\r") + 1);
 
-    // Remove trailing semicolon if it exists
     if (!line.empty() && line[line.size() - 1] == ';')
-    {
         line.erase(line.size() - 1);
-    }
     return line;
 }
 
@@ -135,7 +135,7 @@ bool ConfigInterpreter::IsComment(const std::string& line)
 }
 
 
-void ConfigInterpreter::parse() 
+void ConfigInterpreter::parse()
 {
     ServerConfig current_server;
     RouteConfig current_route;
@@ -171,11 +171,10 @@ void ConfigInterpreter::parse()
                 serverConfigs.push_back(current_server);
                 current_server = ServerConfig();
                 serverFlag = 0;
-            } 
-            else
-            {
-                throw std::runtime_error("Invalid config file syntax: unexpected closing brace '}' without a matching opening block");
             }
+            else
+                throw std::runtime_error("Invalid config file syntax: unexpected closing brace '}' without a matching opening block");
+
             continue;
         }
 
@@ -190,7 +189,6 @@ void ConfigInterpreter::parse()
             if (i + 1 < ConfigData.size() && ConfigData[i + 1] == "{")
             {
                 current_route.path = extractPathFromRouteLine(line);
-                // std::cout << "route path::::::::" << current_route.path << "\n";
                 routeFlag = 1;
                 ++i;
                 continue;
@@ -201,13 +199,9 @@ void ConfigInterpreter::parse()
         if (serverFlag)
         {
             if (routeFlag)
-            {
-                parseRouteLine(current_route, line);
-            }
+                parseRouteBlock(current_route, line);
             else
-            {
-                parseServerLine(current_server, line);
-            }
+                parseServerBlock(current_server, line);
         }
     }
     if ((routeFlag || serverFlag))
@@ -224,7 +218,7 @@ std::string ConfigInterpreter::extractPathFromRouteLine(const std::string& line)
         start = line.find("location") + 8;
     }
 
-    size_t end = line.find("{"); //? i will change later (it stop at the end if line)
+    size_t end = line.find("{");
     if (end <= start)
         throw std::runtime_error("Invalid route line: " + line);
 
@@ -239,26 +233,65 @@ const std::vector<ServerConfig>& ConfigInterpreter::getServerConfigs() const {
     return serverConfigs;
 }
 
-void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& line)
+void ConfigInterpreter::parseMethodsOption(RouteConfig& route, const std::string& value)
 {
-    // std::cout << "--------------------------------------------->line: " << line << "\n";
-    size_t equal = line.find('=');
-    if (equal == std::string::npos)
-        throw std::runtime_error("Invalid route line: " + line);
+    std::stringstream ss(value);
+    std::string method;
+    while (ss >> method)
+        if (method == "GET" || method == "POST" || method == "DELETE")
+            route.allowedMethods.push_back(method);
+        else
+            throw std::runtime_error("Unkownen method :: " + method);
+}
 
-    std::string key = clean_line(line.substr(0, equal));
-    std::string value = clean_line(line.substr(equal + 1));
-    
-    key = toLower(key); // bach n9bel kolchi 
+void ConfigInterpreter::parseDirectoryListingOption(RouteConfig& route, const std::string& value)
+{
+    if (value == "on")
+        route.directory_listing = true;
+    else
+        route.directory_listing = false;
+}
+
+void ConfigInterpreter::parseUploadPathOption(RouteConfig& route, const std::string& value)
+{
+    if (!route.uploadDir.empty()) {
+        throw std::runtime_error("Duplicate 'upload_path' entry in route block.");
+    }
+    route.uploadDir = value;
+}
+
+void ConfigInterpreter::parseCgiOption(RouteConfig& route, const std::string& value)
+{
+    std::stringstream line(value);
+
+    std::stringstream countStream(value);
+    int inputCount = 0;
+    std::string tempInput;
+    while (countStream >> tempInput) ++inputCount;
+    if (inputCount != 2)
+        throw std::runtime_error("invalid CGI input");
+    std::string ext;
+    std::string path;
+    line >> ext;
+    line >> path;
+    route.cgi[ext] = path;
+}
+
+void ConfigInterpreter::parseRouteOption(RouteConfig& route, const std::string& key, const std::string& value)
+{
     if (key == "methods")
     {
-        std::stringstream ss(value);
-        std::string method;
-        while (ss >> method)
-            if (method == "GET" || method == "POST" || method == "DELETE")
-                route.allowedMethods.push_back(method);
-            else 
-                throw std::runtime_error("Unkownen method :: " + method);
+        if (!route.allowedMethods.empty()) {
+            throw std::runtime_error("Duplicate 'methods' entry in route block.");
+        }
+        parseMethodsOption(route, value);
+    }
+    else if (key == "root")
+    {
+        if (!route.root.empty()) {
+            throw std::runtime_error("Duplicate 'root' entry in route block.");
+        }
+        route.root = value;
     }
     else if (key == "indexfile")
     {
@@ -266,184 +299,41 @@ void ConfigInterpreter::parseRouteLine(RouteConfig& route, const std::string& li
     }
     else if (key == "redirect")
         route.redirect = value;
-    else if (key == "root")
-        route.root = value;
-    else if (key == "directory_listing")
+    else if (key == "autoindex")
     {
-        if (value == "on")
-            route.directory_listing = true;
-        else
-            route.directory_listing = false;
+        parseDirectoryListingOption(route, value);
     }
     else if (key == "upload_path") {
-        if (!route.uploadDir.empty()) {
-            throw std::runtime_error("Duplicate 'upload_path' entry in route block.");
-        }
-        route.uploadDir = value;
+        parseUploadPathOption(route, value);
     }
     else if (key == "cgi")
     {
-        std::stringstream line(value);
-
-        std::stringstream countStream(value);
-        int inputCount = 0;
-        std::string tempInput;
-        while (countStream >> tempInput) ++inputCount;
-        if (inputCount != 2)
-            throw std::runtime_error("invalid CGI input");
-        std::string ext;
-        std::string path;
-        line >> ext;
-        line >> path;
-        // if (ext != ".py" && ext != ".php")
-        //     throw std::runtime_error("unsupported extension ");
-        route.cgi[ext] = path;
+        parseCgiOption(route, value);
     }
     else
         throw std::runtime_error("Unknown route option: " + key);
 }
 
-bool isNum(const std::string& token)
+void ConfigInterpreter::parseRouteBlock(RouteConfig& route, const std::string& line)
 {
-    if (token.empty())
-        return false;
-    for (size_t i = 0; i < token.size(); ++i)
-    {
-        if (!std::isdigit(token[i]))
-            return false;
-    }
-    return true;
-}
+    size_t equal = line.find_last_of('=');
+    if (equal == std::string::npos)
+        throw std::runtime_error("Invalid route line: " + line);
 
-void ConfigInterpreter::parseServerLine(ServerConfig& server, const std::string& line)
-{
-    size_t equal = line.find('=');
-    if (equal == std::string::npos && line.find("error_page") != 0)
-        throw std::runtime_error("Invalid server line: " + line);
-
-    std::string key = trim(line.substr(0, equal));
-    std::string value = trim(line.substr(equal + 1));
-
+    std::string key = clean_line(line.substr(0, equal));
+    std::string value = clean_line(line.substr(equal + 1));
     key = toLower(key);
-    if (key == "host") {
-        if (!server.host.empty())
-            throw std::runtime_error("Duplicate 'host' entry in server block.");
-        server.host = value;
-    }
-    else if (key == "port")
-    {
-        std::stringstream ss(value);
-        std::string portStr;
-        while (ss >> portStr) {
-            if (portStr.size() > 5)
-                throw std::runtime_error("Invalid port length: " + portStr);
-            if (!isNum(portStr))
-                throw std::runtime_error("Port is not numeric: " + portStr);
-            int portNum = std::atoi(portStr.c_str());
-            if (portNum <= 0 || portNum > 65535)
-                throw std::runtime_error("Invalid port number: " + portStr);
-            // check duplicates
-            if (std::find(server.port.begin(), server.port.end(), portNum) != server.port.end())
-                throw std::runtime_error("Duplicate port in server block: " + portStr);
-            server.port.push_back(portNum);
-        }
-        if (server.port.empty())
-            throw std::runtime_error("No valid ports specified in server block.");
-    }
-    else if (key == "server_name")
-    {
-        std::stringstream ss(value);
-        std::string name;
-        while (ss >> name){
-            if (std::find(server.serverName.begin(), server.serverName.end(), name) != server.serverName.end())
-                throw std::runtime_error("Server name already taken: " + name);
-            server.serverName.push_back(name);
-        }
-    }
-    else if (key == "client_max_body_size")
-    {
-        if (value.empty())
-            throw std::runtime_error("client_max_body_size cannot be empty");
-            
-        unsigned long long size = 0;
-        std::string numStr = value;
-        unsigned long long multiplier = 1;
-        
-        // Check for suffix and extract number
-        if (!value.empty()) {
-            char lastChar = std::tolower(value[value.size() - 1]);
-            if (lastChar == 'k' || lastChar == 'm' || lastChar == 'g') {
-                if (value.size() == 1) {
-                    throw std::runtime_error("client_max_body_size: suffix without number");
-                }
-                numStr = value.substr(0, value.size() - 1);
-                
-                if (lastChar == 'k') {
-                    multiplier = 1024ULL;
-                } else if (lastChar == 'm') {
-                    multiplier = 1024ULL * 1024ULL;
-                } else if (lastChar == 'g') {
-                    multiplier = 1024ULL * 1024ULL * 1024ULL;
-                }
-            }
-        }
-        
-        // kolhom numbers
-        if (numStr.empty() || !isNum(numStr)) {
-            throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
-        }
-        
-        // Convert to number (using strtoul for better error handling)
-        char* endptr;
-        unsigned long baseSize = std::strtoul(numStr.c_str(), &endptr, 10);
-        if (*endptr != '\0' || baseSize == 0) {
-            throw std::runtime_error("Invalid client_max_body_size number: " + numStr);
-        }
-        
-        // Check for overflow before multiplication
-        if (baseSize > (ULLONG_MAX / multiplier)) {
-            throw std::runtime_error("client_max_body_size too large: " + value);
-        }
-        
-        size = baseSize * multiplier;
-
-        server.clientMaxBodySize = size;
-    }
-    else if (key.find("error_page") == 0)
-    {
-        std::stringstream ss(line);
-        std::string temp;
-        ss >> temp; // skip "error_page"
-        std::vector<int> codes;
-        std::string token;
-        while (ss >> token)
-        {
-            if (isNum(token))
-                codes.push_back(std::atoi(token.c_str()));
-            else
-            {
-                for (size_t i = 0; i < codes.size(); ++i)
-                    server.error_pages[codes[i]] = token;
-                break;
-            }
-        }
-        if (codes.empty())
-            throw std::runtime_error("No error codes specified for error_page directive.");
-    }
-    else
-        throw std::runtime_error("Unknown server option: " + key);
+    parseRouteOption(route, key, value);
 }
 
-void ConfigInterpreter::checkValues() const
+void ConfigInterpreter::checkValues()
 {
     for (size_t i = 0; i < serverConfigs.size(); i++)
     {
         if (serverConfigs[i].host.empty())
-            throw std::runtime_error("Host is not set for a server block.");
+            serverConfigs[i].host = "0.0.0.0";
         if (serverConfigs[i].port.size() == 0)
             throw std::runtime_error("Port is not set for a server block.");
-        if (serverConfigs[i].clientMaxBodySize <= 0)
-            throw std::runtime_error("Client max body size is not set correct for a server block.");
         for (size_t j = 0; j < serverConfigs[i].routes.size(); j++)
         {
             if (serverConfigs[i].routes[j].path.empty())
@@ -464,17 +354,23 @@ void ConfigInterpreter::checkValues() const
                 if (serverConfigs[i].port[pi] == serverConfigs[k].port[pk])
                 {
                     throw std::runtime_error(
-                    "Duplicate host and port found in two server blocks: "
-                    // + serverConfigs[i].host + ":" + std::to_string(serverConfigs[i].port[pi])
-                    );
+                    "Duplicate host and port found in two server blocks: ");
                 }
                 }
             }
             }
         }
+
+        std::set<std::string> seen_routes;
+        for (size_t j = 0; j < serverConfigs[i].routes.size(); j++)
+        {
+            const std::string& path = serverConfigs[i].routes[j].path;
+            if (!seen_routes.insert(path).second) {
+                throw std::runtime_error("Duplicate route path found in server block: " + path);
+            }
+        }
     }
 }
-
 
 std::string ConfigInterpreter::getPathForCGI(char **envp) const
 {

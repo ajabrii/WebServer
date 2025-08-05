@@ -14,8 +14,9 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
+            color: #e4e6ea;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            min-height: 100vh;
         }
 
         .container {
@@ -33,12 +34,13 @@
             font-size: 2.5rem;
             font-weight: 300;
             margin-bottom: 0.5rem;
-            color: #2c3e50;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .subtitle {
             font-size: 1.1rem;
-            color: #7f8c8d;
+            color: #9ca3af;
             font-weight: 300;
         }
 
@@ -50,18 +52,21 @@
         }
 
         .test-card {
-            background: white;
-            border-radius: 8px;
+            background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
+            border-radius: 12px;
             padding: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 1px 3px rgba(255,255,255,0.1) inset;
+            transition: all 0.3s ease;
             text-decoration: none;
             color: inherit;
+            border: 1px solid rgba(55, 65, 81, 0.3);
+            backdrop-filter: blur(10px);
         }
 
         .test-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 2px 6px rgba(255,255,255,0.15) inset;
+            border-color: rgba(59, 130, 246, 0.3);
         }
 
         .test-icon {
@@ -73,22 +78,26 @@
             justify-content: center;
             font-size: 1.5rem;
             margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        .get-icon { background: #e8f5e8; color: #27ae60; }
-        .post-icon { background: #fef5e7; color: #f39c12; }
-        .delete-icon { background: #fdeaea; color: #e74c3c; }
-        .cgi-icon { background: #eaf2ff; color: #3498db; }
+        .get-icon { background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; }
+        .post-icon { background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; }
+        .delete-icon { background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; }
+        .cgi-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #ffffff; }
+        .cookie-icon { background: linear-gradient(135deg, #f97316, #ea580c); color: #ffffff; }
+        .session-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: #ffffff; }
 
         .test-title {
             font-size: 1.3rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
-            color: #2c3e50;
+            color: #f9fafb;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
 
         .test-description {
-            color: #7f8c8d;
+            color: #9ca3af;
             margin-bottom: 1rem;
         }
 
@@ -98,7 +107,7 @@
 
         .test-features li {
             font-size: 0.9rem;
-            color: #555;
+            color: #d1d5db;
             margin-bottom: 0.3rem;
             padding-left: 1rem;
             position: relative;
@@ -108,15 +117,17 @@
             content: "•";
             position: absolute;
             left: 0;
-            color: #bdc3c7;
+            color: #6b7280;
         }
 
         .server-info {
-            background: white;
-            border-radius: 8px;
+            background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
+            border-radius: 12px;
             padding: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 1px 3px rgba(255,255,255,0.1) inset;
             margin-bottom: 2rem;
+            border: 1px solid rgba(55, 65, 81, 0.3);
+            backdrop-filter: blur(10px);
         }
 
         .info-grid {
@@ -131,7 +142,7 @@
 
         .info-label {
             font-size: 0.9rem;
-            color: #7f8c8d;
+            color: #9ca3af;
             margin-bottom: 0.3rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -140,7 +151,7 @@
         .info-value {
             font-size: 1.1rem;
             font-weight: 600;
-            color: #2c3e50;
+            color: #f9fafb;
         }
 
         .status-indicator {
@@ -148,14 +159,15 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #27ae60;
+            background: #10b981;
             margin-right: 0.5rem;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
         }
 
         footer {
             text-align: center;
             padding: 2rem 0;
-            color: #7f8c8d;
+            color: #6b7280;
             font-size: 0.9rem;
         }
 
@@ -163,27 +175,89 @@
             .container {
                 padding: 1rem;
             }
-
+            
             h1 {
                 font-size: 2rem;
             }
-
+            
             .test-grid {
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
-
+            
             .test-card {
                 padding: 1.5rem;
             }
+        }
+
+        .test-results {
+            background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 1px 3px rgba(255,255,255,0.1) inset;
+            margin: 2rem 0;
+            display: none;
+            border: 1px solid rgba(55, 65, 81, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .test-results.show {
+            display: block;
+        }
+
+        .test-results h3 {
+            color: #f9fafb;
+            margin-bottom: 1rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .result-item {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+            background: rgba(31, 41, 55, 0.5);
+            color: #e5e7eb;
+            backdrop-filter: blur(5px);
+        }
+
+        .result-success {
+            border-left-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
+        }
+
+        .result-error {
+            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.1);
+        }
+
+        .clear-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .clear-btn:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>WebServ Testing Suite</h1>
-            <p class="subtitle">HTTP/1.1 Server Implementation Test Interface</p>
+            <h1>WebServ Test Suite</h1>
+            <p class="subtitle">HTTP/1.1 Server Testing Interface</p>
         </header>
 
         <div class="server-info">
@@ -200,11 +274,7 @@
                 </div>
                 <div class="info-item">
                     <div class="info-label">Port</div>
-                    <div class="info-value">8080</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Max Body Size</div>
-                    <div class="info-value">1MB</div>
+                    <div class="info-value">check config file</div>
                 </div>
             </div>
         </div>
@@ -213,35 +283,35 @@
             <a href="test-get.html" class="test-card">
                 <div class="test-icon get-icon">📄</div>
                 <h3 class="test-title">GET Method</h3>
-                <p class="test-description">Test static file serving and directory operations</p>
+                <p class="test-description">Static file serving and directory operations</p>
                 <ul class="test-features">
-                    <li>Static file serving</li>
+                    <li>Static files</li>
                     <li>Directory listing</li>
-                    <li>MIME type detection</li>
-                    <li>Error page handling</li>
+                    <li>MIME detection</li>
+                    <li>Error pages</li>
                 </ul>
             </a>
 
             <a href="test-post.html" class="test-card">
                 <div class="test-icon post-icon">📤</div>
                 <h3 class="test-title">POST Method</h3>
-                <p class="test-description">Test file uploads and form data submission</p>
+                <p class="test-description">File uploads and form data submission</p>
                 <ul class="test-features">
                     <li>File uploads</li>
-                    <li>Multipart form data</li>
-                    <li>JSON data handling</li>
-                    <li>Body size validation</li>
+                    <li>Form data</li>
+                    <li>JSON handling</li>
+                    <li>Size validation</li>
                 </ul>
             </a>
 
             <a href="test-delete.html" class="test-card">
                 <div class="test-icon delete-icon">🗑️</div>
                 <h3 class="test-title">DELETE Method</h3>
-                <p class="test-description">Test file deletion and resource management</p>
+                <p class="test-description">File deletion and resource management</p>
                 <ul class="test-features">
                     <li>File deletion</li>
                     <li>Path security</li>
-                    <li>Permission checking</li>
+                    <li>Permissions</li>
                     <li>URL decoding</li>
                 </ul>
             </a>
@@ -249,32 +319,187 @@
             <a href="test-cgi.html" class="test-card">
                 <div class="test-icon cgi-icon">⚙️</div>
                 <h3 class="test-title">CGI Scripts</h3>
-                <p class="test-description">Test Common Gateway Interface execution</p>
+                <p class="test-description">Common Gateway Interface execution</p>
                 <ul class="test-features">
                     <li>Python scripts</li>
                     <li>PHP execution</li>
                     <li>Shell scripts</li>
-                    <li>Environment variables</li>
+                    <li>Environment vars</li>
                 </ul>
             </a>
-        </div>
-
         <footer>
             <p>WebServ HTTP/1.1 Server • Built with C++98 • 42 School Project</p>
         </footer>
     </div>
 
     <script>
-        // Simple server status check
-        fetch('/')
-            .then(() => {
-                document.querySelector('.status-indicator').style.background = '#27ae60';
+        // Enhanced server functionality
+        let testResults = [];
+
+        // Check server status
+        function checkServerStatus() {
+            fetch('/')
+                .then(() => {
+                    document.querySelector('.status-indicator').style.background = '#10b981';
+                    document.querySelector('.status-indicator').style.boxShadow = '0 0 8px rgba(16, 185, 129, 0.4)';
+                    updateStatus('Running', '#10b981');
+                })
+                .catch(() => {
+                    document.querySelector('.status-indicator').style.background = '#ef4444';
+                    document.querySelector('.status-indicator').style.boxShadow = '0 0 8px rgba(239, 68, 68, 0.4)';
+                    updateStatus('Offline', '#ef4444');
+                });
+        }
+
+        function updateStatus(status, color) {
+            const statusElements = document.querySelectorAll('.info-value');
+            if (statusElements.length > 0) {
+                statusElements[0].innerHTML = `<span class="status-indicator" style="background: ${color}; box-shadow: 0 0 8px ${color}40"></span>${status}`;
+            }
+        }
+
+        // Cookie Management Functions
+        function testCookies() {
+            addResult('Testing Cookie Management...', 'info');
+            
+            // Test setting cookies
+            fetch('/cgi-bin/cookie.py', {
+                method: 'GET',
+                credentials: 'include'
             })
-            .catch(() => {
-                document.querySelector('.status-indicator').style.background = '#e74c3c';
-                document.querySelector('.info-value').innerHTML =
-                    '<span class="status-indicator"></span>Offline';
+            .then(response => {
+                if (response.ok) {
+                    addResult('✓ Cookie setting endpoint accessible', 'success');
+                    return response.text();
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            })
+            .then(data => {
+                // Check if cookies were set
+                const cookies = document.cookie;
+                if (cookies) {
+                    addResult(`✓ Cookies received: ${cookies}`, 'success');
+                } else {
+                    addResult('ℹ No cookies found in response', 'info');
+                }
+                
+                // Test reading cookies
+                testCookieReading();
+            })
+            .catch(error => {
+                addResult(`✗ Cookie test failed: ${error.message}`, 'error');
             });
+        }
+
+        function testCookieReading() {
+            // Send request with existing cookies
+            fetch('/cgi-bin/cookie.py', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'action=read'
+            })
+            .then(response => response.text())
+            .then(data => {
+                addResult('✓ Cookie reading test completed', 'success');
+                addResult(`Server response: ${data.substring(0, 100)}...`, 'info');
+            })
+            .catch(error => {
+                addResult(`✗ Cookie reading failed: ${error.message}`, 'error');
+            });
+        }
+
+        // Session Management Functions
+        function testSessions() {
+            addResult('Testing Session Management...', 'info');
+            
+            // Test session creation
+            fetch('/cgi-bin/test.py', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'action=create_session&username=testuser'
+            })
+            .then(response => {
+                if (response.ok) {
+                    addResult('✓ Session creation endpoint accessible', 'success');
+                    return response.text();
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            })
+            .then(data => {
+                // Check for session ID in response or cookies
+                const sessionMatch = data.match(/session[_-]?id[:\s=]([a-zA-Z0-9]+)/i);
+                if (sessionMatch) {
+                    addResult(`✓ Session created: ${sessionMatch[1]}`, 'success');
+                } else {
+                    addResult('ℹ Session response received', 'info');
+                }
+                
+                // Test session persistence
+                setTimeout(() => testSessionPersistence(), 1000);
+            })
+            .catch(error => {
+                addResult(`✗ Session test failed: ${error.message}`, 'error');
+            });
+        }
+
+        function testSessionPersistence() {
+            fetch('/cgi-bin/test.py', {
+                method: 'GET',
+                credentials: 'include'
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (data.includes('session') || data.includes('user')) {
+                    addResult('✓ Session persistence verified', 'success');
+                } else {
+                    addResult('ℹ Session persistence check completed', 'info');
+                }
+                addResult(`Server response: ${data.substring(0, 100)}...`, 'info');
+            })
+            .catch(error => {
+                addResult(`✗ Session persistence test failed: ${error.message}`, 'error');
+            });
+        }
+
+        // Test result management
+        function addResult(message, type) {
+            const resultsList = document.getElementById('resultsList');
+            const testResultsDiv = document.getElementById('testResults');
+            
+            const resultItem = document.createElement('div');
+            resultItem.className = `result-item ${type === 'success' ? 'result-success' : type === 'error' ? 'result-error' : ''}`;
+            resultItem.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            
+            resultsList.appendChild(resultItem);
+            testResultsDiv.classList.add('show');
+            
+            // Scroll to bottom
+            resultItem.scrollIntoView({ behavior: 'smooth' });
+            
+            testResults.push({ time: new Date(), message, type });
+        }
+
+        function clearResults() {
+            document.getElementById('resultsList').innerHTML = '';
+            document.getElementById('testResults').classList.remove('show');
+            testResults = [];
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkServerStatus();
+            
+            // Refresh status every 30 seconds
+            setInterval(checkServerStatus, 30000);
+        });
     </script>
 </body>
 </html>

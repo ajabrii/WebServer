@@ -6,13 +6,14 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:16:22 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/28 11:09:20 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/07/30 11:34:35 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 # include "IHttpMethodHandler.hpp"
+# define POST_LOG "\033[1;36m[POST Handler]\033[0m"
 struct Part {
     std::string name;
     std::string filename;
