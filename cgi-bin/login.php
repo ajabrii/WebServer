@@ -3,9 +3,13 @@
 header("Content-Type: text/html");
 session_start();
 
-// if $get parameters are not set, set it by parse
+if (isset($_SESSION['username'])) {
+    // Already logged in, redirect to welcome page
+    header("Location: welcome.php");
+    exit;
+}
+
 if (!empty($_SERVER['QUERY_STRING'])) {
-    // Fill $_GET manually in some CGI environments (optional)
     parse_str($_SERVER['QUERY_STRING'], $_GET);
 }
 
@@ -13,23 +17,32 @@ $username = $_GET['username'] ?? '';
 $password = $_GET['password'] ?? '';
 
 if (!$username || !$password) {
-    echo "<p>Missing username or password.</p>";
-    echo "<a href='login.html'>Back</a>";
+    echo "<p>Missing username or password.</p><a href='../login.html'>Back</a>";
     exit;
 }
 
-$db = new SQLite3(__DIR__ . '/users.db');
-$stmt = $db->prepare('SELECT * FROM users WHERE username = :u AND password = :p');
-$stmt->bindValue(':u', $username, SQLITE3_TEXT);
-$stmt->bindValue(':p', $password, SQLITE3_TEXT);
-$user = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+$file = __DIR__ . '/users.txt';
 
-if ($user) {
+if (!file_exists($file)) {
+    echo "<p>No users registered yet.</p><a href='../login.html'>Register first</a>";
+    exit;
+}
+
+$users = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+$valid = false;
+foreach ($users as $line) {
+    list($u, $p) = explode(':', $line, 2);
+    if ($u === $username && $p === $password) {
+        $valid = true;
+        break;
+    }
+}
+
+if ($valid) {
     $_SESSION['username'] = $username;
     header("Location: welcome.php");
     exit;
 } else {
-    echo "<p>Invalid credentials.</p>";
-    echo "<a href='login.html'>Try again</a>";
+    echo "<p>Invalid username or password.</p><a href='../login.html'>Try again</a>";
 }
 ?>

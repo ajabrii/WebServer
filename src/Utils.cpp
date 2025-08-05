@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/14 12:00:00 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 12:51:13 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 13:34:06 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,13 @@ void ltrim(std::string& s)
 
 HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverConfig) 
 {
+    for (size_t i = 0; i < raw.size(); ++i) {
+    if (raw[i] == '\r') std::cerr << "\\r";
+    else if (raw[i] == '\n') std::cerr << "\\n";
+    else std::cerr << raw[i];
+}
+std::cerr << std::endl;
+
     HttpResponse response;
 
 
@@ -79,8 +86,8 @@ HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverCo
         std::cerr << "[CGI] Invalid CGI output: no headers found." << std::endl;
         response.statusCode = 500;
         response.statusText = "Internal Server Error";
-        response.body = "CGI script did not return valid headers.";
-        response.headers["Content-Type"] = "text/plain";
+        response.body = Error::loadErrorPage(500, serverConfig);
+        response.headers["Content-Type"] = "text/html";
         response.headers["Content-Length"] = Utils::toString(response.body.size());
         return response;
     }
@@ -130,7 +137,7 @@ HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverCo
             if (lowerKey == "set-cookie")
                 response.CookiesHeaders.insert(std::make_pair("Set-Cookie", value));
             else
-                response.headers[key] = value;
+                response.headers[lowerKey] = value;
         }
     }
     if (!statusParsed) 
@@ -139,15 +146,13 @@ HttpResponse parseCgiOutput(const std::string& raw, const ServerConfig& serverCo
         response.statusText = "OK";
     }
     response.body = bodyPart;
-    if (response.headers.find("Content-Length") == response.headers.end()) 
+    if (response.headers.find("content-length") == response.headers.end()) 
     {
         std::ostringstream oss;
         oss << response.body.size();
         response.headers["Content-Length"] = oss.str();
-        std::cerr << "---------------[CGI]conten Body " << "'" << response.body << "'" << std::endl;
-        std::cerr << "---------------[CGI] Warning: Content-Length not found in headers, set to " << response.headers["Content-Length"] << std::endl;
     }
-    if (response.headers.find("Content-Type") == response.headers.end()) 
+    if (response.headers.find("content-type") == response.headers.end()) 
     {
         response.statusCode = 502;
         response.statusText = "Bad Gateway";
@@ -238,10 +243,11 @@ HttpResponse createErrorResponse(int statusCode, const std::string &statusText, 
     return ResponseBuilder::createErrorResponse(statusCode, statusText, ServerConfig);
 }
 
-void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv, const ServerConfig &serverConfig)
+void processReadableEvent(Reactor &reactor, const Event &event, const std::string &cgiEnv)
 {
     Connection &conn = reactor.getConnection(event.fd);
     CgiState *cgiState = conn.getCgiState();
+    ServerConfig serverConfig = reactor.getServerForClient(conn.getFd())->getConfig();
 
     if (cgiState)
     {

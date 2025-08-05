@@ -6,7 +6,7 @@
 /*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 13:36:53 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 12:59:51 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/05 13:32:15 by baouragh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,7 @@ int main(int ac, char **av, char **envp)
                     }
                     else if (event.isReadable || event.isPullHUP)
                     {
-                        processReadableEvent(reactor, event, cgiEnv, servers[i]->getConfig());
+                        processReadableEvent(reactor, event, cgiEnv);
                     }
                     else if (event.isError)
                     {

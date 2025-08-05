@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script>
+  (function() {
+    if (document.cookie.indexOf("PHPSESSID=") !== -1) {
+      fetch("cgi-bin/session_check.php")
+        .then(res => res.json())
+        .then(data => {
+          if (data.loggedIn) {
+            window.location.href = "cgi-bin/welcome.php";
+          }
+        });
+    }
+  })();
+</script>
   <meta charset="UTF-8">
   <title>Login or Register</title>
   <script>
-    window.onload = function () {
-      if (document.cookie.indexOf("PHPSESSID=") !== -1) {
-        fetch("cgi-bin/session_check.php")
-          .then(res => res.json())
-          .then(data => {
-            if (data.loggedIn) {
-              window.location.href = "cgi-bin/welcome.php";
-            }
-          });
-      }
-    };
+
 
     function login() {
       const user = document.getElementById("login_user").value;
