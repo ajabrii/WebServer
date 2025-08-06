@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:20:34 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/06 12:02:15 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/06 12:46:58 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,9 +31,10 @@ GetHandler::~GetHandler() {}
 HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig &route, const ServerConfig &serverConfig) const
 {
     std::cout << URI_PROCESS_LOG << req.uri << std::endl;
+    std::string decodedUri = GeturlDecode(req.uri);
     if (!route.redirect.empty())
         return handleRedirect(route.redirect);
-    std::string requestPath = extractPath(req.uri);
+    std::string requestPath = extractPath(decodedUri);
     requestPath = normalizePath(requestPath);
     if (requestPath.find(route.path) == 0)
         requestPath = requestPath.substr(route.path.length());
@@ -47,7 +48,7 @@ HttpResponse GetHandler::handle(const HttpRequest &req, const RouteConfig &route
     if (stat(filePath.c_str(), &pathStat) == 0)
     {
         if (S_ISDIR(pathStat.st_mode))
-            return handleDirectory(filePath, req.uri, route.directory_listing, serverConfig, route.indexFile);
+            return handleDirectory(filePath, decodedUri, route.directory_listing, serverConfig, route.indexFile);
         else if (S_ISREG(pathStat.st_mode))
             return serveStaticFile(filePath, serverConfig);
     }
@@ -313,4 +314,39 @@ std::string GetHandler::normalizePath(const std::string &path) const
     if (components.empty() && !path.empty() && path[0] == '/')
         return "/";
     return result;
+}
+
+
+std::string  GetHandler::GeturlDecode(const std::string &encoded) const
+{
+    std::string decoded;
+
+    for (size_t i = 0; i < encoded.length(); ++i)
+    {
+        if (encoded[i] == '%' && i + 2 < encoded.length())
+        {
+            std::string hexStr = encoded.substr(i + 1, 2);
+            char *endPtr;
+            long int value = std::strtol(hexStr.c_str(), &endPtr, 16);
+            if (endPtr == hexStr.c_str() + 2 && value >= 0 && value <= 255)
+            {
+                decoded += static_cast<char>(value);
+                i += 2;
+            }
+            else
+            {
+                decoded += encoded[i];
+            }
+        }
+        else if (encoded[i] == '+')
+        {
+            decoded += ' ';
+        }
+        else
+        {
+            decoded += encoded[i];
+        }
+    }
+
+    return decoded;
 }
