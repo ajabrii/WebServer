@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 15:11:31 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/02 09:52:48 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/06 13:02:35 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ void ConfigInterpreter::getConfigData(std::string filePath)
     blockKeywords.push_back("location");
     blockKeywords.push_back("route");
     bool matched;
+    bool server = false;
     std::string keyword;
     if (filePath.empty()) {
         throw std::runtime_error("Config file path is empty");
@@ -50,7 +51,8 @@ void ConfigInterpreter::getConfigData(std::string filePath)
         for (size_t i = 0; i < blockKeywords.size(); ++i) {
             keyword = blockKeywords[i];
 
-            if (line == keyword) {
+            if (line == keyword)
+            {
                 ConfigData.push_back(keyword);
                 matched = true;
                 break;
@@ -67,11 +69,15 @@ void ConfigInterpreter::getConfigData(std::string filePath)
                 }
             }
         }
+        if (line == "server")
+            server = true;
 
         if (!matched) {
-            ConfigData.push_back(clean_line(line));
+                ConfigData.push_back(clean_line(line));
         }
     }
+    if (!server)
+        throw std::runtime_error("invalid configration :: server not found");
     infile.close();
 }
 
