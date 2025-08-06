@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 16:21:21 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 21:14:42 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/06 11:15:35 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ public:
     bool headersParsed;
     std::string UploadDirectory;
     std::string SessionId;
+    bool checkVrsHTTP0;
 
     HttpRequest();
 

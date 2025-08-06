@@ -6,14 +6,14 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:21:08 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 21:15:20 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/06 12:08:18 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "../includes/HttpServer.hpp"
 
-HttpRequest::HttpRequest() : method(""), uri(""), version(""), body("") {}
+HttpRequest::HttpRequest() : method(""), uri(""), version(""), body(""), checkVrsHTTP0(false) {}
 
 std::string toLower(std::string str) {
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
@@ -28,7 +28,7 @@ void HttpRequest::parseRequestLine(const std::string& line)
     if ((this->method.empty() || this->uri.empty() || this->version.empty())){
         throwHttpError(400, "Invalid HTTP request: info missed in request line");
     }
-    else if (this->version != "HTTP/1.1") {
+    else if (this->version != "HTTP/1.1" && this->version != "HTTP/1.0") {
         throwHttpError(505, "HTTP Version Not Supported");
     }
     else if (this->method != "GET" && this->method != "POST" && this->method != "DELETE") {
@@ -42,6 +42,10 @@ void HttpRequest::parseRequestLine(const std::string& line)
     {
         throwHttpError(414, "URI Too Long");
     }
+    if (this->version == "HTTP/1.0")
+    {
+        checkVrsHTTP0 = true;
+    }
 }
 
 void HttpRequest::parseHeaderLine(const std::string& line, int& hostFlag)
@@ -53,7 +57,10 @@ void HttpRequest::parseHeaderLine(const std::string& line, int& hostFlag)
     }
 
     if (trimmed_line.empty()) {
-        if (hostFlag != 1) {
+        if (checkVrsHTTP0)
+            return;
+        else if (hostFlag != 1)
+        {
             throwHttpError(400, "Bad request: Host header missing or deplicated");
         }
         return;
@@ -78,15 +85,14 @@ void HttpRequest::parseHeaderLine(const std::string& line, int& hostFlag)
     value.erase(value.find_last_not_of(" \t\r") + 1);
 
     this->headers[key] = value;
-     if (headers.size() > 100 || key.size() > 256 || value.size() > 8192) {
+    if (headers.size() > 125 || key.size() > 256 || value.size() > 8192) {
         throwHttpError(431, "Request Header Fields Too Large");
     }
-
-    if (key == "host") {
+    if (key == "host" ) {
         if (value.empty()) {
             throwHttpError(400, "Bad request: Host header value empty");
         }
-        hostFlag = 1;
+        hostFlag++;
     }
 }
 
@@ -164,7 +170,10 @@ void HttpRequest::parseHeaders(const std::string& rawHeaders)
         }
 
         if (line.empty()) {
-            if (hostFlag != 1) {
+            if (checkVrsHTTP0)
+                break;
+            else if (hostFlag != 1)
+            {
                 throwHttpError(400, "Bad request: Host header missing or deplicated");
             }
             break;

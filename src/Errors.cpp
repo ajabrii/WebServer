@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Errors.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: baouragh <baouragh@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/07 11:31:49 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 12:24:22 by baouragh         ###   ########.fr       */
+/*   Updated: 2025/08/06 12:01:14 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,10 @@ std::string Error::loadErrorPage(int statusCode, const ServerConfig& config)
             return buffer.str();
         }
     }
-    return defaultErrResponses[statusCode];
+    std::string defError = defaultErrResponses[statusCode];
+    if (defError.empty())
+        defError = "<html><head><style>body{background:#f9f9f9;font-family:sans-serif;color:#333;text-align:center;padding:50px;}h1{font-size:24px;}}</style></head><body><h1>Uknown Status code</h1></body></html>";
+    return  defError;
 }
 
 

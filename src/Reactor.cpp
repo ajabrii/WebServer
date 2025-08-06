@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/26 17:35:45 by ajabri            #+#    #+#             */
-/*   Updated: 2025/08/05 20:38:16 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/06 12:14:35 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,6 +162,7 @@ void Reactor::removeConnection(int fd)
         }
     }
     clientToServerMap.erase(fd);
+    std::cout << "\033[1;31m[-]\033[0m " << "TCP connection closed" << std::endl;
 }
 
 void Reactor::poll()
