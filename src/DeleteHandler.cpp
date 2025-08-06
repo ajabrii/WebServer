@@ -6,7 +6,7 @@
 /*   By: ajabri <ajabri@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 18:29:35 by ajabri            #+#    #+#             */
-/*   Updated: 2025/07/30 15:36:32 by ajabri           ###   ########.fr       */
+/*   Updated: 2025/08/06 12:27:37 by ajabri           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ DeleteHandler::~DeleteHandler() {}
 HttpResponse DeleteHandler::handle(const HttpRequest &req, const RouteConfig &route, const ServerConfig &serverConfig) const
 {
     std::cout << URI_PROCESS_LOG << "Processing request for URI: " << req.uri << std::endl;
-    std::string requestPath = req.uri;
+    std::string requestPath = urlDecode(req.uri);
     if (requestPath.find(route.path) == 0)
         requestPath = requestPath.substr(route.path.length());
     std::string filePath = buildFilePath(route.root, requestPath);
@@ -80,4 +80,39 @@ bool DeleteHandler::isPathSecure(const std::string &filePath, const std::string 
         cleanRoot = cleanRoot.substr(0, cleanRoot.length() - 1);
     }
     return filePath.find(cleanRoot) == 0;
+}
+
+
+std::string DeleteHandler::urlDecode(const std::string &encoded) const
+{
+    std::string decoded;
+
+    for (size_t i = 0; i < encoded.length(); ++i)
+    {
+        if (encoded[i] == '%' && i + 2 < encoded.length())
+        {
+            std::string hexStr = encoded.substr(i + 1, 2);
+            char *endPtr;
+            long int value = std::strtol(hexStr.c_str(), &endPtr, 16);
+            if (endPtr == hexStr.c_str() + 2 && value >= 0 && value <= 255)
+            {
+                decoded += static_cast<char>(value);
+                i += 2;
+            }
+            else
+            {
+                decoded += encoded[i];
+            }
+        }
+        else if (encoded[i] == '+')
+        {
+            decoded += ' ';
+        }
+        else
+        {
+            decoded += encoded[i];
+        }
+    }
+
+    return decoded;
 }

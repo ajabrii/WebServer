@@ -294,7 +294,7 @@
     <div class="container">
         <div class="left-panel">
             <a href="index.html" class="nav-back">← Back to Home</a>
-            
+
             <div class="header">
                 <h1>📤 POST Method Testing</h1>
                 <p>Test file uploads, form data submission, and POST functionality</p>
@@ -375,11 +375,6 @@
                     <button class="test-button" onclick="testUnicodeData()">Unicode Data</button>
                     <button class="test-button" onclick="testBinaryData()">Binary Data</button>
                 </div>
-                <div class="test-item">
-                    <h4>Multiple Files</h4>
-                    <button class="test-button" onclick="testMultipleFiles()">Create & Upload</button>
-                    <button class="test-button" onclick="testConcurrentUploads()">Concurrent</button>
-                </div>
             </div>
         </div>
         </div>
@@ -447,8 +442,8 @@
                 container.innerHTML = '';
                 return;
             }
-            
-            const fileList = selectedFiles.map(file => 
+
+            const fileList = selectedFiles.map(file =>
                 `${file.name} (${formatFileSize(file.size)})`
             ).join(', ');
             container.innerHTML = `Selected: ${fileList}`;
@@ -474,10 +469,10 @@
             });
 
             log(`Uploading ${selectedFiles.length} file(s) to /uploads/`);
-            
+
             try {
                 const xhr = new XMLHttpRequest();
-                
+
                 xhr.upload.onprogress = (e) => {
                     if (e.lengthComputable) {
                         const percent = Math.round((e.loaded / e.total) * 100);
@@ -491,10 +486,10 @@
                     const progressFill = document.getElementById('progressFill');
                     progressFill.style.width = '100%';
                     progressFill.textContent = '100%';
-                    
+
                     log(`Upload completed: ${xhr.status} ${xhr.statusText}`);
                     log(`Response: ${xhr.responseText}`);
-                    
+
                     // Show response in new tab
                     const mockResponse = {
                         status: xhr.status,
@@ -508,7 +503,7 @@
                         redirected: false
                     };
                     showResponseInNewTab('POST (Upload)', '/uploads/', mockResponse, xhr.responseText);
-                    
+
                     setTimeout(() => {
                         progressFill.style.width = '0%';
                         progressFill.textContent = '0%';
@@ -521,7 +516,7 @@
 
                 xhr.open('POST', '/uploads/');
                 xhr.send(formData);
-                
+
             } catch (error) {
                 log(`Upload error: ${error.message}`);
             }
@@ -529,19 +524,19 @@
 
         async function submitFormData(event) {
             event.preventDefault();
-            
+
             const form = event.target;
             const formData = new FormData(form);
-            
+
             // Convert FormData to URL-encoded string
             const urlEncodedData = new URLSearchParams();
             for (const [key, value] of formData.entries()) {
                 urlEncodedData.append(key, value);
             }
-            
+
             log('Submitting form data to /uploads/');
             log(`Form data: ${urlEncodedData.toString()}`);
-            
+
             try {
                 const response = await fetch('/uploads/', {
                     method: 'POST',
@@ -550,14 +545,14 @@
                     },
                     body: urlEncodedData.toString()
                 });
-                
+
                 log(`Response: ${response.status} ${response.statusText}`);
                 const responseText = await response.clone().text();
                 log(`Response body: ${responseText}`);
-                
+
                 // Show response in new tab
                 showResponseInNewTab('POST (Form)', '/uploads/', response, responseText);
-                
+
             } catch (error) {
                 log(`Form submission error: ${error.message}`);
                 showErrorInNewTab('POST (Form)', '/uploads/', error);
@@ -566,7 +561,7 @@
 
         async function sendJSON() {
             const jsonInput = document.getElementById('jsonInput').value.trim();
-            
+
             if (!jsonInput) {
                 log('Please enter JSON data');
                 return;
@@ -575,7 +570,7 @@
             try {
                 JSON.parse(jsonInput); // Validate JSON
                 log('Sending JSON data to /uploads/');
-                
+
                 const response = await fetch('/uploads/', {
                     method: 'POST',
                     headers: {
@@ -583,14 +578,14 @@
                     },
                     body: jsonInput
                 });
-                
+
                 log(`Response: ${response.status} ${response.statusText}`);
                 const responseText = await response.clone().text();
                 log(`Response body: ${responseText}`);
-                
+
                 // Show response in new tab
                 showResponseInNewTab('POST (JSON)', '/uploads/', response, responseText);
-                
+
             } catch (error) {
                 if (error instanceof SyntaxError) {
                     log(`Invalid JSON: ${error.message}`);
@@ -603,14 +598,14 @@
 
         async function sendText() {
             const textInput = document.getElementById('textInput').value;
-            
+
             if (!textInput.trim()) {
                 log('Please enter text content');
                 return;
             }
 
             log('Sending plain text to /uploads/');
-            
+
             try {
                 const response = await fetch('/uploads/', {
                     method: 'POST',
@@ -619,14 +614,14 @@
                     },
                     body: textInput
                 });
-                
+
                 log(`Response: ${response.status} ${response.statusText}`);
                 const responseText = await response.clone().text();
                 log(`Response body: ${responseText}`);
-                
+
                 // Show response in new tab
                 showResponseInNewTab('POST (Text)', '/uploads/', response, responseText);
-                
+
             } catch (error) {
                 log(`Text POST error: ${error.message}`);
                 showErrorInNewTab('POST (Text)', '/uploads/', error);
@@ -648,20 +643,20 @@
         async function testLargeData() {
             const largeData = 'A'.repeat(1024 * 1024); // 1MB
             log('Testing 1MB POST request...');
-            
+
             try {
                 const response = await fetch('/uploads/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
                     body: largeData
                 });
-                
+
                 log(`Large data response: ${response.status} ${response.statusText}`);
                 const responseText = await response.clone().text();
-                
+
                 // Show response in new tab
                 showResponseInNewTab('POST (Large Data)', '/uploads/', response, responseText);
-                
+
             } catch (error) {
                 log(`Large data error: ${error.message}`);
                 showErrorInNewTab('POST (Large Data)', '/uploads/', error);
@@ -671,20 +666,20 @@
         async function testOversizeData() {
             const oversizeData = 'B'.repeat(2 * 1024 * 1024); // 2MB
             log('Testing 2MB POST request (should exceed limit)...');
-            
+
             try {
                 const response = await fetch('/uploads/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
                     body: oversizeData
                 });
-                
+
                 log(`Oversize data response: ${response.status} ${response.statusText}`);
                 const responseText = await response.clone().text();
-                
+
                 // Show response in new tab
                 showResponseInNewTab('POST (Oversize)', '/uploads/', response, responseText);
-                
+
             } catch (error) {
                 log(`Oversize data error: ${error.message}`);
                 showErrorInNewTab('POST (Oversize)', '/uploads/', error);
@@ -693,19 +688,19 @@
 
         async function testEmptyPost() {
             log('Testing empty POST request...');
-            
+
             try {
                 const response = await fetch('/uploads/', {
                     method: 'POST',
                     body: ''
                 });
-                
+
                 log(`Empty POST response: ${response.status} ${response.statusText}`);
                 const responseText = await response.clone().text();
-                
+
                 // Show response in new tab
                 showResponseInNewTab('POST (Empty)', '/uploads/', response, responseText);
-                
+
             } catch (error) {
                 log(`Empty POST error: ${error.message}`);
                 showErrorInNewTab('POST (Empty)', '/uploads/', error);
@@ -714,19 +709,19 @@
 
         async function testNoContentType() {
             log('Testing POST without Content-Type header...');
-            
+
             try {
                 const response = await fetch('/uploads/', {
                     method: 'POST',
                     body: 'Test data without content type'
                 });
-                
+
                 log(`No Content-Type response: ${response.status} ${response.statusText}`);
                 const responseText = await response.clone().text();
-                
+
                 // Show response in new tab
                 showResponseInNewTab('POST (No Content-Type)', '/uploads/', response, responseText);
-                
+
             } catch (error) {
                 log(`No Content-Type error: ${error.message}`);
                 showErrorInNewTab('POST (No Content-Type)', '/uploads/', error);
@@ -736,20 +731,20 @@
         async function testUnicodeData() {
             const unicodeData = '{"message": "Hello 世界! 🌍 Ñoël Café"}';
             log('Testing Unicode data...');
-            
+
             try {
                 const response = await fetch('/uploads/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json; charset=utf-8' },
                     body: unicodeData
                 });
-                
+
                 log(`Unicode data response: ${response.status} ${response.statusText}`);
                 const responseText = await response.clone().text();
-                
+
                 // Show response in new tab
                 showResponseInNewTab('POST (Unicode)', '/uploads/', response, responseText);
-                
+
             } catch (error) {
                 log(`Unicode data error: ${error.message}`);
                 showErrorInNewTab('POST (Unicode)', '/uploads/', error);
@@ -759,74 +754,23 @@
         async function testBinaryData() {
             const binaryData = new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
             log('Testing binary data...');
-            
+
             try {
                 const response = await fetch('/uploads/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/octet-stream' },
                     body: binaryData
                 });
-                
+
                 log(`Binary data response: ${response.status} ${response.statusText}`);
                 const responseText = await response.clone().text();
-                
+
                 // Show response in new tab
                 showResponseInNewTab('POST (Binary)', '/uploads/', response, responseText);
-                
+
             } catch (error) {
                 log(`Binary data error: ${error.message}`);
                 showErrorInNewTab('POST (Binary)', '/uploads/', error);
-            }
-        }
-
-        async function testMultipleFiles() {
-            log('Creating multiple test files and uploading...');
-            
-            const files = [
-                new File(['Test file 1 content'], 'test1.txt', { type: 'text/plain' }),
-                new File(['Test file 2 content'], 'test2.txt', { type: 'text/plain' }),
-                new File(['{"test": "json"}'], 'test.json', { type: 'application/json' })
-            ];
-            
-            const formData = new FormData();
-            files.forEach((file, index) => {
-                formData.append(`testfile${index}`, file);
-            });
-            
-            try {
-                const response = await fetch('/uploads/', {
-                    method: 'POST',
-                    body: formData
-                });
-                log(`Multiple files response: ${response.status} ${response.statusText}`);
-            } catch (error) {
-                log(`Multiple files error: ${error.message}`);
-            }
-        }
-
-        async function testConcurrentUploads() {
-            log('Testing concurrent uploads...');
-            
-            const promises = [];
-            for (let i = 0; i < 3; i++) {
-                const formData = new FormData();
-                formData.append('file', new File([`Concurrent file ${i}`], `concurrent${i}.txt`));
-                
-                promises.push(
-                    fetch('/uploads/', {
-                        method: 'POST',
-                        body: formData
-                    })
-                );
-            }
-            
-            try {
-                const responses = await Promise.all(promises);
-                responses.forEach((response, index) => {
-                    log(`Concurrent upload ${index}: ${response.status} ${response.statusText}`);
-                });
-            } catch (error) {
-                log(`Concurrent uploads error: ${error.message}`);
             }
         }
 
@@ -837,27 +781,27 @@
                 log('Popup blocked - unable to open response in new tab');
                 return;
             }
-            
-            // Check if the response is HTML content that should be rendered  
+
+            // Check if the response is HTML content that should be rendered
             const isHtmlContent = (text) => {
                 const content = (text || '').trim().toLowerCase();
-                return content.includes('<!doctype html') || 
-                       content.includes('<html') || 
-                       content.includes('<head>') || 
+                return content.includes('<!doctype html') ||
+                       content.includes('<html') ||
+                       content.includes('<head>') ||
                        content.includes('<body>') ||
                        (content.includes('<') && content.includes('>') && (content.includes('<h1') || content.includes('<h2') || content.includes('<p>') || content.includes('<div')));
             };
-            
+
             // If it's an error response (status >= 400) and contains HTML, render it directly
             if (response.status >= 400 && isHtmlContent(responseText)) {
                 newTab.document.write(responseText || '(empty response)');
                 newTab.document.close();
                 return;
             }
-            
+
             const timestamp = new Date().toISOString();
             const headers = [];
-            
+
             if (response.headers && response.headers.entries) {
                 for (const [key, value] of response.headers.entries()) {
                     headers.push(`${key}: ${value}`);
@@ -867,28 +811,28 @@
                     headers.push(`${key}: ${value}`);
                 });
             }
-            
+
             // Escape HTML in response text to prevent XSS
             const escapeHtml = (text) => {
                 const div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
             };
-            
+
             // Check if the response is HTML content that should be rendered
             const isHtmlResponse = (text) => {
                 const content = (text || '').trim().toLowerCase();
-                return content.includes('<!doctype html') || 
-                       content.includes('<html') || 
-                       content.includes('<head>') || 
+                return content.includes('<!doctype html') ||
+                       content.includes('<html') ||
+                       content.includes('<head>') ||
                        content.includes('<body>') ||
                        (content.includes('<') && content.includes('>') && (content.includes('<h1') || content.includes('<h2') || content.includes('<p>') || content.includes('<div')));
             };
-            
+
             const processedResponseText = isHtmlResponse(responseText) ? (responseText || '(empty response)') : escapeHtml(responseText || '(empty response)');
             const statusClass = response.ok ? 'success' : (response.status >= 400 ? 'error' : 'warning');
             const statusIcon = response.ok ? '✅' : (response.status >= 400 ? '❌' : '⚠️');
-            
+
             const html = `
                 <!DOCTYPE html>
                 <html lang="en">
@@ -902,9 +846,9 @@
                             padding: 0;
                             box-sizing: border-box;
                         }
-                        body { 
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                            margin: 0; 
+                        body {
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                            margin: 0;
                             padding: 20px;
                             background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
                             color: #e4e6ea;
@@ -915,20 +859,20 @@
                             max-width: 1200px;
                             margin: 0 auto;
                         }
-                        .header { 
+                        .header {
                             background: rgba(31, 41, 55, 0.9);
                             backdrop-filter: blur(10px);
                             border: 1px solid rgba(245, 158, 11, 0.5);
-                            color: #f9fafb; 
-                            padding: 25px; 
-                            border-radius: 12px; 
+                            color: #f9fafb;
+                            padding: 25px;
+                            border-radius: 12px;
                             margin-bottom: 25px;
                             box-shadow: 0 8px 32px rgba(245, 158, 11, 0.3);
                         }
-                        .status-line { 
-                            font-size: 1.8em; 
-                            margin-bottom: 15px; 
-                            color: #fbbf24; 
+                        .status-line {
+                            font-size: 1.8em;
+                            margin-bottom: 15px;
+                            color: #fbbf24;
                             font-weight: 600;
                             display: flex;
                             align-items: center;
@@ -955,33 +899,33 @@
                             color: #f9fafb;
                             font-family: 'Courier New', monospace;
                         }
-                        .section { 
+                        .section {
                             background: rgba(31, 41, 55, 0.9);
                             backdrop-filter: blur(10px);
                             border: 1px solid rgba(75, 85, 99, 0.5);
-                            padding: 20px; 
-                            margin-bottom: 20px; 
-                            border-radius: 12px; 
+                            padding: 20px;
+                            margin-bottom: 20px;
+                            border-radius: 12px;
                             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
                         }
-                        .section h3 { 
-                            margin-top: 0; 
+                        .section h3 {
+                            margin-top: 0;
                             margin-bottom: 15px;
-                            color: #f9fafb; 
+                            color: #f9fafb;
                             font-weight: 600;
                             font-size: 1.2em;
                             display: flex;
                             align-items: center;
                             gap: 10px;
                         }
-                        .response-body { 
+                        .response-body {
                             background: rgba(17, 24, 39, 0.9);
-                            color: #e5e7eb; 
-                            padding: 20px; 
-                            border-radius: 8px; 
-                            white-space: pre-wrap; 
-                            overflow-x: auto; 
-                            max-height: 500px; 
+                            color: #e5e7eb;
+                            padding: 20px;
+                            border-radius: 8px;
+                            white-space: pre-wrap;
+                            overflow-x: auto;
+                            max-height: 500px;
                             overflow-y: auto;
                             border: 1px solid rgba(75, 85, 99, 0.5);
                             font-family: 'Courier New', monospace;
@@ -1012,16 +956,16 @@
                             border-bottom: none;
                             margin-bottom: 0;
                         }
-                        .success { 
-                            border-left: 4px solid #10b981; 
+                        .success {
+                            border-left: 4px solid #10b981;
                             background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
                         }
-                        .error { 
-                            border-left: 4px solid #ef4444; 
+                        .error {
+                            border-left: 4px solid #ef4444;
                             background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
                         }
-                        .warning { 
-                            border-left: 4px solid #f59e0b; 
+                        .warning {
+                            border-left: 4px solid #f59e0b;
                             background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
                         }
                         .status-badge {
@@ -1065,7 +1009,7 @@
                 <body>
                     <div class="container">
                         <button class="close-button" onclick="window.close()">✕ Close</button>
-                        
+
                         <div class="header">
                             <div class="status-line">
                                 ${statusIcon} POST Request Response
@@ -1090,19 +1034,19 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="section ${statusClass}">
                             <h3>📋 Response Headers</h3>
                             <div class="headers-list">
                                 ${headers.length > 0 ? headers.map(header => `<div class="header-item">${header}</div>`).join('') : '<div class="header-item">No headers received</div>'}
                             </div>
                         </div>
-                        
+
                         <div class="section">
                             <h3>📄 Response Body</h3>
                             <div class="response-body${isHtmlResponse(responseText) ? ' html-content' : ''}">${processedResponseText}</div>
                         </div>
-                        
+
                         <div class="section">
                             <h3>ℹ️ Request Details</h3>
                             <div class="headers-list">
@@ -1117,7 +1061,7 @@
                 </body>
                 </html>
             `;
-            
+
             newTab.document.write(html);
             newTab.document.close();
         }
@@ -1129,18 +1073,18 @@
                 log('Popup blocked - unable to open error in new tab');
                 return;
             }
-            
+
             const timestamp = new Date().toISOString();
-            
+
             // Escape HTML in error message to prevent XSS
             const escapeHtml = (text) => {
                 const div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
             };
-            
+
             const escapedErrorMessage = escapeHtml(error.message || 'Unknown error occurred');
-            
+
             const html = `
                 <!DOCTYPE html>
                 <html lang="en">
@@ -1154,9 +1098,9 @@
                             padding: 0;
                             box-sizing: border-box;
                         }
-                        body { 
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                            margin: 0; 
+                        body {
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                            margin: 0;
                             padding: 20px;
                             background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
                             color: #e4e6ea;
@@ -1167,20 +1111,20 @@
                             max-width: 1200px;
                             margin: 0 auto;
                         }
-                        .header { 
+                        .header {
                             background: rgba(31, 41, 55, 0.9);
                             backdrop-filter: blur(10px);
                             border: 1px solid rgba(239, 68, 68, 0.5);
-                            color: #f9fafb; 
-                            padding: 25px; 
-                            border-radius: 12px; 
+                            color: #f9fafb;
+                            padding: 25px;
+                            border-radius: 12px;
                             margin-bottom: 25px;
                             box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3);
                             background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
                         }
-                        .error-title { 
-                            font-size: 1.8em; 
-                            color: #fbbf24; 
+                        .error-title {
+                            font-size: 1.8em;
+                            color: #fbbf24;
                             margin-bottom: 15px;
                             font-weight: 600;
                             display: flex;
@@ -1208,31 +1152,31 @@
                             color: #f9fafb;
                             font-family: 'Courier New', monospace;
                         }
-                        .section { 
+                        .section {
                             background: rgba(31, 41, 55, 0.9);
                             backdrop-filter: blur(10px);
                             border: 1px solid rgba(75, 85, 99, 0.5);
                             border-left: 4px solid #ef4444;
-                            padding: 20px; 
-                            margin-bottom: 20px; 
+                            padding: 20px;
+                            margin-bottom: 20px;
                             border-radius: 12px;
                             box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
                             background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
                         }
-                        .section h3 { 
-                            margin-top: 0; 
+                        .section h3 {
+                            margin-top: 0;
                             margin-bottom: 15px;
-                            color: #f9fafb; 
+                            color: #f9fafb;
                             font-weight: 600;
                             font-size: 1.2em;
                             display: flex;
                             align-items: center;
                             gap: 10px;
                         }
-                        .error-message { 
+                        .error-message {
                             background: rgba(17, 24, 39, 0.9);
-                            color: #e4e6ea; 
-                            padding: 20px; 
+                            color: #e4e6ea;
+                            padding: 20px;
                             border-radius: 8px;
                             border: 1px solid rgba(239, 68, 68, 0.4);
                             font-family: 'Courier New', monospace;
@@ -1306,7 +1250,7 @@
                 <body>
                     <div class="container">
                         <button class="close-button" onclick="window.close()">✕ Close</button>
-                        
+
                         <div class="header">
                             <div class="error-title">
                                 🚨 POST Request Error
@@ -1331,20 +1275,20 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="section">
                             <h3>⚠️ Error Details</h3>
                             <div class="error-message">${escapedErrorMessage}</div>
-                            
+
                             <div class="troubleshooting">
                                 <h4>🔧 Quick Troubleshooting</h4>
                                 <p style="color: #d1d5db; font-size: 0.9em;">
-                                    This error typically occurs when the browser cannot connect to the server. 
+                                    This error typically occurs when the browser cannot connect to the server.
                                     Check if your WebServ server is running and accessible.
                                 </p>
                             </div>
                         </div>
-                        
+
                         <div class="section">
                             <h3>🔍 Possible Causes</h3>
                             <ul>
@@ -1357,7 +1301,7 @@
                                 <li><strong>Invalid endpoint:</strong> The /uploads/ endpoint may not be configured</li>
                             </ul>
                         </div>
-                        
+
                         <div class="section">
                             <h3>🛠️ Recommended Actions</h3>
                             <div class="troubleshooting">
@@ -1374,7 +1318,7 @@
                 </body>
                 </html>
             `;
-            
+
             newTab.document.write(html);
             newTab.document.close();
         }
